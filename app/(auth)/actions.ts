@@ -2,31 +2,32 @@
 
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { setCookie } from "cookies-next";
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
+import { generateToken } from "@/lib/jwt";
 
 export async function login(formData: { email: string; password: string }) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.email,
-    password: formData.password,
-  };
-
   const { data: userData, error } =
-    await supabase.auth.signInWithPassword(data);
+    await supabase.auth.signInWithPassword(formData);
 
   if (error) {
     throw new Error(error.message);
   }
 
+  if (userData.user) {
+    const token = generateToken(userData.user.id);
+    cookies().set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
+  }
+
   return userData;
-  // revalidatePath("/", "layout");
-  // redirect("/");
 }
 
 export async function signup(formData: { email: string; password: string }) {
@@ -46,12 +47,14 @@ export async function signup(formData: { email: string; password: string }) {
     throw new Error(error.message);
   }
 
-
   // revalidatePath("/", "layout");
   // redirect("/");
 }
 
-export async function signupAppsumo(formData: { email: string; password: string }) {
+export async function signupAppsumo(formData: {
+  email: string;
+  password: string;
+}) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -82,14 +85,11 @@ export async function logout() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-
-
+  const { error } = await supabase.auth.signOut({ scope: "local" });
 
   if (error) {
     throw new Error(error.message);
   } else {
-
     // Ideally, you might want to also revalidate or clear any cache that depends on the user session
     // This step depends on your application's structure and how it handles cache
     // redirect("/");
@@ -114,14 +114,16 @@ export async function resetPassword(formData: { email: string }) {
   }
 }
 
-export async function resetPasswordMain(newPassword: string, accessToken: string) {
+export async function resetPasswordMain(
+  newPassword: string,
+  accessToken: string
+) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
   // Authenticate the user using the token
-  const { error: sessionError } = await supabase.auth.exchangeCodeForSession(
-    accessToken,
-  );
+  const { error: sessionError } =
+    await supabase.auth.exchangeCodeForSession(accessToken);
 
   if (sessionError) {
     console.log("Session error: " + sessionError.message);
@@ -129,7 +131,9 @@ export async function resetPasswordMain(newPassword: string, accessToken: string
   }
 
   // Update the password
-  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
 
   if (error) {
     console.log("Update error: " + error.message);

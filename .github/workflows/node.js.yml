@@ -9,8 +9,6 @@ jobs:
     runs-on: [self-hosted, Linux, X64, production]
     env:
       NEXT_PUBLIC_APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_LOCAL_SERVER: ${{ secrets.NEXT_PUBLIC_LOCAL_SERVER }}
       NEXT_PUBLIC_RAZORPAY_API_KEY: ${{ secrets.NEXT_PUBLIC_RAZORPAY_API_KEY }}
@@ -30,7 +28,7 @@ jobs:
         run: npm run build
       - name: Restart the process
         if: success()
-        run: pm2 reload 0
+        run: pm2 reload 7
       - name: Save the PM2
         if: success()
         run: pm2 save

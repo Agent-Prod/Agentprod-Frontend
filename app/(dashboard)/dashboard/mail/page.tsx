@@ -28,6 +28,7 @@ export default function MailPage() {
         />
       </div> */}
       <div className="hidden flex-col md:flex">
+        
         <Mail
           accounts={accounts}
           mails={mails}

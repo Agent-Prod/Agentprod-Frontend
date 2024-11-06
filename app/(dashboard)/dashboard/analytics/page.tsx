@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,30 +16,122 @@ import {
 import { Icons } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { useMailGraphContext } from "@/context/chart-data-provider";
-import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { LoadingCircle } from "@/app/icons";
+import Cookies from "js-cookie";
+import axios from "axios";
+
+interface DashboardData {
+  emails_sent: number;
+  engaged: number;
+  meetings_booked: number;
+  response_rate: number;
+  conversion_funnel: {
+    sent: number;
+    opened: number;
+    cta_clicked: number;
+    goal: number;
+    'goal/click': number;
+    'goal/subscription': number;
+  };
+  hot_leads: Array<{
+    name: string;
+    photo_url?: string;
+    fallback?: string;
+  }>;
+  mailbox_health: Record<string, number>;
+  top_performing_campaigns: Array<{
+    campaign_name: string;
+    engaged_leads: number;
+    response_rate: number;
+    bounce_rate: number | null;
+    open_rate: number | null;
+  }>;
+  email_stats: {
+    deliverability_rate: number;
+    open_rate: number;
+    reply_rate: number;
+    positive_email_rate: number;
+    negative_email_rate: number;
+    conversion_rate: number;
+    unsubscribed_rate: number;
+  };
+}
+
+interface MailGraphData {
+  date: string;
+  emails: number;
+  new_emails: number;
+}
 
 export default function Page() {
-  const { mailGraphData } = useMailGraphContext();
-  const { dashboardData, isLoading } = useDashboardContext();
+  const [dashboardData, setDashboardData] = useState<DashboardData>({} as DashboardData);
+  const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const getPercentage = (current: any, previous: any) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = Cookies.get('Authorization');
+        if (!token) {
+          setError("No authorization token found");
+          return;
+        }
+
+        const [dashboardResponse, mailGraphResponse] = await Promise.all([
+          axios.get<DashboardData>(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/dashboard`,
+            {
+              headers: { 'Authorization': `Bearer ${token}` },
+              withCredentials: true
+            }
+          ),
+          axios.get<MailGraphData[]>(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/mailgraph`,
+            {
+              headers: { 'Authorization': `Bearer ${token}` },
+              withCredentials: true
+            }
+          )
+        ]);
+
+        setDashboardData(dashboardResponse.data);
+        setMailGraphData(mailGraphResponse.data);
+        setIsLoading(false);
+      } catch (error: any) {
+        console.error("Error fetching data:", error);
+        setError(error.message || "Failed to load data");
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const getPercentage = (current: number, previous: number): string => {
     return previous > 0 ? ((current / previous) * 100).toFixed(2) + "%" : "0%";
   };
 
   const outreachToOpenRate = getPercentage(
-    dashboardData.conversion_funnel?.opened,
-    dashboardData.conversion_funnel?.sent
+    dashboardData?.conversion_funnel?.opened || 0,
+    dashboardData?.conversion_funnel?.sent || 0
   );
   const openToCTAClickRate = getPercentage(
-    dashboardData.conversion_funnel?.cta_clicked,
-    dashboardData.conversion_funnel?.opened
+    dashboardData?.conversion_funnel?.cta_clicked || 0,
+    dashboardData?.conversion_funnel?.opened || 0
   );
   const ctaClickToGoalRate = getPercentage(
-    dashboardData.conversion_funnel?.goal,
-    dashboardData.conversion_funnel?.cta_clicked
+    dashboardData?.conversion_funnel?.goal || 0,
+    dashboardData?.conversion_funnel?.cta_clicked || 0
   );
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <ScrollArea className="h-full">
@@ -141,8 +233,8 @@ export default function Page() {
                     <div className="flex justify-center items-center">
                       <LoadingCircle />
                     </div>
-                  ) : dashboardData?.hot_leads.length > 0 ? (
-                    dashboardData.hot_leads.map((lead) => (
+                  ) : dashboardData?.hot_leads?.length > 0 ? (
+                    dashboardData?.hot_leads?.map((lead: any) => (
                       <div key={lead.name} className="flex items-center">
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={lead.photo_url} alt="Avatar" />

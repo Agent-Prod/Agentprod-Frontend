@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
+import { redirect, useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Enter a valid email address" }),
@@ -40,6 +41,7 @@ export default function UserAuthForm({
 }: {
   formType: "signin" | "signup";
 }) {
+  const router = useRouter();
   const { login } = useAuth();
   const { user, setUser } = useUserContext();
   const [loading, setLoading] = useState(false);
@@ -59,13 +61,23 @@ export default function UserAuthForm({
       console.log("button clicked");
       if (formType === "signin") {
         try {
-          userData = await supabaseLogin({
+          // userData = await supabaseLogin({
+          //   email: data.email,
+          //   password: data.password,
+          // });
+          const response = await axiosInstance.post("v2/users/login", {
             email: data.email,
             password: data.password,
           });
-          toast.success("Sign-in Successful!");
+          userData = response.data;
 
-          console.log("User details on signin:", userData.user);
+          // Store the Bearer token in cookies
+          if (response.data.user_id) {
+            setCookie('Authorization', `Bearer ${response.data.user_id}`, { maxAge: 3600 * 24 * 7 }); // 7 days
+          }
+
+          toast.success("Sign-in Successful!");
+          router.push('/dashboard');
         } catch (error) {
           toast.error("Sign-in failed. Please try again.");
           console.error("Error during sign-in:", error);

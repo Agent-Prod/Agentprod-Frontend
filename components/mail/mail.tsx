@@ -268,9 +268,18 @@ export function Mail({
           }
         );
 
-        console.log("Response data:", response.data.mails);
-        
-        const totalCount = response.data.total_count;
+        // Add null check for response data
+        if (!response.data || !response.data.mails) {
+          setHasMore(false); // Stop further API calls
+          setLoading(false);
+          if (pageNum === 1) {
+            setIsInitialLoading(false);
+            setIsTransitioning(false);
+          }
+          return;
+        }
+
+        const totalCount = response.data.total_count || 0;
 
         const campaignChannelMap = campaigns.reduce((map: {[key: string]: string}, campaign: any) => {
           map[campaign.id] = campaign.channel;
@@ -290,8 +299,10 @@ export function Mail({
           }
         });
 
-        const hasMoreItems = offset + itemsPerPage < totalCount;
+        // Only set hasMore to true if we received data and there's more to load
+        const hasMoreItems = mailsWithChannel.length > 0 && offset + itemsPerPage < totalCount;
         setHasMore(hasMoreItems);
+        
         setPage(pageNum);
         setLoading(false);
         if (pageNum === 1) {
@@ -304,13 +315,16 @@ export function Mail({
           console.log('Request cancelled, keeping loader');
         } else {
           console.error("Error fetching mails:", err);
-          setError(err.message || "Failed to load mails.");
-          setMails([]);
-          setLoading(false);
-          setIsInitialLoading(false);
-          setIsTransitioning(false);
+          setHasMore(false); // Stop further API calls on error
+          // Don't set error state to avoid showing error on screen
+          if (pageNum === 1) {
+            setMails([]); // Only clear mails if it's the first page
+          }
         }
       } finally {
+        setLoading(false);
+        setIsInitialLoading(false);
+        setIsTransitioning(false);
         setShowLoadingOverlay(false);
       }
     },

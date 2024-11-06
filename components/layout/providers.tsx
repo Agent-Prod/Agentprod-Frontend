@@ -4,10 +4,8 @@ import React from "react";
 import ThemeProvider from "./ThemeToggle/theme-provider";
 import { UserContextProvider } from "../../context/user-context";
 import { LeadSheetSidebarProvider } from "../../context/lead-sheet-sidebar";
-import { AuthProvider, AuthStateInterface } from "../../context/auth-provider";
 import { LeadsProvider } from "../../context/lead-user";
 import { CampaignProvider } from "../../context/campaign-provider";
-import { DashboardProvider } from "@/context/dashboard-analytics-provider";
 import { CompanyProvider } from "@/context/company-linkedin";
 import { MailboxProvider } from "@/context/mailbox-provider";
 import { AutoGenerateProvider } from "@/context/auto-generate-mail";
@@ -17,17 +15,14 @@ import { ButtonStatusProvider } from "@/context/button-status";
 
 export default function Providers({
   // session,
-  userAuthData,
   children,
 }: {
   // session: SessionProviderProps["session"];
-  userAuthData: AuthStateInterface["user"];
   children: React.ReactNode;
 }) {
   return (
     <>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthProvider userData={userAuthData}>
           <AutoGenerateProvider>
             <UserContextProvider>
               <LeadSheetSidebarProvider>
@@ -35,7 +30,6 @@ export default function Providers({
                   <FieldsListProvider>
                     <CampaignProvider>
                       <MailGraphProvider>
-                        <DashboardProvider>
                           <ButtonStatusProvider>
                             <CompanyProvider>
                               <MailboxProvider>
@@ -45,7 +39,6 @@ export default function Providers({
                               </MailboxProvider>
                             </CompanyProvider>
                           </ButtonStatusProvider>
-                        </DashboardProvider>
                       </MailGraphProvider>
                     </CampaignProvider>
                   </FieldsListProvider>
@@ -53,7 +46,6 @@ export default function Providers({
               </LeadSheetSidebarProvider>
             </UserContextProvider>
           </AutoGenerateProvider>
-        </AuthProvider>
       </ThemeProvider>
     </>
   );

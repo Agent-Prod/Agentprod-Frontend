@@ -1,7 +1,7 @@
 "use client";
 // Import necessary modules and components
 import React, { useState } from "react";
-import { useAuth } from "@/context/auth-provider";
+// import { useAuth } from "@/context/auth-provider";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +45,7 @@ type UserFormValue = z.infer<typeof formSchema>;
 
 // Define the functional component for the registration page
 function RegistrationPage() {
-  const { login } = useAuth(); // Use authentication context for login
+  // const { login } = useAuth(); // Use authentication context for login
   const { setUser } = useUserContext(); // Use user context for setting user details
   const [loading, setLoading] = useState(false); // State for loading indicator
 

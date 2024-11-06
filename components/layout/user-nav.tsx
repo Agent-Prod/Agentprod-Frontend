@@ -104,14 +104,14 @@ import {
 import { useUserContext } from "@/context/user-context";
 import { useRouter } from "next/navigation";
 import { deleteCookie } from "cookies-next";
-import { useAuth } from "@/context/auth-provider";
+// import { useAuth } from "@/context/auth-provider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export function UserNav() {
   const router = useRouter();
   const { user, setUser } = useUserContext();
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
 
   const [isClient, setIsClient] = useState(false);
 
@@ -129,7 +129,7 @@ export function UserNav() {
         firstName: "",
         email: "",
       });
-      logout(); // Ensure logout state is cleared before redirect
+      // logout(); // Ensure logout state is cleared before redirect
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);

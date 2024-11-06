@@ -22,7 +22,6 @@ import {
   signup as supabaseSignup,
 } from "@/app/(auth)/actions";
 import { toast } from "sonner";
-import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 import { redirect, useRouter } from "next/navigation";
@@ -42,7 +41,6 @@ export default function UserAuthForm({
   formType: "signin" | "signup";
 }) {
   const router = useRouter();
-  const { login } = useAuth();
   const { user, setUser } = useUserContext();
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +71,7 @@ export default function UserAuthForm({
 
           // Store the Bearer token in cookies
           if (response.data.user_id) {
-            setCookie('Authorization', `Bearer ${response.data.user_id}`, { maxAge: 3600 * 24 * 7 }); // 7 days
+            setCookie('Authorization',response.data.user_id); // 7 days
           }
 
           toast.success("Sign-in Successful!");
@@ -116,7 +114,6 @@ export default function UserAuthForm({
           toast.error("Failed to complete user setup.");
         }
 
-        login(userData.user);
 
         const userKey = "user";
         setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // Expires in one week

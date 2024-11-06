@@ -12,7 +12,7 @@ import { navItems } from "@/constants/data";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import useWindowSize from "@/hooks/useWindowSize";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/context/auth-provider";
+// import { useAuth } from "@/context/auth-provider";
 import { redirect } from "next/navigation";
 import { PageHeaderProvider } from "@/context/page-header";
 import { useMailbox } from "@/context/mailbox-provider";
@@ -28,7 +28,7 @@ export default function DashboardLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { width } = useWindowSize();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const { isSubscribed } = useSubscription();
   const { isContextBarOpen } = useMailbox();
 
@@ -39,10 +39,8 @@ export default function DashboardLayout({
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) {
-      redirect("/");
-      return;
-    }
+    
+    // console.log("user", user);
 
     if (!hasInitializedRef.current) {
       const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -57,7 +55,7 @@ export default function DashboardLayout({
         clearInterval(verificationIntervalRef.current);
       }
     };
-  }, [user]);
+  }, []);
 
   const startVerification = () => {
     const domain = localStorage.getItem('domainInput');

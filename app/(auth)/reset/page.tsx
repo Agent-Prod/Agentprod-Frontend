@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/auth-provider";
+// import { useAuth } from "@/context/auth-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { resetPasswordMain } from "../actions";
 
 function Page() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,9 +24,9 @@ function Page() {
     setAccessToken(accessToken);
   }, [searchParams]);
 
-  if (user) {
-    router.push("/dashboard");
-  }
+  // if (user) {
+  //   router.push("/dashboard");
+  // }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);

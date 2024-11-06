@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -23,22 +23,190 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import DashboardPageHeader from "@/components/layout/dashboard-page-header";
-import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { useMailGraphContext } from "@/context/chart-data-provider";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
+import axios from "axios";
+import Cookies from 'js-cookie';
+
 // import { useUserContext } from "@/context/user-context";
 // import useWebSocket from "@/hooks/useWebhook";
 
+type HotLead = {
+  id: string;
+  photo_url: string;
+  fallback: string;
+  name: string;
+  company: string;
+};
+
+type TopPerformingCampaign = {
+  campaign_name: string;
+  engaged_leads: number;
+  response_rate: number;
+  bounce_rate: number;
+  open_rate: number;
+};
+
+type ConversionFunnel = {
+  [key: string]: number;
+};
+
+type EmailStats = {
+  open_rate: number;
+  reply_rate: number;
+  conversion_rate: number;
+  unsubscribed_rate: number;
+  deliverability_rate: number;
+  negative_email_rate: number;
+  positive_email_rate: number;
+};
+
+interface DashboardEntry {
+  id: number;
+  pending_approvals: number;
+  user_id: string;
+  emails_sent: number | null;
+  engaged: number | null;
+  meetings_booked: number | null;
+  response_rate: number;
+  conversion_funnel: ConversionFunnel;
+  hot_leads: HotLead[];
+  mailbox_health: { [email: string]: number };
+  top_performing_campaigns: TopPerformingCampaign[];
+  email_stats: EmailStats;
+}
+
+interface DashboardContextType {
+  dashboardData: DashboardEntry;
+  isLoading: boolean;
+  setDashboardData: (dashboardData: DashboardEntry) => void;
+}
+
+const defaultDashboardState: DashboardContextType = {
+  dashboardData: {
+    id: 0,
+    user_id: "",
+    pending_approvals: 0,
+    emails_sent: null,
+    engaged: null,
+    meetings_booked: null,
+    response_rate: 0,
+    hot_leads: [],
+    mailbox_health: {},
+    conversion_funnel: {},
+    top_performing_campaigns: [],
+    email_stats: {
+      open_rate: 0,
+      reply_rate: 0,
+      conversion_rate: 0,
+      unsubscribed_rate: 0,
+      deliverability_rate: 0,
+      negative_email_rate: 0,
+      positive_email_rate: 0,
+    },
+  },
+  isLoading: true,
+  setDashboardData: () => {},
+};
+
+interface MailGraphData {
+  date: string;
+  emails: number;
+  new_emails: number;
+}
+
 export default function Page() {
-  const { dashboardData, isLoading } = useDashboardContext();
-  const { mailGraphData } = useMailGraphContext();
-  // const { user } = useUserContext();
+  const [dashboardData, setDashboardData] = useState<DashboardEntry>(
+    defaultDashboardState.dashboardData
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
 
-  // const ws =
-  //   "ws://agentprod-backend-framework-zahq.onrender.com/v2/ws/receive/emails/8c7e9baf-e299-4532-9ada-8f338a6ad9b6";
+  useEffect(() => {
+    const fetchDashboardData = async (retryCount = 0): Promise<void> => {
+      try {
+        const token = Cookies.get('Authorization');
+        if (!token) {
+          setError("No authorization token found");
+          setIsLoading(false);
+          return;
+        }
 
-  // const { socket, recentActivities } = useWebSocket(ws);
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/dashboard`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            withCredentials: true
+          }
+        );
+
+        if (!response.data) {
+          if (retryCount < 3) {
+            console.log(`Retry attempt ${retryCount + 1} for null response`);
+            const delay = Math.pow(2, retryCount) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return fetchDashboardData(retryCount + 1);
+          }
+          setDashboardData(defaultDashboardState.dashboardData);
+          console.warn("Received null response after retries");
+        } else {
+          setDashboardData(response.data);
+          console.log("Dashboard Data:", response.data);
+        }
+      } catch (error: any) {
+        if ((error.response?.status === 404 || error.response?.status === 500) && retryCount < 3) {
+          console.log(`Retry attempt ${retryCount + 1} for ${error.response.status} error`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return fetchDashboardData(retryCount + 1);
+        }
+        console.error("Error fetching data:", error);
+        setError(error.message || "Failed to load data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+
+    // Cleanup function
+    return () => {
+      // Any cleanup code if needed
+    };
+  }, []); // Empty dependency array for initial load only
+
+  useEffect(() => {
+    const fetchMailGraphData = async () => {
+      try {
+        const token = Cookies.get('Authorization');
+        if (!token) {
+          setError("No authorization token found");
+          return;
+        }
+
+        const response = await axios.get<MailGraphData[]>(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/mailgraph`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            withCredentials: true
+          }
+        );
+        
+        setMailGraphData(response.data);
+        console.log("Mail Graph Data:", response.data);
+      } catch (error: any) {
+        console.error("Error fetching mail graph data:", error);
+        setError(error.message || "Failed to load mail graph data.");
+      }
+    };
+
+    fetchMailGraphData();
+  }, []); // Empty dependency array for initial load only
 
   const recentActivities: any[] = [];
   // React.useEffect(() => {

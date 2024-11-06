@@ -1,22 +1,29 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "@/context/auth-provider";
+import Cookies from 'js-cookie';
+
+// import { useAuth } from "@/context/auth-provider";
 
 export const useSubscription = () => {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth();
+    // const { user } = useAuth();
 
     const fetchSubscriptionStatus = async () => {
-        if (!user) return;
+        // if (!user) return;
 
         setLoading(true);
         setError(null);
 
         try {
             const res = await axios.get(
-                `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+                `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + Cookies.get('Authorization'),
+                    },
+                    withCredentials: true
+                }
             );
 
             const startTime = new Date(res.data.start_time).getTime();
@@ -42,7 +49,7 @@ export const useSubscription = () => {
 
     useEffect(() => {
         fetchSubscriptionStatus();
-    }, [user]);
+    }, []);
 
     return { isSubscribed, loading, error, fetchSubscriptionStatus };
 };

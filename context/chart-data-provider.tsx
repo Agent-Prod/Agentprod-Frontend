@@ -8,8 +8,7 @@ import React, {
   useMemo,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "./user-context";
-
+import Cookies from 'js-cookie';
 interface MailGraphData {
   date: string;
   emails: number;
@@ -35,7 +34,6 @@ const MailGraphContext = createContext<MailGraphContextType>(
 export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useUserContext();
   const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -44,7 +42,12 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get<MailGraphData[]>(
-          `/v2/mailgraph/${user?.id}`
+          `/v2/mailgraph`,{
+            headers: {
+              'Authorization': 'Bearer ' + Cookies.get('Authorization'),
+            },
+            withCredentials: true
+          }
         );
         setMailGraphData(response.data);
         console.log("Mailgraph Data comingggg:", response.data);
@@ -56,10 +59,8 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    if (user?.id) {
-      fetchData();
-    }
-  }, [user?.id]);
+    fetchData();
+  }, []);
 
   const contextValue = useMemo(
     () => ({

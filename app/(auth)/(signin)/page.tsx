@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import UserAuthForm from "@/components/forms/auth/user-auth-form";
-import { useAuth } from "@/context/auth-provider";
 import { redirect } from "next/navigation";
 import {
   Dialog,
@@ -18,13 +17,10 @@ import { resetPassword } from "@/app/(auth)/actions"; // adjust the path accordi
 import { toast } from "sonner";
 
 export default function AuthenticationPage() {
-  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (user) {
-    redirect("/dashboard");
-  }
+
 
   const handlePasswordReset = async () => {
     setLoading(true);

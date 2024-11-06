@@ -4,7 +4,7 @@ import MiniNav from "./mini-nav";
 import SimpleNav from "./simple-nav";
 import CollapseNavItem from "./collapse-nav-item";
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/context/auth-provider';
+// import { useAuth } from '@/context/auth-provider';
 
 // Update the TawkAPI interface
 interface TawkAPI {
@@ -32,7 +32,7 @@ interface NavProps {
 }
 
 export function Nav({ links, isCollapsed }: NavProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   const initializeTawk = useCallback(() => {
     //@ts-ignore
@@ -43,29 +43,29 @@ export function Nav({ links, isCollapsed }: NavProps) {
     window.Tawk_API.autoStart = false;
     //@ts-ignore
 
-    window.Tawk_API.onLoad = function() {
-      window.Tawk_API?.hideWidget();
+    // window.Tawk_API.onLoad = function() {
+    //   window.Tawk_API?.hideWidget();
 
-      if (user && window.Tawk_API?.setAttributes) {
-        window.Tawk_API.setAttributes({
-          name: user.name,
-          email: user.email,
-          id: user.id,
-          hash: 'fb93e0d85c0a682dc54f0af7adaf6ae853a51743', // Use environment variable in production
-        }, function(error) {
-          if (error) console.error('Tawk setAttributes error:', error);
-        });
-      }
+    //   if (user && window.Tawk_API?.setAttributes) {
+    //     window.Tawk_API.setAttributes({
+    //       name: user.name,
+    //       email: user.email,
+    //       id: user.id,
+    //       hash: 'fb93e0d85c0a682dc54f0af7adaf6ae853a51743', // Use environment variable in production
+    //     }, function(error) {
+    //       if (error) console.error('Tawk setAttributes error:', error);
+    //     });
+    //   }
 
-      if (user && window.Tawk_API?.addEvent) {
-        window.Tawk_API.addEvent('user_logged_in', {
-          username: user.name,
-          email: user.email,
-        }, function(error) {
-          if (error) console.error('Tawk addEvent error:', error);
-        });
-      }
-    };
+    //   if (user && window.Tawk_API?.addEvent) {
+    //     window.Tawk_API.addEvent('user_logged_in', {
+    //       username: user.name,
+    //       email: user.email,
+    //     }, function(error) {
+    //       if (error) console.error('Tawk addEvent error:', error);
+    //     });
+    //   }
+    // };
 //@ts-ignore
     window.Tawk_API.onStatusChange = function(status) {
       //@ts-ignore
@@ -74,7 +74,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
         window.Tawk_API?.start({ showWidget: false });
       }
     };
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     const tawkScript = document.querySelector('script[src^="https://embed.tawk.to"]');

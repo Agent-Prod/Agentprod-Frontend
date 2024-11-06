@@ -6,7 +6,7 @@ import Providers from "@/components/layout/providers";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { AuthStateInterface } from "@/context/auth-provider";
+// import { AuthStateInterface } from "@/context/auth-provider";
 import { Toaster } from "sonner";
 import Script from "next/script";
 // import { getServerSession } from "next-auth";
@@ -27,11 +27,11 @@ export default async function RootLayout({
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  let authData: AuthStateInterface["user"] = null;
+  // let authData: AuthStateInterface["user"] = null;
 
   const { data, error } = await supabase.auth.getUser();
   if (!error && data?.user) {
-    authData = data?.user;
+    // authData = data?.user;
   }
 
   return (
@@ -65,10 +65,8 @@ export default async function RootLayout({
           
         </head>
         <body className={`${inter.className} overflow-hidden`}>
-          <Providers userAuthData={authData}>
             <Toaster />
             {children}
-          </Providers>
         </body>
       </html>
   );

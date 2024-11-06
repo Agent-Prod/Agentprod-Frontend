@@ -261,6 +261,7 @@ export const ImportAudience = () => {
         revealed_for_current_team: lead.revealed_for_current_team || false,
         linkedin_posts: [], 
         linkedin_bio: lead.linkedin_bio || "",
+        social_monitoring_data: lead.social_monitoring_data || "",
       }));
 
       setLeads(processedLeads);
@@ -327,6 +328,7 @@ export const ImportAudience = () => {
       organization: lead.organization,
       linkedin_posts: lead.linkedin_posts || [],
       linkedin_bio: lead.linkedin_bio || "",
+      social_monitoring_data: lead.social_monitoring_data || "",
     }));
   }
 

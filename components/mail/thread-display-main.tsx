@@ -180,7 +180,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         setError(error.message || "Failed to load conversation.");
         setIsLoading(false);
       });
-  }, [conversationId, thread.length]);
+  }, [conversationId, thread?.length]);
 
   const isLinkedInUrl = (recipient: string): boolean => {
     return recipient.toLowerCase().includes('linkedin.com');
@@ -709,7 +709,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     const internalScrollRef = React.useRef<HTMLDivElement>(null);
     const [isEditing, setIsEditing] = React.useState(false);
 
-    const lastEmail = thread[thread.length - 1];
+    const lastEmail = thread && thread[thread.length - 1];
 
     // Add this state to store the platform
     const [platform, setPlatform] = React.useState("");
@@ -1167,7 +1167,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   };
 
   const matchingCampaign = campaigns.find((campaign) => campaign.id === leadId);
-  const lastEmail = thread[thread.length - 1];
+  const lastEmail = thread && thread[thread.length - 1];
 
   
   return (
@@ -1182,7 +1182,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
            
 
             {/* Campaign Info */}
-            {matchingCampaign && (
+            {/* {matchingCampaign && (
               <div className="m-4">
                 <div className="flex items-center gap-3">
                   <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
@@ -1194,7 +1194,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
             {thread[0]?.channel === 'Linkedin' && <div className="m-4">
               <div className="flex items-center gap-3">
                 <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">

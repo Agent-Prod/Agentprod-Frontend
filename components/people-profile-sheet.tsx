@@ -15,6 +15,12 @@ import {
   Users,
   Layers,
   Activity,
+  Search,
+  Twitter,
+  Youtube,
+  Instagram,
+  Star,
+  Link,
 } from "lucide-react";
 import { GrScorecard } from "react-icons/gr";
 
@@ -62,6 +68,7 @@ export const PeopleProfileSheet = ({
   const [subdepartmentsCollapsibleOpen, setSubdepartmentsCollapsibleOpen] =
     useState(false);
   // const [companyCollapsibleOpen, setCompanyCollapsibleOpen] = useState(false);
+  const [socialMonitoringOpen, setSocialMonitoringOpen] = useState(false);
 
   console.log("Leads Data for Indiviual User", data);
 
@@ -656,6 +663,135 @@ export const PeopleProfileSheet = ({
             </Collapsible>
             {/* Posts */}
 
+            {data.social_monitoring_data && (
+              <Collapsible
+                open={socialMonitoringOpen}
+                onOpenChange={setSocialMonitoringOpen}
+                className="pt-4 space-y-2 text-muted-foreground w-full"
+              >
+                <div className="flex items-center justify-between space-x-4 w-full">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    Social Monitoring Data
+                  </h4>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-9 p-0">
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="sr-only">Toggle</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+
+                <CollapsibleContent className="space-y-3 w-full">
+                  {/* Company Description */}
+                  {data.social_monitoring_data.includes('Description') && (
+                    <Card className="p-4 bg-secondary/5">
+                      <CardHeader className="p-0 pb-3">
+                        <CardTitle className="text-sm">Company Description</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <p className="text-xs text-muted-foreground">
+                          {data.social_monitoring_data.split('### Recent Social Media Monitoring Data')[0]
+                            .replace('### Skycliff IT Company Description', '')
+                            .trim()}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Platform Cards */}
+                  {[
+                    { name: 'Google News', icon: <Search className="h-4 w-4" /> },
+                    { name: 'G2 Reviews', icon: <Star className="h-4 w-4" /> },
+                    { name: 'LinkedIn', icon: <Linkedin className="h-4 w-4" /> },
+                    { name: 'Twitter/X', icon: <Twitter className="h-4 w-4" /> },
+                    { name: 'YouTube', icon: <Youtube className="h-4 w-4" /> },
+                    { name: 'Instagram', icon: <Instagram className="h-4 w-4" /> },
+                    { name: 'Additional Sources', icon: <Link className="h-4 w-4" /> }
+                  ].map((platform) => {
+                    // Extract platform-specific data
+                    const platformData = data.social_monitoring_data
+                      .split('####')
+                      .find(section => section.includes(platform.name));
+                    
+                    // Only show platforms with actual data
+                    const hasData = platformData && 
+                      !platformData.includes('No data available') && 
+                      !platformData.includes('No relevant recent posts available');
+
+                    // Skip rendering if no data
+                    if (!hasData) return null;
+
+                    return (
+                      <Card key={platform.name} className="bg-secondary/5 border-border">
+                        <div className="p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            {platform.icon}
+                            <h4 className="text-sm font-medium">{platform.name}</h4>
+                          </div>
+                          
+                          <div className="space-y-2 ml-6">
+                            {platformData?.split('\n').map((line, index) => {
+                              if (line.includes('**Date:**')) {
+                                return (
+                                  <div key={index} className="text-xs">
+                                    <span className="font-medium">Date:</span>
+                                    {line.replace('**Date:**', '').trim()}
+                                  </div>
+                                );
+                              }
+                              if (line.includes('**Source/Author:**')) {
+                                return (
+                                  <div key={index} className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Source:</span>
+                                    {line.replace('**Source/Author:**', '').trim()}
+                                  </div>
+                                );
+                              }
+                              if (line.includes('**Content Summary:**')) {
+                                return (
+                                  <div key={index} className="text-xs">
+                                    <span className="font-medium">Summary:</span>
+                                    {line.replace('**Content Summary:**', '').trim()}
+                                  </div>
+                                );
+                              }
+                              if (line.includes('**Key Themes:**')) {
+                                return (
+                                  <div key={index} className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Themes:</span>
+                                    {line.replace('**Key Themes:**', '').trim()}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+
+                  {/* Summary Section */}
+                  {data.social_monitoring_data.includes('In summary') && (
+                    <Card className="p-4 bg-secondary/5">
+                      <CardHeader className="p-0 pb-3">
+                        <CardTitle className="text-sm">Summary</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <p className="text-xs text-muted-foreground">
+                          {data.social_monitoring_data
+                            .split('In summary,')[1]
+                            .split('\n')[0]
+                            .trim()}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             {/* Technologies */}
 
             {/* <Collapsible
@@ -898,6 +1034,10 @@ export const PeopleProfileSheet = ({
                 <br />
               </div>
             )}
+
+            {/* Add this section after the LinkedIn Posts collapsible */}
+
+            
           </div>
         </div>
       </div>

@@ -167,6 +167,7 @@ export const SelectFromExisting = () => {
       organization: lead.organization,
       linkedin_posts: lead.linkedin_posts || [],
       linkedin_bio: lead.linkedin_bio || "",
+      social_monitoring_data: lead.social_monitoring_data || "",
     }));
   }
 

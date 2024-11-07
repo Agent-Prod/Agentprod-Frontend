@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -32,6 +32,7 @@ import { useUserContext } from "@/context/user-context";
 import Cookies from "js-cookie";
 import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
+import { toast } from "sonner";
 // Add these type definitions at the top
 type HotLead = {
   id: string;
@@ -107,30 +108,33 @@ export default function Page() {
   const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
   const [mailGraphLoading, setMailGraphLoading] = useState(true);
 
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${Cookies.get("Authorization")}`,
+      'Content-Type': 'application/json'
+    }
+  };
+
   const fetchDashboardData = async (retryCount = 0): Promise<void> => {
     try {
-      const response = await axios.get<DashboardEntry>(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("Authorization")}`
-        }
-      });
-      if (response.data === null) {
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return fetchDashboardData(retryCount + 1);
-        }
-        console.warn("Received null response after retries");
-      } else {
-        setDashboardData(response.data);
+      setIsLoading(true);
+      if (!user?.user_id) {
+        toast.error("User session not found");
+        return;
       }
-      setIsLoading(false);
+
+      const response = await axiosInstance.get(`/v2/dashboard`, axiosConfig);
+      setDashboardData(response.data);
     } catch (error: any) {
-      if ((error.response?.status === 404 || error.response?.status === 500) && retryCount < 3) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return fetchDashboardData(retryCount + 1);
+      if (error.response?.status === 401) {
+        // Handle unauthorized access
+        toast.error("Session expired. Please login again");
+        // Redirect to login or refresh token
+      } else {
+        toast.error("Failed to fetch dashboard data");
       }
-      console.error("Error fetching data:", error);
+      console.error("Error fetching dashboard data:", error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -147,14 +151,24 @@ export default function Page() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const token = Cookies.get("Authorization");
+    if (!token) {
+      toast.error("Please login to continue");
+      // Redirect to login page
+      return;
+    }
+
     if (user?.user_id) {
       setIsLoading(true);
-      fetchDashboardData();
-      fetchMailGraphData();
-    } else {
-      console.warn("No user ID found");
-      setIsLoading(false);
+      Promise.all([
+        fetchDashboardData(),
+        fetchMailGraphData()
+      ]).catch(error => {
+        console.error("Failed to fetch dashboard data:", error);
+      }).finally(() => {
+        setIsLoading(false);
+      });
     }
   }, [user]);
 

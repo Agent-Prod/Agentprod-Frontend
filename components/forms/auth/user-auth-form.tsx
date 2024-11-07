@@ -18,7 +18,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { setCookie } from "cookies-next";
 import {
-  login as supabaseLogin,
   signup as supabaseSignup,
 } from "@/app/(auth)/actions";
 import { toast } from "sonner";

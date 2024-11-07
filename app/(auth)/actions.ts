@@ -7,31 +7,7 @@ import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import { revalidatePath } from "next/dist/server/web/spec-extension/revalidate";
 
-export async function login(formData: { email: string; password: string }) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
-  const { data: userData, error } = await supabase.auth.signInWithPassword({
-    email: formData.email,
-    password: formData.password,
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  // Set the auth cookie immediately
-  if (userData.session?.access_token) {
-    cookies().set('Authorization', userData.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/'
-    });
-  }
-
-  return userData;
-}
 
 export async function signup(formData: { email: string; password: string }) {
   const cookieStore = cookies();

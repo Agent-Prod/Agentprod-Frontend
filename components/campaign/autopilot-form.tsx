@@ -19,7 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
+import Cookies from "js-cookie";
 const autopilotFormSchema = z.object({
   all_messages_actions: z.boolean().optional(),
   email: z.boolean().optional(),
@@ -112,7 +112,12 @@ export function AutopilotForm() {
     async function fetchData() {
       try {
         const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         const data = res.data;
         if (data) {
@@ -140,10 +145,18 @@ export function AutopilotForm() {
       const payload = { campaign_id: params.campaignId, ...data };
 
       if (type === "create") {
-        await axios.post(url, payload);
+        await axios.post(url, payload, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        });
         toast.success("Autopilot settings created successfully.");
       } else {
-        await axios.put(url, payload);
+        await axios.put(url, payload, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        });
         toast.success("Autopilot settings updated successfully.");
       }
       setTimeout(() => {

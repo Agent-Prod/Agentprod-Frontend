@@ -502,7 +502,11 @@ export default function PeopleForm(): JSX.Element {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "No Contacts found") {
@@ -1251,7 +1255,12 @@ export default function PeopleForm(): JSX.Element {
 
         const audienceResponse = await axiosInstance.post(
           "v2/audience/",
-          postBody
+          postBody,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         console.log("filters to audience: ", audienceResponse.data);
 
@@ -1268,6 +1277,11 @@ export default function PeopleForm(): JSX.Element {
               page: calculatedPages + 1,
               is_active: false,
               leads_count: calculatedPages * 25,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
             }
           );
           console.log("Recurring campaign request: ", recurringResponse.data);
@@ -1284,7 +1298,11 @@ export default function PeopleForm(): JSX.Element {
         const checkLeads = async () => {
           try {
             const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,{
+                headers: {
+                  Authorization: `Bearer ${Cookies.get("Authorization")}`
+                }
+              }
             );
             if (Array.isArray(response.data) && response.data.length >= 1) {
 
@@ -1564,7 +1582,11 @@ export default function PeopleForm(): JSX.Element {
         // Update contacts
         const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
-        await axiosInstance.post(`v2/lead/bulk/`, audienceBody);
+        await axiosInstance.post(`v2/lead/bulk/`, audienceBody, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        });
 
         toast.success("Audience updated successfully");
       router.push(`/dashboard/campaign/${params.campaignId}`);
@@ -1799,7 +1821,11 @@ export default function PeopleForm(): JSX.Element {
         };
       }
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/apollo/lead/search`, requestBody);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/apollo/lead/search`, requestBody, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      });
       
       // Assuming the API returns the total count in the response
       setTotalLeads(response.data.total_leads);

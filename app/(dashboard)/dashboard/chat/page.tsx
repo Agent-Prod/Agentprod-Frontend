@@ -30,7 +30,7 @@ export default function Home() {
   const { user } = useUserContext();
   const [loader, setLoader] = useState(true);
   const [userEmail] = useState(user?.email);
-  const [userId] = useState(user?.id);
+  const [userId] = useState(user?.user_id);
   const [loading, setLoading] = useState(true);
   const [sallyLoad, setSallyLoad] = useState(false);
   const [allMessages, setAllMessages] = useState<Message[]>([
@@ -323,7 +323,7 @@ export default function Home() {
                       <span className="text-xs">
                         {message.role === "assistant"
                           ? "Sally"
-                          : user?.firstName}{" "}
+                          : user?.first_name}{" "}
                         {formatDate(message?.createdAt) === "No date provided"
                           ? recentDate
                           : formatDate(message?.createdAt)}

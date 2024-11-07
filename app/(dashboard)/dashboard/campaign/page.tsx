@@ -25,7 +25,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Linkedin } from 'lucide-react';
-
+import Cookies from "js-cookie";
 
 interface CampaignEntry {
   user_id: string;
@@ -136,7 +136,12 @@ export default function CampaignPage() {
         // Existing logic for non-recurring campaigns
         if (isActive) {
           const response = await axiosInstance.put(
-            `/v2/campaigns/pause/${campaignId}`
+            `/v2/campaigns/pause/${campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           if (response.status === 200) {
             setCampaigns((currentCampaigns) =>
@@ -150,7 +155,12 @@ export default function CampaignPage() {
           }
         } else {
           const response = await axiosInstance.put(
-            `/v2/campaigns/pause/${campaignId}`
+            `/v2/campaigns/pause/${campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           if (response.status === 200) {
             setCampaigns((currentCampaigns) =>
@@ -175,7 +185,11 @@ export default function CampaignPage() {
   useEffect(() => {
     async function fetchCampaigns() {
       try {
-        const response = await axiosInstance.get(`v2/campaigns/all/`);
+        const response = await axiosInstance.get(`v2/campaigns/all/`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        });
         const sortedCampaigns = response.data.sort((a: any, b: any) => {
           const dateA = new Date(a.created_at).getTime();
           const dateB = new Date(b.created_at).getTime();

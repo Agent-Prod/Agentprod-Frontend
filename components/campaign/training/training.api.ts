@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+
 export interface TrainingRequest {
   campaign_id: string;
   template: string;
@@ -55,7 +57,12 @@ export async function createTraining(
   try {
     const response = await axiosInstance.post<TrainingResponse>(
       "/v2/training/",
-      trainingInfo
+      trainingInfo,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -71,7 +78,12 @@ export async function updateTraining(
   try {
     const response = await axiosInstance.put<TrainingResponse>(
       `v2/training/${trainingId}`,
-      trainingInfo
+      trainingInfo,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -82,7 +94,11 @@ export async function updateTraining(
 
 export async function deleteTraining(trainingId: string): Promise<void> {
   try {
-    await axiosInstance.delete<void>(`v2/training/${trainingId}`);
+    await axiosInstance.delete<void>(`v2/training/${trainingId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    });
   } catch (error) {
     console.error("Error deleting training:", error);
     throw error;
@@ -94,7 +110,12 @@ export async function getTrainingByCampaignId(
 ): Promise<TrainingResponse> {
   try {
     const response = await axiosInstance.get<TrainingResponse>(
-      `v2/training/campaign/${campaignId}`
+      `v2/training/campaign/${campaignId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -108,7 +129,12 @@ export async function getAutogenerateTrainingTemplate(
 ): Promise<any> {
   try {
     const response = await axiosInstance.get<any>(
-      `v2/training/autogenerate/template`
+      `v2/training/autogenerate/template`,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -123,7 +149,11 @@ export async function getAutogenerateTrainingEmail(
 ): Promise<any> {
   try {
     const response = await axiosInstance
-      .get<any>(`v2/training/autogenerate/preview/${campaignId}/${userId}`)
+      .get<any>(`v2/training/autogenerate/preview/${campaignId}/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      })
       .then((response) => {
         const data = response.data;
         return data;
@@ -140,7 +170,11 @@ export async function getFollowUpOne(
 ): Promise<any> {
   try {
     const response = await axiosInstance
-      .get<any>(`v2/training/autogenerate/followup/1`)
+      .get<any>(`v2/training/autogenerate/followup/1`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      })
       .then((response) => {
         const data = response.data;
         return data;
@@ -157,7 +191,11 @@ export async function getFollowUpTwo(
 ): Promise<any> {
   try {
     const response = await axiosInstance
-      .get<any>(`v2/training/autogenerate/followup/2`)
+      .get<any>(`v2/training/autogenerate/followup/2`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      })
       .then((response) => {
         const data = response.data;
         return data;
@@ -180,7 +218,11 @@ export async function startCampaign(
     user_id: userId,
   };
   await axiosInstance
-    .post(`/v2/send/contacts?without_template=${type}`, postData)
+    .post(`/v2/send/contacts?without_template=${type}`, postData, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log(data);
@@ -197,7 +239,12 @@ export async function getTraining(
 ): Promise<TrainingResponse> {
   try {
     const response = await axiosInstance.get<TrainingResponse>(
-      `v2/training/${campaignId}`
+      `v2/training/${campaignId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -268,7 +315,12 @@ export async function getPreviewByTemplate({
 
     const response = await axiosInstance.post<any>(
       `v2/training/preview`,
-      postData
+      postData,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
 
     console.log(response.data);
@@ -284,7 +336,12 @@ export async function getAutogenerateFollowup(
 ): Promise<any> {
   try {
     const response = await axiosInstance.get<any>(
-      `v2/training/autogenerate/followup/`
+      `v2/training/autogenerate/followup/`,
+      {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     return response.data;
   } catch (error) {

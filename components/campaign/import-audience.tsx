@@ -129,7 +129,11 @@ export const ImportAudience = () => {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "No Contacts found") {
@@ -208,7 +212,12 @@ export const ImportAudience = () => {
       // Call the new endpoint
       const response = await axiosInstance.post(
         'v2/apollo/leads/bulk_enrich',
-        enrichmentData
+        enrichmentData,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        }
       );
 
       const enrichedLeads = response.data;
@@ -358,7 +367,12 @@ export const ImportAudience = () => {
 
       const audienceResponse = await axiosInstance.post(
         "v2/audience/",
-        postBody
+        postBody,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        }
       );
       const audienceData = audienceResponse.data;
       console.log("Audience created:", audienceData);

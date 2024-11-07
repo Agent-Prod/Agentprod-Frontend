@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserContext } from "@/context/user-context";
 import { Loading } from "./Loader";
 import axiosInstance from "@/utils/axiosInstance";
-
+import Cookies from "js-cookie";
 
 import { useParams } from "next/navigation";
 
@@ -168,7 +168,11 @@ export const TrainingPeopleProfileSheet = ({
       try {
         const response = await axiosInstance.post("/v2/training/preview", {
           campaign_id: params.campaignId,
-          user_id: user.id,
+          user_id: user?.user_id || "",
+        }, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
         });
 
         setData(response.data);
@@ -178,7 +182,7 @@ export const TrainingPeopleProfileSheet = ({
     };
 
     fetchData();
-  }, [params.campaignId, user.id]);
+  }, [params.campaignId, user?.user_id]);
 
   // useEffect(() => {
   //   const fetchData = async () => {

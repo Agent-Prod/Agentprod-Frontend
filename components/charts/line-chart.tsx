@@ -20,6 +20,11 @@ export function LineChartComponent({
 }: {
   mailGraphData: DataPoint[];
 }) {
+  // Add null check at the start of the component
+  if (!mailGraphData || !Array.isArray(mailGraphData)) {
+    return null; // or return a loading state/error message component
+  }
+
   // Function to aggregate data by day
   const aggregateDataByDay = (data: DataPoint[]): DataPoint[] => {
     const aggregatedData: { [key: string]: DataPoint } = {};

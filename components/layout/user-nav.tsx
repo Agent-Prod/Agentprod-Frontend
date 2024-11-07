@@ -88,7 +88,6 @@
 // }
 
 "use client";
-import { logout as supabaseLogout } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,11 +106,12 @@ import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/context/auth-provider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
+import Cookies from "js-cookie";
+import { toast } from "sonner";
+import { logout } from "@/app/(auth)/actions";
 export function UserNav() {
   const router = useRouter();
   const { user, setUser } = useUserContext();
-  const { logout } = useAuth();
 
   const [isClient, setIsClient] = useState(false);
 
@@ -121,10 +121,20 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      deleteCookie("Authorization");
-      logout()
-      router.push("/");
+      // Remove client-side cookie first
+      Cookies.remove('Authorization', { path: '/' });
+      
+      // Call server action
+      const result = await logout();
+      
+      if (result.success) {
+        // Use window.location for a full page refresh to the login page
+        window.location.href = '/';
+      } else {
+        toast.error("Failed to logout. Please try again.");
+      }
     } catch (error) {
+      toast.error("Logout failed. Please try again.");
       console.error("Logout failed:", error);
     }
   };

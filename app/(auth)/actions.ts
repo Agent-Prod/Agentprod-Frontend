@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setCookie } from "cookies-next";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
+import { revalidatePath } from "next/dist/server/web/spec-extension/revalidate";
 
 export async function login(formData: { email: string; password: string }) {
   const cookieStore = cookies();
@@ -81,24 +82,7 @@ export async function signupAppsumo(formData: { email: string; password: string 
   // redirect("/");
 }
 
-export async function logout() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-
-
-
-  if (error) {
-    throw new Error(error.message);
-  } else {
-
-    // Ideally, you might want to also revalidate or clear any cache that depends on the user session
-    // This step depends on your application's structure and how it handles cache
-    // redirect("/");
-    // Redirect to the homepage or login page after successful logout
-  }
-}
 
 export async function resetPassword(formData: { email: string }) {
   const cookieStore = cookies();
@@ -141,4 +125,21 @@ export async function resetPasswordMain(newPassword: string, accessToken: string
 
   console.log(data);
   return data;
+}
+
+export async function logout() {
+  try {
+    // Remove server-side cookie
+    cookies().delete('Authorization');
+    
+    // Clear any other session-related cookies
+    cookies().delete('supabase-auth-token');
+    
+    // Revalidate the layout to clear cached data
+    revalidatePath('/', 'layout');
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to logout" };
+  }
 }

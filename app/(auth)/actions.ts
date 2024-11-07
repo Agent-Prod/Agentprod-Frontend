@@ -10,23 +10,26 @@ export async function login(formData: { email: string; password: string }) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
+  const { data: userData, error } = await supabase.auth.signInWithPassword({
     email: formData.email,
     password: formData.password,
-  };
-
-  const { data: userData, error } =
-    await supabase.auth.signInWithPassword(data);
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
+  // Set the auth cookie immediately
+  if (userData.session?.access_token) {
+    cookies().set('Authorization', userData.session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
+  }
+
   return userData;
-  // revalidatePath("/", "layout");
-  // redirect("/");
 }
 
 export async function signup(formData: { email: string; password: string }) {

@@ -16,7 +16,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import axiosInstance from "@/utils/axiosInstance";
 import { useUserContext } from "@/context/user-context";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import Cookies from "js-cookie";
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -30,7 +30,6 @@ export default function Home() {
   const { user } = useUserContext();
   const [loader, setLoader] = useState(true);
   const [userEmail] = useState(user?.email);
-  const [userId] = useState(user?.user_id);
   const [loading, setLoading] = useState(true);
   const [sallyLoad, setSallyLoad] = useState(false);
   const [allMessages, setAllMessages] = useState<Message[]>([
@@ -40,6 +39,7 @@ export default function Home() {
     //   content: `Hello! I'm Sally, your Sales Rep. I accelerate outbound sales with access to 250 million contacts and manage bespoke email campaigns to thousands. I also reply to queries and schedule meetings. Can I help you start your sales outreach?`,
     // },
   ]);
+  const userId = user?.user_id
 
   // console.log("Id: ", userId);
 
@@ -192,6 +192,7 @@ export default function Home() {
   //   }
   // }, []);
 
+  const token = Cookies.get('Authorization');
   useEffect(() => {
     try {
       if (allMessages) {
@@ -210,7 +211,10 @@ export default function Home() {
         user_id: userId,
         content: inputRef.current?.value,
       },
-
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // Assuming token is available in user object
+      },
       onResponse: async (response) => {
         console.log("here");
 

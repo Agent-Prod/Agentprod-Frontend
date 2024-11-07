@@ -1,11 +1,21 @@
 /* eslint-disable no-console */
+import Cookies from "js-cookie";
 
+const token = Cookies.get('Authorization');
 export const hubspotLogin = (userid: string) => {
-  window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/hubspot/login/${userid}`;
+  window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/hubspot/login/${userid}`,{
+    headers: {
+      'Authorization': `Bearer ${token}`, 
+    },
+  };
 };
 
 export const salesforceLogin = (userid: string) => {
-  window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/salesforce/login/${userid}`;
+  window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/salesforce/login/${userid}`,{
+    headers: {
+      'Authorization': `Bearer ${token}`, 
+    },
+  };
 };
 
 export const slackLogin = () => {

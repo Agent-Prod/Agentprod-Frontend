@@ -31,7 +31,7 @@ import Image from "next/image";
 import logo from "../../../../../public/bw-logo.png";
 import { ArrowLeftRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
+import Cookies from "js-cookie";
 import {
   Form,
   FormControl,
@@ -91,7 +91,7 @@ export default function Page() {
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.user_id,
     };
     console.log("Payload:", payload);
     try {
@@ -109,7 +109,7 @@ export default function Page() {
   const updateSaleforceLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.user_id,
     };
     console.log("Payload:", payload);
     try {
@@ -136,7 +136,7 @@ export default function Page() {
     const fetchHubSpotStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.user_id,
           platform: "hubspot",
         });
         setIsConnectedToHubspot(response.data.message);
@@ -149,7 +149,7 @@ export default function Page() {
     const fetchSalesforceStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.user_id,
           platform: "salesforce",
         });
         setIsConnectedToSalesforce(response.data.message);
@@ -167,7 +167,9 @@ export default function Page() {
     if (isConnectedToHubspot) {
       setIsHubspotMailboxOpen(true);
     } else {
-      hubspotLogin(user.id);
+      if (user?.user_id) {
+        hubspotLogin(user.user_id);
+      }
     }
   };
 
@@ -175,7 +177,9 @@ export default function Page() {
     if (isConnectedToSalesforce) {
       setIsSalesforceMailboxOpen(true);
     } else {
-      salesforceLogin(user.id);
+      if (user?.user_id) {
+        salesforceLogin(user.user_id);
+      }
     }
   };
 
@@ -186,7 +190,7 @@ export default function Page() {
   const handleLinkedInConnect = async () => {
     try {
       const payload = {
-        user_id: user.id,
+        user_id: user?.user_id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
         password: linkedInPassword
@@ -289,7 +293,7 @@ export default function Page() {
   const handleFinalLinkedInConnect = async () => {
     try {
       const payload = {
-        user_id: user.id,
+        user_id: user?.user_id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
         password: linkedInPassword,

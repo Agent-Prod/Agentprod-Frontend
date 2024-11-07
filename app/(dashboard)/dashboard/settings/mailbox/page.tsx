@@ -51,7 +51,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import Cookies from "js-cookie";
 interface MailData {
   id: number;
   Name: string;
@@ -134,6 +134,7 @@ export default function Page() {
   const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const verificationAttemptsRef = useRef(0);
   const MAX_VERIFICATION_ATTEMPTS = 20;
+  const token = Cookies.get('Authorization');
 
   useEffect(() => {
     const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -171,7 +172,11 @@ export default function Page() {
       verificationAttemptsRef.current++;
 
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`,{
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+          },
+        });
         
         if (!response.data.error) {
           clearInterval(verificationIntervalRef.current!);
@@ -202,8 +207,8 @@ export default function Page() {
   const handleOpenGoogleService = () => {
     setIsChooseServiceOpen(false);
 
-    if (user?.id) {
-      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/${user.id}`;
+    if (user?.user_id) {
+      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/${user.user_id}`;
     } else {
       toast.error("User ID is missing. Please try again.");
     }
@@ -261,7 +266,12 @@ export default function Page() {
     try {
       const response = await axios.post(
         `https://warmup.agentprod.com/add-email`,
-        payload
+        payload,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+          },
+        }
       );
       if (response.data === "Success") {
         setIsApppassowrdLoading(false);
@@ -314,8 +324,8 @@ export default function Page() {
     setIsLoadingMailboxes(true);
     try {
       const [mailboxesResponse, healthData] = await Promise.all([
-        axiosInstance.get(`/v2/settings/mailboxes/${user.id}`),
-        fetchHealthData(user.id),
+        axiosInstance.get(`/v2/settings/mailboxes/${user?.user_id}`),
+        fetchHealthData(user?.user_id),
       ]);
 
       const mailboxes = mailboxesResponse.data.map((mailbox: any) => ({
@@ -341,7 +351,7 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.user_id) {
       fetchMailboxes();
     }
   }, []);
@@ -410,7 +420,7 @@ export default function Page() {
 
       const postData1 = {
         senders: senders,
-        user_id: user.id,
+        user_id: user?.user_id,
       };
 
       try {
@@ -494,7 +504,7 @@ export default function Page() {
       sender_id: String(senderID),
       otp: String(otpInput),
       mailbox: String(emailInput),
-      user_id: String(user.id),
+      user_id: String(user?.user_id),
       sender_name: String(nameInput),
     };
     try {

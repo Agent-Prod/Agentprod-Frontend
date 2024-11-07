@@ -122,7 +122,7 @@ export function UserNav() {
   const logoutUser = async () => {
     try {
       deleteCookie("Authorization");
-      
+      logout()
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);

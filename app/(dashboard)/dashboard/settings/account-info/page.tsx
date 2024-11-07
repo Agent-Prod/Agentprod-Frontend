@@ -10,7 +10,7 @@ import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import axios from "axios";
-
+import Cookies from "js-cookie";
 type Info = {
   id: string;
   value: string | undefined | null | number;
@@ -22,16 +22,16 @@ export default function Page() {
   const [isEditing, setIsEditing] = useState(false);
   const [accountInfo, setAccountInfo] = useState<Info[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const token = Cookies.get('Authorization');
   const fetchDataInfo = async () => {
-    if (user?.id) {
+    if (user?.user_id) {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get(`/v2/settings/${user.id}`);
+        const response = await axiosInstance.get(`/v2/settings`);
         const data = response.data;
 
         const initialAccountInfo = [
-          { id: "ID", value: data.user_id || user.id, isEditable: false },
+          { id: "ID", value: data.user_id || user.user_id, isEditable: false },
           { id: "Sender First Name", value: data.first_name, isEditable: true },
           { id: "Sender Last Name", value: data.last_name, isEditable: true },
           { id: "Sender Job", value: data.job_title, isEditable: true },
@@ -46,9 +46,9 @@ export default function Page() {
 
         setAccountInfo(initialAccountInfo);
         updateUser({
-          id: data.user_id,
-          firstName: data.first_name,
-          lastName: data.last_name,
+          user_id: data.user_id,
+          first_name: data.first_name,
+          last_name: data.last_name,
         });
 
         // Fetch user subscription
@@ -65,7 +65,11 @@ export default function Page() {
   const fetchUserSubscription = async () => {
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans`,{
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+          },
+        }
       );
       const planValue = res.data.subscription_mode || "Unknown";
       updatePlanInfo(planValue);
@@ -89,18 +93,18 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.user_id) {
       fetchDataInfo();
     } else {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.user_id]);
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!user?.id) {
+  if (!user?.user_id) {
     return <div>Please log in to view account information.</div>;
   }
 
@@ -112,7 +116,7 @@ export default function Page() {
 
   const handleUpdateClick = async () => {
     const payload = {
-      user_id: user.id,
+      user_id: user.user_id,
       first_name: accountInfo.find(info => info.id === "Sender First Name")?.value,
       last_name: accountInfo.find(info => info.id === "Sender Last Name")?.value,
       job_title: accountInfo.find(info => info.id === "Sender Job")?.value,
@@ -131,7 +135,11 @@ export default function Page() {
     };
 
     try {
-      const response = await axiosInstance.put(`/v2/settings`, payload);
+      const response = await axiosInstance.put(`/v2/settings`, payload,{
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+        },
+      });
       // Update the local state with the response data
       setAccountInfo(prev => prev.map(info => {
         const key = info.id.replace(/ /g, "_").toLowerCase();

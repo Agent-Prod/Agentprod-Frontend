@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import axios, { CancelTokenSource } from "axios";
-
+import Cookies from "js-cookie";
 const ITEMS_PER_PAGE = 10;
 
 interface MailProps {
@@ -231,10 +231,10 @@ export function Mail({
       }
 
       try {
-        let url = `v2/mailbox/${user?.id}`;
+        let url = `v2/mailbox/${user?.user_id}`;
 
         if (campaignId) {
-          url = `v2/mailbox/campaign/${campaignId}/${user?.id}`;
+          url = `v2/mailbox/campaign/${campaignId}/${user?.user_id}`;
         }
 
         // Set ITEMS_PER_PAGE to 100 if the status is "replied"
@@ -264,7 +264,10 @@ export function Mail({
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`,
           {
-            cancelToken: cancelTokenRef.current.token
+            cancelToken: cancelTokenRef.current.token,
+            headers: {
+              Authorization: Cookies.get("Authorization"),
+            },
           }
         );
 
@@ -328,7 +331,7 @@ export function Mail({
         setShowLoadingOverlay(false);
       }
     },
-    [user?.id, showLoadingOverlay, campaigns]
+    [user?.user_id, showLoadingOverlay, campaigns]
   );
 
   const loadMore = React.useCallback(() => {
@@ -389,7 +392,11 @@ export function Mail({
       setInitialMailIdSet(true);
 
       axiosInstance
-        .get(`v2/lead/info/${initialMail.recipient}`)
+        .get(`v2/lead/info/${initialMail.recipient}`,{
+          headers: {
+            Authorization: Cookies.get("Authorization"),
+          },
+        })
         .then((response) => {
           setLeads([response.data]);
         })

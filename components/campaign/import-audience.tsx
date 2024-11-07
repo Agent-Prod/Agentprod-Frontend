@@ -44,7 +44,7 @@ import AudienceTable from "../ui/AudienceTable";
 import { Card, CardHeader } from "@/components/ui/card";
 import { CardTitle } from "../ui/card";
 import { CardDescription } from "../ui/card";
-
+import Cookies from "js-cookie";
 interface FileData {
   [key: string]: string;
 }
@@ -283,7 +283,7 @@ export const ImportAudience = () => {
   function mapLeadsToBodies(leads: Lead[]): Contact[] {
     return leads.map((lead: any) => ({
       id: lead.id,
-      user_id: user.id,
+      user_id: user?.user_id || "",
       campaign_id: lead.campaign_id,
       type: "prospective",
       first_name: lead.first_name,
@@ -339,7 +339,12 @@ export const ImportAudience = () => {
       // Step 1: Create contacts
       const contactsResponse = await axiosInstance.post<Contact[]>(
         `v2/lead/bulk/`,
-        audienceBody
+        audienceBody,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        }
       );
       const contactsData = contactsResponse.data;
       setLeads(Array.isArray(contactsData) ? contactsData : [contactsData]);
@@ -370,7 +375,12 @@ export const ImportAudience = () => {
         const checkLeads = async () => {
           try {
             const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${Cookies.get("Authorization")}`
+                }
+              }
             );
             if (Array.isArray(response.data) && response.data.length >= 1) {
               setIsCreateBtnLoading(false);

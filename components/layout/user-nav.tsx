@@ -121,15 +121,8 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      await supabaseLogout();
-      deleteCookie("user");
-      setUser({
-        id: "",
-        username: "",
-        firstName: "",
-        email: "",
-      });
-      logout(); // Ensure logout state is cleared before redirect
+      deleteCookie("Authorization");
+      
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -143,8 +136,8 @@ export function UserNav() {
           {isClient && (
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8 bg-accent">
-                <AvatarImage src={"./user.png"} alt={user?.firstName ?? ""} />
-                <AvatarFallback>{user.firstName?.[0]}</AvatarFallback>
+                <AvatarImage src={"./user.png"} alt={user?.first_name ?? ""} />
+                <AvatarFallback>{user.first_name?.[0]}</AvatarFallback>
               </Avatar>
             </Button>
           )}
@@ -153,7 +146,7 @@ export function UserNav() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {`${user.firstName ?? ""}`}
+                {`${user.first_name ?? ""}`}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}

@@ -9,7 +9,7 @@ import {
   defaultOfferingEntry,
 } from "@/context/campaign-provider";
 import { toast } from "@/components/ui/use-toast";
-
+import Cookies from "js-cookie";
 export interface GoalDataWithId extends GoalData {
   id: string;
 }
@@ -18,7 +18,11 @@ export const getCampaignById = async (
   campaignId: string
 ): Promise<CampaignEntry> => {
   const response = await axiosInstance
-    .get(`v2/campaigns/${campaignId}`)
+    .get(`v2/campaigns/${campaignId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data as CampaignEntry;
       console.log("Campaign fetched successfully:", data);
@@ -40,7 +44,11 @@ export const getGoalById = async (
   campaignId: string
 ): Promise<GoalDataWithId> => {
   const response = await axiosInstance
-    .get(`v2/goals/${campaignId}`)
+    .get(`v2/goals/${campaignId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data as GoalDataWithId;
       console.log("Goal fetched successfully:", data);
@@ -70,7 +78,11 @@ export const getOfferingById = async (
   campaignId: string
 ): Promise<OfferingFormData> => {
   const response = await axiosInstance
-    .get(`v2/offerings/${campaignId}`)
+    .get(`v2/offerings/${campaignId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data as OfferingFormData;
       console.log("Offering fetched successfully:", data);
@@ -92,7 +104,11 @@ export const getAudienceFiltersById = async (
   campaignId: string
 ): Promise<any> => {
   const response = await axiosInstance
-    .get(`v2/audience/${campaignId}`)
+    .get(`v2/audience/${campaignId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log("filters fetched successfully:", data);
@@ -110,9 +126,13 @@ export const getAudienceFiltersById = async (
   return response;
 };
 
-export const getPersonaByUserId = async (userId: string): Promise<any> => {
+export const getPersonaByUserId = async (): Promise<any> => {
   const response = await axiosInstance
-    .get(`v2/personas/${userId}`)
+    .get(`v2/personas`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log("persona fetched successfully:", data);
@@ -138,7 +158,11 @@ export const createPersona = async (postData: {
   created_at?: string;
 }) => {
   return axiosInstance
-    .post("/v2/personas", postData)
+    .post("/v2/personas", postData, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log("Persona created successfully:", data);
@@ -158,7 +182,11 @@ export const getPersonaByCampaignId = async (
   campaignId: string
 ): Promise<any> => {
   const response = await axiosInstance
-    .get(`v2/personas/campaign/${campaignId}`)
+    .get(`v2/personas/campaign/${campaignId}`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log("persona fetched successfully:", data);
@@ -184,7 +212,11 @@ export const editPersona = async (postData: {
   created_at?: string;
 }): Promise<any> => {
   return axiosInstance
-    .put(`/v2/personas/campaign`, postData)
+    .put(`/v2/personas/campaign`, postData, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("Authorization")}`
+      }
+    })
     .then((response) => {
       const data = response.data;
       console.log("Persona updated successfully:", data);

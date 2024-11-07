@@ -92,6 +92,7 @@ export interface Lead {
   linkedin_bio: string;
   connected_on_linkedin?: any;
   social_monitoring_data: string;
+  
 }
 
 export interface Contact {

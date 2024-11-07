@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
+import { redirect, useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Enter a valid email address" }),
@@ -43,6 +44,7 @@ export default function UserAuthForm({
   const { login } = useAuth();
   const { user, setUser } = useUserContext();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -59,13 +61,25 @@ export default function UserAuthForm({
       console.log("button clicked");
       if (formType === "signin") {
         try {
-          userData = await supabaseLogin({
+          // userData = await supabaseLogin({
+          //   email: data.email,
+          //   password: data.password,
+          // });
+          const response = await axiosInstance.post("v2/users/login", {
             email: data.email,
             password: data.password,
           });
+          userData = response.data;
           toast.success("Sign-in Successful!");
 
           console.log("User details on signin:", userData.user);
+          if (response.data.user_id) {
+            setCookie('Authorization',response.data.user_id); // 7 days
+          }
+
+          console.log("User details on signin:", userData.user);
+          toast.success("Sign-in Successful!");
+          router.push('/dashboard');
         } catch (error) {
           toast.error("Sign-in failed. Please try again.");
           console.error("Error during sign-in:", error);
@@ -83,8 +97,20 @@ export default function UserAuthForm({
       if (userData?.user) {
         console.log("UserData just after logged in", userData);
         setUser({
-          id: userData?.user?.id,
+          user_id: userData?.user?.user_id,
           email: userData?.user?.email,
+          first_name: userData?.user?.first_name,
+          last_name: userData?.user?.last_name,
+          job_title: userData?.user?.job_title,
+          phone_number: userData?.user?.phone_number,
+          company: userData?.user?.company,
+          company_id: userData?.user?.company_id,
+          notifications: userData?.user?.notifications,
+          plan: "",
+          leads_used: 0,
+          thread_id: "",
+          hubspot_token: "",
+          salesforce_token: ""
         });
 
         try {
@@ -106,8 +132,6 @@ export default function UserAuthForm({
 
         login(userData.user);
 
-        const userKey = "user";
-        setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // Expires in one week
       }
     } catch (error: any) {
       console.error(error.message || "An error occurred");

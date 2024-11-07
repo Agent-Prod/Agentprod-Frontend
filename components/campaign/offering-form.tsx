@@ -34,7 +34,7 @@ import { Label } from "../ui/label";
 import axiosInstance from "@/utils/axiosInstance";
 import { useButtonStatus } from "@/context/button-status";
 import { LoadingCircle } from "@/app/icons";
-
+import Cookies from "js-cookie";
 const profileFormSchema = z.object({
   product_offering: z.string(),
   pain_point: z.array(z.string()),
@@ -79,7 +79,12 @@ export function OfferingForm() {
       if (id) {
         try {
           const campaignResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const campaignData = await campaignResponse.json();
 
@@ -87,7 +92,12 @@ export function OfferingForm() {
             setCampaignType(campaignData.campaign_type);
 
             const offeringResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${id}`
+              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${Cookies.get("Authorization")}`
+                }
+              }
             );
             const offeringData = await offeringResponse.json();
 
@@ -113,7 +123,7 @@ export function OfferingForm() {
                 company_features: persona.company_features || [],
               });
             } else {
-              const userPersona = await getPersonaByUserId(user.id);
+              const userPersona = await getPersonaByUserId();
               if (userPersona) {
                 form.reset({
                   product_offering: offeringData.name || "",
@@ -138,7 +148,7 @@ export function OfferingForm() {
     };
 
     fetchCampaignAndOffering();
-  }, [params.campaignId, user.id, form]);
+  }, [params.campaignId, user?.user_id, form]);
 
   const onSubmit = async (data: OfferingFormValues) => {
     let offeringData;
@@ -158,7 +168,7 @@ export function OfferingForm() {
     }
 
     const postData = {
-      user_id: user?.id,
+      user_id: user?.user_id,
       campaign_id: params.campaignId,
       pain_point: data.pain_point,
       values: data.values,
@@ -205,6 +215,7 @@ export function OfferingForm() {
         const response = await axiosInstance.post("/v2/upload-pdf/", payload, {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
           },
         });
         if (response.status === 200) {

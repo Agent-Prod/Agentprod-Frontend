@@ -48,8 +48,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { headers } from "next/headers";
 import { Loader2 } from "lucide-react"
-
-
+import Cookies from "js-cookie";
 
 const FormSchema = z.object({
   q_organization_domains: z
@@ -886,7 +885,11 @@ export default function PeopleForm(): JSX.Element {
     };
 
     const existingLeadsResponse = await axiosInstance.get(
-      `v2/leads/${user?.id}`
+      `v2/leads/${user?.user_id}`,{
+        headers: {
+          Authorization: `Bearer ${Cookies.get("Authorization")}`
+        }
+      }
     );
     setExistLead(existingLeadsResponse.data);
     console.log("Existing leads:", existingLeadsResponse.data);
@@ -1142,9 +1145,9 @@ export default function PeopleForm(): JSX.Element {
   function mapLeadsToBodies(leads: Lead[], campaignId: string): Contact[] {
     return leads.map((lead) => ({
       id: lead.id,
-      user_id: user.id,
+      user_id: user?.user_id || "",
       campaign_id: campaignId,
-      type: "prospective",
+      type: "prospective",  
       first_name: lead.first_name,
       last_name: lead.last_name,
       name: lead.name,
@@ -1199,7 +1202,12 @@ export default function PeopleForm(): JSX.Element {
     try {
       const response = await axiosInstance.post<Contact[]>(
         `v2/lead/bulk/`,
-        audienceBody
+        audienceBody,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+          }
+        }
       );
       const data = response.data;
       console.log("DATA from contacts: ", data);
@@ -1255,7 +1263,7 @@ export default function PeopleForm(): JSX.Element {
             "v2/recurring_campaign_request",
             {
               campaign_id: params.campaignId,
-              user_id: user.id,
+              user_id: user?.user_id || "",
               apollo_url: apolloUrl,
               page: calculatedPages + 1,
               is_active: false,

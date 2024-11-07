@@ -171,8 +171,8 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
   const [userId, setUserId] = React.useState<string>();
 
   React.useEffect(() => {
-    if (user && user.id) {
-      setUserId(user.id);
+    if (user && user.user_id) {
+      setUserId(user.user_id);
     }
   }, [user]);
 
@@ -380,9 +380,9 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
 
   useEffect(() => {
     const fetchCampaigns = () => {
-      if (userId) {
+
         axiosInstance
-          .get<CampaignEntry[]>(`v2/campaigns/all/${userId}`)
+          .get<CampaignEntry[]>(`v2/campaigns/all/`)
           .then((response) => {
             console.log("response from all campaigns api", response);
             // Sort campaigns based on created_at field
@@ -400,7 +400,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
             setError(error.message || "Failed to load campaign.");
             setIsLoading(false);
           });
-      }
+      
     };
 
     fetchCampaigns(); // Fetch initially

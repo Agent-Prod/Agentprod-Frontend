@@ -10,7 +10,7 @@ import { LoadingCircle } from "@/app/icons";
 import { v4 as uuid } from "uuid";
 import { useUserContext } from "@/context/user-context";
 import { useParams, useRouter } from "next/navigation";
-
+import Cookies from "js-cookie";
 export const SelectFromExisting = () => {
   const { setLeads, existingLeads } = useLeads();
   const [loading, setLoading] = useState(true);
@@ -34,10 +34,10 @@ export const SelectFromExisting = () => {
   const [currentPageData, setCurrentPageData] = useState<Contact[]>([]);
 
   const fetchLeads = async (pageToFetch: number) => {
-    if (!user?.id) return;
+    if (!user?.user_id) return;
     
     try {
-      const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+      const response = await axiosInstance.get(`v2/lead/all/${user?.user_id}`, {
         params: {
           page: pageToFetch,
           size,
@@ -67,7 +67,12 @@ export const SelectFromExisting = () => {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "No Contacts found") {
@@ -123,7 +128,7 @@ export const SelectFromExisting = () => {
   function mapLeadsToBodies(leads: Contact[], campaignId: string): Contact[] {
     return leads.map((lead) => ({
       id: uuid(),
-      user_id: user.id,
+      user_id: user?.user_id || "",
       campaign_id: campaignId,
       type: "prospective",
       first_name: lead.first_name,

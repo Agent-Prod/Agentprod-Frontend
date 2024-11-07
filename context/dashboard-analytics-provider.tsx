@@ -107,9 +107,9 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState("");
 
-  const fetchDashboardData = async (userId: string, retryCount = 0): Promise<void> => {
+  const fetchDashboardData = async (retryCount = 0): Promise<void> => {
     try {
-      const response = await axiosInstance.get<DashboardEntry>(`v2/dashboard/${userId}`);
+      const response = await axiosInstance.get<DashboardEntry>(`v2/dashboard`);
       if (response.data === null) {
         // If response is null, retry up to 3 times with increasing delay
         if (retryCount < 3) {
@@ -117,7 +117,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
           // Exponential backoff delay: 1s, 2s, 4s
           const delay = Math.pow(2, retryCount) * 1000;
           await new Promise(resolve => setTimeout(resolve, delay));
-          return fetchDashboardData(userId, retryCount + 1);
+          return fetchDashboardData(retryCount + 1);
         }
         // If all retries fail, set default empty data
         setDashboardData(defaultDashboardState.dashboardData);
@@ -132,7 +132,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
         console.log(`Retry attempt ${retryCount + 1} for 404 error`);
         // Wait for 1 second before retrying
         await new Promise(resolve => setTimeout(resolve, 1000));
-        return fetchDashboardData(userId, retryCount + 1);
+        return fetchDashboardData(retryCount + 1);
       }
       console.error("Error fetching data:", error);
       setError(error.message || "Failed to load data.");
@@ -140,10 +140,12 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     }
   };
 
+  console.log("Dashboard data "+ user)
+
   React.useEffect(() => {
-    if (user?.id) {
+    if (user?.user_id) {
       setIsLoading(true);
-      fetchDashboardData(user.id);
+      fetchDashboardData();
     } else {
       console.warn("No user ID found");
       setIsLoading(false);

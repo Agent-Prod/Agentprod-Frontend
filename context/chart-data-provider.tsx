@@ -44,7 +44,7 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get<MailGraphData[]>(
-          `/v2/mailgraph/${user?.id}`
+          `/v2/mailgraph`
         );
         setMailGraphData(response.data);
         console.log("Mailgraph Data comingggg:", response.data);
@@ -56,10 +56,10 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    if (user?.id) {
+    if (user?.user_id) {
       fetchData();
     }
-  }, [user?.id]);
+  }, [user?.user_id]);
 
   const contextValue = useMemo(
     () => ({

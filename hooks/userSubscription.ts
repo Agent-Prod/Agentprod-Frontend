@@ -1,22 +1,28 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/auth-provider";
+import Cookies from "js-cookie";
 
 export const useSubscription = () => {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
-
     const fetchSubscriptionStatus = async () => {
         if (!user) return;
+        console.log(user , "user")
 
         setLoading(true);
         setError(null);
 
         try {
+            const token = Cookies.get('Authorization');
             const res = await axios.get(
-                `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+                `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans`,{
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
             );
 
             const startTime = new Date(res.data.start_time).getTime();

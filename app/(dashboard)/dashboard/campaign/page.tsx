@@ -175,7 +175,7 @@ export default function CampaignPage() {
   useEffect(() => {
     async function fetchCampaigns() {
       try {
-        const response = await axiosInstance.get(`v2/campaigns/all/${user.id}`);
+        const response = await axiosInstance.get(`v2/campaigns/all/`);
         const sortedCampaigns = response.data.sort((a: any, b: any) => {
           const dateA = new Date(a.created_at).getTime();
           const dateB = new Date(b.created_at).getTime();
@@ -188,7 +188,7 @@ export default function CampaignPage() {
       }
     }
     fetchCampaigns();
-  }, [setCampaigns, user.id]);
+  }, [setCampaigns, user?.user_id]);
 
   const displayedCampaigns = showAllCampaigns
     ? campaigns

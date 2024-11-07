@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 function Qualification() {
   const router = useRouter();
 
@@ -33,7 +33,12 @@ function Qualification() {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "Qualification not found") {
@@ -69,13 +74,23 @@ function Qualification() {
       if (type === "create") {
         await axios.post(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/`,
-          { campaign_id: params.campaignId, details: criteria }
+          { campaign_id: params.campaignId, details: criteria },
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         toast.success("Qualification added successfully");
       } else if (type === "edit") {
         await axios.put(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${qua_id}`,
-          { details: criteria }
+          { details: criteria },
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         toast.success("Qualification updated successfully");
       }

@@ -20,7 +20,7 @@ import WarningBanner from "@/components/payment/WarningBanner";
 import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 export default function DashboardLayout({
   children,
 }: {
@@ -38,11 +38,13 @@ export default function DashboardLayout({
   const MAX_VERIFICATION_ATTEMPTS = 20;
   const hasInitializedRef = useRef(false);
 
+  
+
   useEffect(() => {
-    if (!user) {
-      redirect("/");
-      return;
-    }
+    // if (!user) {
+    //   redirect("/");
+    //   return;
+    // }
 
     if (!hasInitializedRef.current) {
       const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -57,7 +59,7 @@ export default function DashboardLayout({
         clearInterval(verificationIntervalRef.current);
       }
     };
-  }, [user]);
+  }, []);
 
   const startVerification = () => {
     const domain = localStorage.getItem('domainInput');

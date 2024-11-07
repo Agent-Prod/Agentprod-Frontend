@@ -30,7 +30,7 @@ import { CampaignEntry } from "@/context/campaign-provider";
 import { useButtonStatus } from "@/context/button-status";
 import { Label } from "../ui/label";
 import axios from "axios";
-
+import Cookies from "js-cookie";
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
 const campaignFormSchema = z.object({
@@ -82,7 +82,7 @@ export function SchedulingForm() {
 
   const onSubmit = async (data: CampaignFormValues) => {
     const campaignData = {
-      user_id: user.id,
+      user_id: user?.user_id,
       campaign_name: data.campaignName,
       campaign_type: data.campaignType,
       monday_start: data.schedule.weekdayStartTime,
@@ -105,14 +105,24 @@ export function SchedulingForm() {
       if (type === "create") {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/`,
-          campaignData
+          campaignData,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         router.push(`/dashboard/campaign/${response.data.id}`);
         toast.success("Campaign is scheduled successfully!");
       } else {
         await axios.put(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,
-          campaignData
+          campaignData,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
         );
         router.push(`/dashboard/campaign/${params.campaignId}`);
         toast.success("Campaign is updated successfully!");
@@ -136,7 +146,12 @@ export function SchedulingForm() {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "Campaign not found") {

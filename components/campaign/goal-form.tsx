@@ -44,7 +44,7 @@ import { useUserContext } from "@/context/user-context";
 import { useButtonStatus } from "@/context/button-status";
 import Link from "next/link";
 import axios from "axios";
-
+import Cookies from "js-cookie";
 const dummyEmails = [
   "john.doe@example.com",
   "jane.smith@placeholder.com",
@@ -130,7 +130,12 @@ export function GoalForm() {
       if (id) {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           );
           const data = await response.json();
           if (data.detail === "Goal not found") {
@@ -250,9 +255,13 @@ export function GoalForm() {
 
   useEffect(() => {
     const fetchMailboxes = async () => {
-      if (user.id) {
+      if (user?.user_id) {
         await axiosInstance
-          .get(`v2/settings/mailboxes/${user.id}`)
+          .get(`v2/settings/mailboxes`, {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          })
           .then((response) => {
             const userMailboxes = response.data.map(
               (mailbox: { mailbox: string; sender_name: string }) => {

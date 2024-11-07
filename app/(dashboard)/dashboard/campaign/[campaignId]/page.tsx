@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import Cookies from "js-cookie";
 const defaultFormsTracker = {
   schedulingBudget: true,
   offering: false,
@@ -64,22 +64,46 @@ export default function Page() {
           qualificationResponse,
         ] = await Promise.all([
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
           fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`,{
+              headers: {
+                Authorization: `Bearer ${Cookies.get("Authorization")}`
+              }
+            }
           ),
         ]);
 

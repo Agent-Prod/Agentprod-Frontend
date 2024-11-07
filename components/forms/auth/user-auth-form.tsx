@@ -74,7 +74,32 @@ export default function UserAuthForm({
 
           console.log("User details on signin:", userData.user);
           if (response.data.user_id) {
-            setCookie('Authorization',response.data.user_id); // 7 days
+            setCookie('Authorization', response.data.user_id);
+            
+            // Set user data first
+            setUser({
+              user_id: response.data.user_id,
+              email: response.data.email,
+              first_name: response.data.first_name,
+              last_name: response.data.last_name,
+              job_title: response.data.job_title,
+              phone_number: response.data.phone_number,
+              company: response.data.company,
+              company_id: response.data.company_id,
+              notifications: response.data.notifications,
+              plan: "",
+              leads_used: 0,
+              thread_id: "",
+              hubspot_token: "",
+              salesforce_token: ""
+            });
+
+            toast.success("Sign-in Successful!");
+            
+            // Use replace: true to prevent back navigation to login page
+            router.replace('/dashboard');
+            // Alternatively, you can use:
+            // router.push('/dashboard', { scroll: false });
           }
 
           console.log("User details on signin:", userData.user);

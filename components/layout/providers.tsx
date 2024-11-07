@@ -7,12 +7,12 @@ import { LeadSheetSidebarProvider } from "../../context/lead-sheet-sidebar";
 import { AuthProvider, AuthStateInterface } from "../../context/auth-provider";
 import { LeadsProvider } from "../../context/lead-user";
 import { CampaignProvider } from "../../context/campaign-provider";
-import { DashboardProvider } from "@/context/dashboard-analytics-provider";
+// import { DashboardProvider } from "@/context/dashboard-analytics-provider";
 import { CompanyProvider } from "@/context/company-linkedin";
 import { MailboxProvider } from "@/context/mailbox-provider";
 import { AutoGenerateProvider } from "@/context/auto-generate-mail";
 import { FieldsListProvider } from "@/context/training-fields-provider";
-import { MailGraphProvider } from "@/context/chart-data-provider";
+// import { MailGraphProvider } from "@/context/chart-data-provider";
 import { ButtonStatusProvider } from "@/context/button-status";
 
 export default function Providers({
@@ -34,8 +34,8 @@ export default function Providers({
                 <LeadsProvider>
                   <FieldsListProvider>
                     <CampaignProvider>
-                      <MailGraphProvider>
-                        <DashboardProvider>
+                      {/* <MailGraphProvider> */}
+                        {/* <DashboardProvider> */}
                           <ButtonStatusProvider>
                             <CompanyProvider>
                               <MailboxProvider>
@@ -45,8 +45,8 @@ export default function Providers({
                               </MailboxProvider>
                             </CompanyProvider>
                           </ButtonStatusProvider>
-                        </DashboardProvider>
-                      </MailGraphProvider>
+                        {/* </DashboardProvider> */}
+                      {/* </MailGraphProvider> */}
                     </CampaignProvider>
                   </FieldsListProvider>
                 </LeadsProvider>

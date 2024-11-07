@@ -33,7 +33,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useCampaignContext } from "@/context/campaign-provider";
-
+import Cookies from "js-cookie";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];

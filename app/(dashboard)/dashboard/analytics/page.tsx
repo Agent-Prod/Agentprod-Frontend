@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "@/context/user-context";
 
 import {
   Table,
@@ -16,13 +18,117 @@ import {
 import { Icons } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { useMailGraphContext } from "@/context/chart-data-provider";
-import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { LoadingCircle } from "@/app/icons";
 
+// Type definitions
+interface MailGraphData {
+  date: string;
+  emails: number;
+  new_emails: number;
+}
+
+interface DashboardEntry {
+  id: number;
+  pending_approvals: number;
+  user_id: string;
+  emails_sent: number | null;
+  engaged: number | null;
+  meetings_booked: number | null;
+  response_rate: number;
+  conversion_funnel: {
+    [key: string]: number;
+  };
+  hot_leads: Array<{
+    id: string;
+    photo_url: string;
+    fallback: string;
+    name: string;
+    company: string;
+  }>;
+  mailbox_health: { [email: string]: number };
+  top_performing_campaigns: Array<{
+    campaign_name: string;
+    engaged_leads: number;
+    response_rate: number;
+    bounce_rate: number;
+    open_rate: number;
+  }>;
+  email_stats: {
+    open_rate: number;
+    reply_rate: number;
+    conversion_rate: number;
+    unsubscribed_rate: number;
+    deliverability_rate: number;
+    negative_email_rate: number;
+    positive_email_rate: number;
+  };
+}
+
 export default function Page() {
-  const { mailGraphData } = useMailGraphContext();
-  const { dashboardData, isLoading } = useDashboardContext();
+  const { user } = useUserContext();
+  const [isLoading, setIsLoading] = useState(true);
+  const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
+  const [dashboardData, setDashboardData] = useState<DashboardEntry>({
+    id: 0,
+    user_id: "",
+    pending_approvals: 0,
+    emails_sent: null,
+    engaged: null,
+    meetings_booked: null,
+    response_rate: 0,
+    hot_leads: [],
+    mailbox_health: {},
+    conversion_funnel: {},
+    top_performing_campaigns: [],
+    email_stats: {
+      open_rate: 0,
+      reply_rate: 0,
+      conversion_rate: 0,
+      unsubscribed_rate: 0,
+      deliverability_rate: 0,
+      negative_email_rate: 0,
+      positive_email_rate: 0,
+    },
+  });
+
+  const fetchData = async (retryCount = 0) => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch both dashboard and mail graph data concurrently
+      const [dashboardResponse, mailGraphResponse] = await Promise.all([
+        axiosInstance.get<DashboardEntry>('v2/dashboard'),
+        axiosInstance.get<MailGraphData[]>('/v2/mailgraph')
+      ]);
+
+      if (dashboardResponse.data === null && retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchData(retryCount + 1);
+      }
+
+      setDashboardData(dashboardResponse.data);
+      setMailGraphData(mailGraphResponse.data);
+      
+    } catch (error: any) {
+      if ((error.response?.status === 404 || error.response?.status === 500) && retryCount < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchData(retryCount + 1);
+      }
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.user_id) {
+      fetchData();
+    } else {
+      console.warn("No user ID found");
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const getPercentage = (current: any, previous: any) => {
     return previous > 0 ? ((current / previous) * 100).toFixed(2) + "%" : "0%";
@@ -199,7 +305,9 @@ export default function Page() {
               <CardTitle>Sending Volume Per Day</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <LineChartComponent mailGraphData={mailGraphData} />
+              <LineChartComponent 
+                mailGraphData={mailGraphData} 
+              />
             </CardContent>
           </Card>
 

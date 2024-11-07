@@ -12,7 +12,7 @@ import { LucideUsers2 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 const DEBOUNCE_DELAY = 300; // milliseconds
 
 export default function Page() {
@@ -32,19 +32,23 @@ export default function Page() {
 
   const fetchLeads = useCallback(
     async (pageToFetch: number) => {
-      if (!user?.id) return;
+      if (!user?.user_id) return;
 
       setLoading(true);
       console.log(`Fetching page ${pageToFetch}`);
       try {
-        const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+        const response = await axiosInstance.get(`v2/lead/all/${user.user_id}`, {
           params: {
             page: pageToFetch,
             size,
             search_filter: searchFilter,
             campaign_id: selectedCampaignId,
           },
-        });
+          headers: {
+            Authorization: `Bearer ${Cookies.get("Authorization")}`
+            }
+          }
+        );
         console.log("API Response:", response.data);
         setLeads(response.data.items);
         setTotalLeads(response.data.total);

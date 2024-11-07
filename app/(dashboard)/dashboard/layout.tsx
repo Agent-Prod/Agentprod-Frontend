@@ -38,13 +38,9 @@ export default function DashboardLayout({
   const MAX_VERIFICATION_ATTEMPTS = 20;
   const hasInitializedRef = useRef(false);
 
-  
+
 
   useEffect(() => {
-    // if (!user) {
-    //   redirect("/");
-    //   return;
-    // }
 
     if (!hasInitializedRef.current) {
       const storedVerificationState = localStorage.getItem('verificationInProgress');

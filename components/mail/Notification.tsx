@@ -48,7 +48,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
 import { parseActionDraft } from "./parse-draft";
-
+import Cookies from "js-cookie";
 interface EmailMessage {
   id: any;
   conversation_id: any;
@@ -97,7 +97,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const { leads } = useLeads();
   const { user } = useUserContext();
   const internalScrollRef = React.useRef<HTMLDivElement>(null);
-
+  const token = Cookies.get("Authorization");
   console.log(email)
 
   const {
@@ -219,7 +219,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
     setAnswerLoading(true);
     axiosInstance
       .post("/v2/answers", {
-        user_id: user.id,
+        user_id: user?.user_id,
         questions,
         answers,
       })
@@ -248,7 +248,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const regenrate = React.useCallback(() => {
     const payload = {
       follow_up_number: 3,
-      user_id: user.id,
+      user_id: user?.user_id,
       previous_emails: [
         {
           subject: title,
@@ -271,7 +271,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
       .catch((error) => {
         console.error("Error fetching followup data:", error);
       });
-  }, [user.id, title, body]);
+  }, [user?.user_id, title, body]);
 
   const cleanedCategory = email?.category?.trim();
 
@@ -500,8 +500,8 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             <div className="flex w-full">
               <Avatar className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4">
                 <AvatarFallback className="bg-yellow-400 text-black text-xs">
-                  {user?.firstName && user.lastName
-                    ? user.firstName.charAt(0) + user.lastName.charAt(0)
+                  {user?.first_name && user?.last_name
+                    ? user.first_name.charAt(0) + user.last_name.charAt(0)
                     : ""}
                 </AvatarFallback>
               </Avatar>

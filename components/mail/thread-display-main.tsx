@@ -136,10 +136,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
   React.useEffect(() => {
     const fetchCampaigns = () => {
-      if (user && user.id) {
+      if (user && user.user_id) {
         setIsLoading(true);
         axiosInstance
-          .get<CampaignEntry[]>(`v2/campaigns/all/${user.id}`)
+          .get<CampaignEntry[]>(`v2/campaigns/all/${user.user_id}`)
           .then((response) => {
             console.log("Campaign From Inbox", response);
             // Sort campaigns based on created_at field
@@ -161,7 +161,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     };
 
     fetchCampaigns();
-  }, [user?.id]);
+  }, [user?.user_id]);
 
   React.useEffect(() => {
     // For handleing, the thread if some error occurs
@@ -282,7 +282,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       if (email.channel === "Linkedin") {
         payload = {
           email: recipientEmail,
-          user_id: user.id, // Assuming you have access to the user object
+          user_id: user?.user_id, // Assuming you have access to the user object
           message: email.body
         };
         endpoint = "/v2/linkedin/send-message";
@@ -399,7 +399,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       const handleRegenerateDraft = () => {
         const payload = {
-          user_id: user.id,
+          user_id: user?.user_id,
           conversation_id: conversationId,
           campaign_id: leads[0].campaign_id,
         };
@@ -786,7 +786,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       if (platform === "Linkedin") {
         payload = {
           email: recipientEmail,
-          user_id: user.id, // Assuming you have access to the user object
+          user_id: user?.user_id, // Assuming you have access to the user object
           message: body
         };
         endpoint = "/v2/linkedin/send-message";
@@ -821,7 +821,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
     const handleRegenrateDraft = () => {
       const payload = {
-        user_id: user.id,
+        user_id: user?.user_id,
         conversation_id: conversationId,
         campaign_id: leads[0].campaign_id,
       };

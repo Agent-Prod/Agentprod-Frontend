@@ -29,8 +29,7 @@ import {
 import { MdForwardToInbox } from "react-icons/md";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
-
-
+import Cookies from "js-cookie";
 interface MailListProps {
   items: Conversations[];
   selectedMailId: string | null;
@@ -76,6 +75,7 @@ const MailList: React.FC<MailListProps> = ({
   const { ref, inView } = useInView({
     threshold: 0,
   });
+  const token = Cookies.get("Authorization");
 
   const filteredItems = useMemo(() => {
     return items.filter(
@@ -86,9 +86,9 @@ const MailList: React.FC<MailListProps> = ({
   }, [items, selectedStatus]);
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.user_id) {
       axiosInstance
-        .get(`/v2/mailbox/${user.id}`)
+        .get(`/v2/mailbox/${user.user_id}`,{headers:{Authorization: `Bearer ${token}`}})
         .then((response) => {
           console.log("Mailbox data fetched:", response.data);
         })
@@ -96,7 +96,7 @@ const MailList: React.FC<MailListProps> = ({
           console.error("Error fetching mailbox:", error);
         });
     }
-  }, [user?.id]);
+  }, [user?.user_id]);
 
   useEffect(() => {
     if (inView && hasMore && !loading) {

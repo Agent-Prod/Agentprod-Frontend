@@ -219,6 +219,11 @@ export function Mail({
       search?: string,
       status?: string
     ) => {
+      if (!user?.user_id) {
+        console.error("User ID is undefined");
+        return;
+      }
+
       if (cancelTokenRef.current) {
         cancelTokenRef.current.cancel('Operation canceled due to new request.');
       }
@@ -231,10 +236,10 @@ export function Mail({
       }
 
       try {
-        let url = `v2/mailbox/${user?.user_id}`;
+        let url = `v2/mailbox/${user.user_id}`;
 
         if (campaignId) {
-          url = `v2/mailbox/campaign/${campaignId}/${user?.user_id}`;
+          url = `v2/mailbox/campaign/${campaignId}/${user.user_id}`;
         }
 
         // Set ITEMS_PER_PAGE to 100 if the status is "replied"
@@ -266,7 +271,7 @@ export function Mail({
           {
             cancelToken: cancelTokenRef.current.token,
             headers: {
-              Authorization: Cookies.get("Authorization"),
+              Authorization: `Bearer ${Cookies.get("Authorization")}`,
             },
           }
         );

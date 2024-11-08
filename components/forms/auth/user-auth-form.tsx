@@ -76,16 +76,17 @@ export default function UserAuthForm({
             setCookie('Authorization', response.data.user_id);
             
             // Set user data first
+            const userData = await axiosInstance.get('/v2/settings');
             setUser({
-              user_id: response.data.user_id,
-              email: response.data.email,
-              first_name: response.data.first_name,
-              last_name: response.data.last_name,
-              job_title: response.data.job_title,
-              phone_number: response.data.phone_number,
-              company: response.data.company,
-              company_id: response.data.company_id,
-              notifications: response.data.notifications,
+              user_id: userData.data.user_id,
+              email: userData.data.email,
+              first_name: userData.data.first_name,
+              last_name: userData.data.last_name,
+              job_title: userData.data.job_title,
+              phone_number: userData.data.phone_number,
+              company: userData.data.company,
+              company_id: userData.data.company_id,
+              notifications: userData.data.notifications,
               plan: "",
               leads_used: 0,
               thread_id: "",
@@ -101,9 +102,7 @@ export default function UserAuthForm({
             // router.push('/dashboard', { scroll: false });
           }
 
-          console.log("User details on signin:", userData.user);
-          toast.success("Sign-in Successful!");
-          router.push('/dashboard');
+          
         } catch (error) {
           toast.error("Sign-in failed. Please try again.");
           console.error("Error during sign-in:", error);

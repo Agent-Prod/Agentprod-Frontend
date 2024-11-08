@@ -21,6 +21,7 @@ import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+import { useUserContext } from "@/context/user-context";
 
 export default function DashboardLayout({
   children,
@@ -29,7 +30,7 @@ export default function DashboardLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { width } = useWindowSize();
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const { isSubscribed } = useSubscription();
   const { isContextBarOpen } = useMailbox();
 
@@ -42,6 +43,9 @@ export default function DashboardLayout({
 
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
 
     if (!hasInitializedRef.current) {
       const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -56,7 +60,7 @@ export default function DashboardLayout({
         clearInterval(verificationIntervalRef.current);
       }
     };
-  }, []);
+  }, [user]);
 
   const startVerification = () => {
     const domain = localStorage.getItem('domainInput');

@@ -847,11 +847,8 @@ export default function PeopleForm(): JSX.Element {
       },
     });
 
-    const accountManager = new ApifyAccountManager([
-      { email: "info@agentprod.com", token: "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa" },
-      { email: "muskaan@agentprodapp.com", token: "YOUR_TOKEN_2" },
-      { email: "demo@agentprod.com", token: "YOUR_TOKEN_3" }
-    ]);
+    const APIFY_TOKEN = "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa";
+    const APIFY_EMAIL = "info@agentprod.com";
 
     const fetchLead = async (startPage: number): Promise<any[]> => {
       const TIMEOUT = 90000;
@@ -859,23 +856,17 @@ export default function PeopleForm(): JSX.Element {
       let retries = 0;
 
       while (retries < maxRetries) {
-        const account = accountManager.getNextAvailableAccount();
-
-        if (!account) {
-          throw new Error("No available Apify accounts");
-        }
-
         try {
           const scraperBody = {
             ...createScraperBody(25, startPage),
-            email: account.email,
+            email: APIFY_EMAIL,
           };
 
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
           const response = await axios.post(
-            `https://api.apify.com/v2/acts/curious_coder~apollo-io-scraper/run-sync-get-dataset-items?token=${account.token}`,
+            `https://api.apify.com/v2/acts/curious_coder~apollo-io-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
             scraperBody,
             {
               signal: controller.signal,
@@ -883,22 +874,13 @@ export default function PeopleForm(): JSX.Element {
           );
 
           clearTimeout(timeoutId);
-          accountManager.resetAccount(account.email);
           return response.data;
 
         } catch (error) {
           console.error(
-            `Error fetching leads for page ${startPage} with account ${account.email} (attempt ${retries + 1}):`,
+            `Error fetching leads for page ${startPage} (attempt ${retries + 1}):`,
             error
           );
-
-          if (axios.isAxiosError(error)) {
-            console.log("error", error.response?.status, error.response?.data);
-            if (error.response?.status === 403 || error.response?.status === 429) {
-              // Rate limit or blocking error
-              accountManager.markAccountFailure(account.email);
-            }
-          }
 
           retries++;
           if (retries === maxRetries) {

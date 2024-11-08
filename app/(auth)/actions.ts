@@ -9,27 +9,7 @@ import { revalidatePath } from "next/dist/server/web/spec-extension/revalidate";
 
 
 
-export async function signup(formData: { email: string; password: string }) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.email,
-    password: formData.password,
-  };
-
-  const { error } = await supabase.auth.signUp(data);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-
-  // revalidatePath("/", "layout");
-  // redirect("/");
-}
 
 export async function signupAppsumo(formData: { email: string; password: string }) {
   const cookieStore = cookies();

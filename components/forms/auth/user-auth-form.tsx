@@ -17,9 +17,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { setCookie } from "cookies-next";
-import {
-  signup as supabaseSignup,
-} from "@/app/(auth)/actions";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
@@ -108,54 +105,18 @@ export default function UserAuthForm({
           console.error("Error during sign-in:", error);
         }
       } else if (formType === "signup") {
-        userData = await supabaseSignup({
+        // userData = await supabaseSignup({
+        //   email: data.email,
+        //   password: data.password,
+        // });
+        const response = await axiosInstance.post("v2/users/signup", {
           email: data.email,
           password: data.password,
         });
         toast.success("Verification email sent!");
         console.log("User details on signup:", userData);
       }
-      console.log(userData);
-
-      if (userData?.user) {
-        console.log("UserData just after logged in", userData);
-        setUser({
-          user_id: userData?.user?.user_id,
-          email: userData?.user?.email,
-          first_name: userData?.user?.first_name,
-          last_name: userData?.user?.last_name,
-          job_title: userData?.user?.job_title,
-          phone_number: userData?.user?.phone_number,
-          company: userData?.user?.company,
-          company_id: userData?.user?.company_id,
-          notifications: userData?.user?.notifications,
-          plan: "",
-          leads_used: 0,
-          thread_id: "",
-          hubspot_token: "",
-          salesforce_token: ""
-        });
-
-        try {
-          const response = await axiosInstance.post(
-            `/v2/users/initiate/${userData.user.id}`,
-            {
-              userId: userData.user.id,
-            }
-          );
-          console.log(
-            "API call response after new api:",
-            response.data,
-            userData.user.id
-          );
-        } catch (apiError) {
-          console.error("API call failed:", apiError);
-          toast.error("Failed to complete user setup.");
-        }
-
-        login(userData.user);
-
-      }
+      
     } catch (error: any) {
       console.error(error.message || "An error occurred");
     } finally {

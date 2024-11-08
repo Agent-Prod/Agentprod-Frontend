@@ -1094,7 +1094,7 @@ export const keywords = [
   { name: "computer software", value: "5567cd4e7369643b70010000" },
   { name: "construction", value: "5567cd4773696439dd350000" },
   { name: "consumer electronics", value: "5567e1947369641ead570000" },
-  { name: "consumer goods", value: "5567e1947369641ead570000" },
+  { name: "consumer goods", value: "5567ce987369643b789e0000" },
   { name: "consumer services", value: "5567d1127261697f2b1d0000" },
   { name: "cosmetics", value: "5567e1ae73696423dc040000" },
   { name: "dairy", value: "5567e8a27369646ddb0b0000" },

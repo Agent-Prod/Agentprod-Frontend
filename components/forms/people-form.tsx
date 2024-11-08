@@ -548,11 +548,8 @@ export default function PeopleForm(): JSX.Element {
     if (value === "tab1") {
       setTab(value);
     } else {
-      console.log(form.formState.isValid);
-      if (form.formState.isValid) {
-        setTab(value);
-        setIsTableLoading(true);
-      }
+      setTab(value);
+      setIsTableLoading(true);
     }
   };
 

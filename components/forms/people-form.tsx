@@ -557,21 +557,23 @@ export default function PeopleForm(): JSX.Element {
     }
   };
 
-  const checkedFields = (
-    field: string[] | undefined,
-    returnDashed: boolean
-  ) => {
+  const checkedFields = (field: string[] | undefined, returnDashed: boolean) => {
+    if (!field || !Array.isArray(field)) {
+      return [];
+    }
+
     const checked: string[] = [];
     if (returnDashed) {
-      field?.map((field) => {
-        if (field.split("-")[1] === "x") {
-          checked.push(`${field.split("-")[0]}+`);
+      field.forEach((field) => {
+        const parts = field.split("-");
+        if (parts[1] === "x") {
+          checked.push(`${parts[0]}+`);
         } else {
-          checked.push(field.split("-").join(","));
+          checked.push(parts.join(","));
         }
       });
     } else {
-      field?.map((field) => {
+      field.forEach((field) => {
         checked.push(field);
       });
     }
@@ -776,7 +778,7 @@ export default function PeopleForm(): JSX.Element {
       job_posting_locations: data.job_posting_locations,
       job_posting_titles: data.job_posting_titles,
       organization_locations: data.organization_locations,
-      company_headcount: data.company_headcount,
+      company_headcount: checkedCompanyHeadcount || [],
       organization_latest_funding_stage_cd:
         data.organization_latest_funding_stage_cd,
       search_signals: data.search_signals,
@@ -1398,6 +1400,14 @@ export default function PeopleForm(): JSX.Element {
         );
       }
 
+      if (Array.isArray(allFiltersFromDB.company_headcount)) {
+        setCheckedCompanyHeadcount(allFiltersFromDB.company_headcount);
+        setValue("company_headcount", allFiltersFromDB.company_headcount);
+      } else {
+        setCheckedCompanyHeadcount([]);
+        setValue("company_headcount", []);
+      }
+
       // Currently using Technologies
       if (allFiltersFromDB.currently_using_technologies) {
         setCurrentlyUsingTechnologiesTags(
@@ -1795,7 +1805,9 @@ export default function PeopleForm(): JSX.Element {
       const requestBody = {
         page: 1,
         per_page: 1,
-        organization_num_employees_ranges: checkedFields(checkedCompanyHeadcount, true),
+        organization_num_employees_ranges: checkedCompanyHeadcount?.length
+          ? checkedFields(checkedCompanyHeadcount, true)
+          : undefined,
         organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
@@ -1813,10 +1825,9 @@ export default function PeopleForm(): JSX.Element {
       };
 
       // Remove undefined or empty array properties
-      Object.keys(requestBody).forEach(key => {
-        if ((requestBody as any)[key] === undefined ||
-          (Array.isArray((requestBody as any)[key]) && (requestBody as any)[key].length === 0)) {
-          delete (requestBody as any)[key];
+      (Object.keys(requestBody) as Array<keyof typeof requestBody>).forEach(key => {
+        if (requestBody[key] === undefined) {
+          delete requestBody[key];
         }
       });
 

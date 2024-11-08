@@ -386,8 +386,8 @@ export default function Page() {
                     <div className="flex justify-center items-center">
                       <LoadingCircle />
                     </div>
-                  ) : dashboardData &&
-                    Object.keys(dashboardData.mailbox_health).length > 0 ? (
+                  ) : dashboardData?.mailbox_health && 
+                     typeof dashboardData.mailbox_health === 'object' ? (
                     Object.entries(dashboardData.mailbox_health).map(
                       ([email, health], index) => (
                         <div key={index}>

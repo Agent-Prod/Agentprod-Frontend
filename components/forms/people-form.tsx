@@ -1552,15 +1552,24 @@ export default function PeopleForm(): JSX.Element {
         // Update audience filters
         // await axiosInstance.put(`v2/audience/${audienceId}`, filtersPostBody);
 
-
         // Update contacts
         const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
-
+        
         await axiosInstance.post(`v2/lead/bulk/`, audienceBody);
-
+        
         toast.success("Audience updated successfully");
-      router.push(`/dashboard/campaign/${params.campaignId}`);
-
+        await router.push(`/dashboard/campaign/${params.campaignId}`);
+        setTimeout(async () => {
+          try {
+            await axiosInstance.post(`v2/contacts/left?without_template=true`,{
+              "campaign_id": params.campaignId,
+              "user_id": user?.id
+            });
+            console.log('Refresh API called successfully after 2 minutes');
+          } catch (error) {
+            console.error('Error in delayed API call:', error);
+          }
+        }, 120000); // 120 seconds = 12 0000 milliseconds
     } catch (error) {
       console.error("Error updating audience:", error);
       toast.error("Error updating audience");

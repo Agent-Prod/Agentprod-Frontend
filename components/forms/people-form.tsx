@@ -88,9 +88,7 @@ const FormSchema = z.object({
       })
     )
     .optional(),
-  company_headcount: z
-    .array(z.object({ id: z.string(), text: z.string() }))
-    .optional(),
+  company_headcount: z.array(z.string()).optional(),
   organization_latest_funding_stage_cd: z
     .array(
       z.object({
@@ -521,7 +519,7 @@ export default function PeopleForm(): JSX.Element {
                 audienceFilters.filters_applied
               );
               setAllFiltersFromDB(audienceFilters.filters_applied);
-              setEditFilters(audienceFilters.filters_applied); // Store filters_applied in state
+              setEditFilters(audienceFilters.filters_applied);
               setAudienceId(audienceFilters.id);
               populateFormWithExistingFilters(audienceFilters.filters_applied);
             } catch (error) {
@@ -530,6 +528,7 @@ export default function PeopleForm(): JSX.Element {
           }
         } catch (error) {
           console.error("Error fetching campaign:", error);
+          toast.error("An error occurred while submitting the form");
         }
       }
     };
@@ -549,7 +548,7 @@ export default function PeopleForm(): JSX.Element {
     if (value === "tab1") {
       setTab(value);
     } else {
-      console.log(form.formState.isValid);
+      console.log(form.formState.isValid, '');
       if (form.formState.isValid) {
         setTab(value);
         setIsTableLoading(true);
@@ -1400,13 +1399,15 @@ export default function PeopleForm(): JSX.Element {
         );
       }
 
-      if (Array.isArray(allFiltersFromDB.company_headcount)) {
-        setCheckedCompanyHeadcount(allFiltersFromDB.company_headcount);
-        setValue("company_headcount", allFiltersFromDB.company_headcount);
-      } else {
-        setCheckedCompanyHeadcount([]);
-        setValue("company_headcount", []);
-      }
+      const headcount = Array.isArray(allFiltersFromDB.company_headcount)
+        ? allFiltersFromDB.company_headcount
+        : [];
+
+      setCheckedCompanyHeadcount(headcount);
+      form.setValue("company_headcount", headcount, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
 
       // Currently using Technologies
       if (allFiltersFromDB.currently_using_technologies) {
@@ -2058,60 +2059,28 @@ export default function PeopleForm(): JSX.Element {
                           )}
                         </FormLabel>
                         <FormControl>
-                          <div
-                            className={`${dropdownsOpen.headcount ? "block" : "hidden"
-                              }`}
-                          >
-                            {companyHeadcountOptions.map(
-                              (headcountOption, index) => (
-                                <div
-                                  className="text-sm flex items-center mb-3"
-                                  key={index}
-                                >
-                                  <Checkbox
-                                    {...field}
-                                    className="mr-2"
-                                    checked={checkedCompanyHeadcount?.includes(
-                                      headcountOption.value
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      const isChecked = checked.valueOf();
-                                      const value = headcountOption.value;
+                          <div className={`${dropdownsOpen.headcount ? "block" : "hidden"}`}>
+                            {companyHeadcountOptions.map((headcountOption, index) => (
+                              <div className="text-sm flex items-center mb-3" key={index}>
+                                <Checkbox
+                                  className="mr-2"
+                                  checked={checkedCompanyHeadcount?.includes(headcountOption.value)}
+                                  onCheckedChange={(checked) => {
+                                    const isChecked = checked.valueOf();
+                                    const value = headcountOption.value;
 
-                                      setCheckedCompanyHeadcount(
-                                        (currentChecked) => {
-                                          // If the value is already present and the checkbox is checked, return the current array
-                                          if (
-                                            currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return currentChecked;
-                                          }
+                                    const newCheckedValues = isChecked
+                                      ? [...(checkedCompanyHeadcount || []), value]
+                                      : (checkedCompanyHeadcount || []).filter(item => item !== value);
 
-                                          // If the value is not present and the checkbox is checked, add the value to the array
-                                          if (
-                                            !currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return [
-                                              ...(currentChecked || []),
-                                              value,
-                                            ];
-                                          }
-
-                                          // If the checkbox is unchecked, remove the value from the array
-                                          return (currentChecked || []).filter(
-                                            (item) => item !== value
-                                          );
-                                        }
-                                      );
-                                    }}
-                                    value={headcountOption.name}
-                                  />
-                                  {headcountOption.name}
-                                </div>
-                              )
-                            )}
+                                    setCheckedCompanyHeadcount(newCheckedValues);
+                                    field.onChange(newCheckedValues);
+                                  }}
+                                  value={headcountOption.value}
+                                />
+                                {headcountOption.name}
+                              </div>
+                            ))}
                           </div>
                         </FormControl>
                         <FormMessage />

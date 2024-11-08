@@ -48,6 +48,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { headers } from "next/headers";
 import { Loader2 } from "lucide-react"
+import ApifyAccountManager from "@/utils/apify-account-manager";
 
 
 
@@ -152,21 +153,21 @@ const FormSchema = z.object({
     )
     .optional(),
   buying_intent_topics: z
-  .array(
-    z.object({
-      id: z.string(),
-      text: z.string()
-    })
-  )
-  .optional(),
+    .array(
+      z.object({
+        id: z.string(),
+        text: z.string()
+      })
+    )
+    .optional(),
   buying_intent_scores: z
-  .array(
-    z.object({
-      id: z.string(),
-      text: z.string()
-    })
-  )
-  .optional(),
+    .array(
+      z.object({
+        id: z.string(),
+        text: z.string()
+      })
+    )
+    .optional(),
   job_posting_titles: z
     .array(
       z.object({
@@ -235,7 +236,7 @@ export default function PeopleForm(): JSX.Element {
 
   const [checkedSearchSignal, setCheckedSearchSignal] =
     React.useState<string[]>();
-  
+
   const [checkedIntentTopics, setCheckedIntentTopics] = React.useState<string[]>();
   const [checkedIntentScores, setCheckedIntentScores] = React.useState<string[]>();
 
@@ -704,20 +705,20 @@ export default function PeopleForm(): JSX.Element {
 
     if (checkedIntentScores && checkedIntentScores.length > 0) {
       url += checkedIntentScores
-      .map(
-        (intent: string) =>
-          `&intentStrengths[]=${encodeURIComponent(intent)}`
-      )
-      .join("")
+        .map(
+          (intent: string) =>
+            `&intentStrengths[]=${encodeURIComponent(intent)}`
+        )
+        .join("")
     }
 
     if (checkedIntentTopics && checkedIntentTopics.length > 0) {
       url += checkedIntentTopics
-      .map(
-        (intent: string) =>
-          `&intentIds[]=${encodeURIComponent(intent)}`
-      )
-      .join("")
+        .map(
+          (intent: string) =>
+            `&intentIds[]=${encodeURIComponent(intent)}`
+        )
+        .join("")
     }
 
     if (formData.minimum_company_funding || formData.maximum_company_funding) {
@@ -845,44 +846,71 @@ export default function PeopleForm(): JSX.Element {
       },
     });
 
+    const accountManager = new ApifyAccountManager([
+      { email: "info@agentprod.com", token: "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa" },
+      { email: "muskaan@agentprodapp.com", token: "YOUR_TOKEN_2" },
+      { email: "demo@agentprod.com", token: "YOUR_TOKEN_3" }
+    ]);
+
     const fetchLead = async (startPage: number): Promise<any[]> => {
-      const scraperBody = createScraperBody(25, startPage);
-      let retries = 0;
       const TIMEOUT = 90000;
       const maxRetries = 3;
+      let retries = 0;
 
       while (retries < maxRetries) {
+        const account = accountManager.getNextAvailableAccount();
+
+        if (!account) {
+          throw new Error("No available Apify accounts");
+        }
+
         try {
+          const scraperBody = {
+            ...createScraperBody(25, startPage),
+            email: account.email,
+          };
+
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
           const response = await axios.post(
-            "https://api.apify.com/v2/acts/curious_coder~apollo-io-scraper/run-sync-get-dataset-items?token=apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa",
+            `https://api.apify.com/v2/acts/curious_coder~apollo-io-scraper/run-sync-get-dataset-items?token=${account.token}`,
             scraperBody,
             {
               signal: controller.signal,
             }
           );
+
           clearTimeout(timeoutId);
+          accountManager.resetAccount(account.email);
           return response.data;
+
         } catch (error) {
           console.error(
-            `Error fetching leads for page ${startPage} (attempt ${retries + 1
-            }):`,
+            `Error fetching leads for page ${startPage} with account ${account.email} (attempt ${retries + 1}):`,
             error
           );
+
+          if (axios.isAxiosError(error)) {
+            console.log("error", error.response?.status, error.response?.data);
+            if (error.response?.status === 403 || error.response?.status === 429) {
+              // Rate limit or blocking error
+              accountManager.markAccountFailure(account.email);
+            }
+          }
+
           retries++;
-          if (axios.isCancel(error)) {
-            console.log("Request timed out. Retrying...");
-          } else if (retries === maxRetries) {
+          if (retries === maxRetries) {
             console.error(
               `Failed to fetch leads for page ${startPage} after ${maxRetries} attempts`
             );
             return [];
           }
-          await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay before retry
+
+          await new Promise((resolve) => setTimeout(resolve, 5000));
         }
       }
-      return []; // This line should never be reached, but TypeScript requires it
+      return [];
     };
 
     const existingLeadsResponse = await axiosInstance.get(
@@ -1124,14 +1152,14 @@ export default function PeopleForm(): JSX.Element {
   ];
 
   const buyingIntentScores: IntentScoreCheckboxOptions[] = [
-    { id: "high", name: "High", checked: false},
-    { id: "mid", name: "Medium", checked: false},
-    { id: "low", name: "Low", checked: false},
-    { id: "none", name: "None", checked: false},
+    { id: "high", name: "High", checked: false },
+    { id: "mid", name: "Medium", checked: false },
+    { id: "low", name: "Low", checked: false },
+    { id: "none", name: "None", checked: false },
   ];
 
   const buyingIntentTopics: IntentTopicCheckboxOptions[] = [
-    { id: "48b1feaa8b0d1805a23f59f268fc7c91", name: "Shopify", checked: false}
+    { id: "48b1feaa8b0d1805a23f59f268fc7c91", name: "Shopify", checked: false }
   ];
 
 
@@ -1546,30 +1574,30 @@ export default function PeopleForm(): JSX.Element {
 
     try {
       // Update audience filters
-      
 
-      
-        // Update audience filters
-        // await axiosInstance.put(`v2/audience/${audienceId}`, filtersPostBody);
 
-        // Update contacts
-        const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
-        
-        await axiosInstance.post(`v2/lead/bulk/`, audienceBody);
-        
-        toast.success("Audience updated successfully");
-        await router.push(`/dashboard/campaign/${params.campaignId}`);
-        setTimeout(async () => {
-          try {
-            await axiosInstance.post(`v2/contacts/left?without_template=true`,{
-              "campaign_id": params.campaignId,
-              "user_id": user?.id
-            });
-            console.log('Refresh API called successfully after 2 minutes');
-          } catch (error) {
-            console.error('Error in delayed API call:', error);
-          }
-        }, 120000); // 120 seconds = 12 0000 milliseconds
+
+      // Update audience filters
+      // await axiosInstance.put(`v2/audience/${audienceId}`, filtersPostBody);
+
+      // Update contacts
+      const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
+
+      await axiosInstance.post(`v2/lead/bulk/`, audienceBody);
+
+      toast.success("Audience updated successfully");
+      await router.push(`/dashboard/campaign/${params.campaignId}`);
+      setTimeout(async () => {
+        try {
+          await axiosInstance.post(`v2/contacts/left?without_template=true`, {
+            "campaign_id": params.campaignId,
+            "user_id": user?.id
+          });
+          console.log('Refresh API called successfully after 2 minutes');
+        } catch (error) {
+          console.error('Error in delayed API call:', error);
+        }
+      }, 120000); // 120 seconds = 12 0000 milliseconds
     } catch (error) {
       console.error("Error updating audience:", error);
       toast.error("Error updating audience");
@@ -1779,15 +1807,15 @@ export default function PeopleForm(): JSX.Element {
         search_signal_ids: checkedFields(checkedSearchSignal, false),
         currently_using_any_of_technology_uids: formData.currently_using_technologies?.map((tag: any) => tag.text.toLowerCase()),
         revenue_range: {
-          min: formData.minimum_company_funding?.text?.toString(), 
+          min: formData.minimum_company_funding?.text?.toString(),
           max: formData.maximum_company_funding?.text?.toString()
         }
       };
 
       // Remove undefined or empty array properties
       Object.keys(requestBody).forEach(key => {
-        if ((requestBody as any)[key] === undefined || 
-            (Array.isArray((requestBody as any)[key]) && (requestBody as any)[key].length === 0)) {
+        if ((requestBody as any)[key] === undefined ||
+          (Array.isArray((requestBody as any)[key]) && (requestBody as any)[key].length === 0)) {
           delete (requestBody as any)[key];
         }
       });
@@ -1801,7 +1829,7 @@ export default function PeopleForm(): JSX.Element {
       }
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/apollo/lead/search`, requestBody);
-      
+
       // Assuming the API returns the total count in the response
       setTotalLeads(response.data.total_leads);
     } catch (error) {
@@ -2221,8 +2249,8 @@ export default function PeopleForm(): JSX.Element {
                 />
                 <div className="flex flex-col space-y-2 mt-4">
                   <div className="flex items-center space-x-3">
-                    <Button 
-                      onClick={handleTotalLeadsClick} 
+                    <Button
+                      onClick={handleTotalLeadsClick}
                       disabled={isLoadingTotalLeads}
                       className="min-w-[120px]"
                     >
@@ -2244,7 +2272,7 @@ export default function PeopleForm(): JSX.Element {
                       </div>
                     )}
                   </div>
-                  
+
                 </div>
               </div>
               <div className="w-1/2 flex flex-col gap-2">
@@ -3076,136 +3104,136 @@ export default function PeopleForm(): JSX.Element {
                       }`}
                   >
                     <FormField
-                    control={form.control}
-                    name="buying_intent_scores"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col items-start">
-                        <FormLabel
-                          className="text-left"
-                        >
-                          Intent Scores
-                        </FormLabel>
-                        <FormControl>
-                          <div>
-                            {buyingIntentScores.map(
-                              (intent, index) => (
-                                <div
-                                  className="text-sm flex items-center mb-3"
-                                  key={index}
-                                >
-                                  <Checkbox
-                                    {...field}
-                                    className="mr-2"
-                                    checked={checkedIntentScores?.includes(
-                                      intent.id
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      const isChecked = checked.valueOf();
-                                      const value = intent.id;
+                      control={form.control}
+                      name="buying_intent_scores"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col items-start">
+                          <FormLabel
+                            className="text-left"
+                          >
+                            Intent Scores
+                          </FormLabel>
+                          <FormControl>
+                            <div>
+                              {buyingIntentScores.map(
+                                (intent, index) => (
+                                  <div
+                                    className="text-sm flex items-center mb-3"
+                                    key={index}
+                                  >
+                                    <Checkbox
+                                      {...field}
+                                      className="mr-2"
+                                      checked={checkedIntentScores?.includes(
+                                        intent.id
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        const isChecked = checked.valueOf();
+                                        const value = intent.id;
 
-                                      setCheckedIntentScores(
-                                        (currentChecked) => {
-                                          if (
-                                            currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return currentChecked;
+                                        setCheckedIntentScores(
+                                          (currentChecked) => {
+                                            if (
+                                              currentChecked?.includes(value) &&
+                                              isChecked
+                                            ) {
+                                              return currentChecked;
+                                            }
+
+                                            if (
+                                              !currentChecked?.includes(value) &&
+                                              isChecked
+                                            ) {
+                                              return [
+                                                ...(currentChecked || []),
+                                                value,
+                                              ];
+                                            }
+
+                                            return (currentChecked || []).filter(
+                                              (item) => item !== value
+                                            );
                                           }
+                                        );
+                                      }}
+                                      value={intent.name}
+                                    />
+                                    {intent.name}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                                          if (
-                                            !currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return [
-                                              ...(currentChecked || []),
-                                              value,
-                                            ];
+                    <FormField
+                      control={form.control}
+                      name="buying_intent_topics"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col items-start">
+                          <FormLabel
+                            className="text-left"
+                          >
+                            Intent Topics
+                          </FormLabel>
+                          <FormControl>
+                            <div>
+                              {buyingIntentTopics.map(
+                                (intent, index) => (
+                                  <div
+                                    className="text-sm flex items-center mb-3"
+                                    key={index}
+                                  >
+                                    <Checkbox
+                                      {...field}
+                                      className="mr-2"
+                                      checked={checkedIntentTopics?.includes(
+                                        intent.id
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        const isChecked = checked.valueOf();
+                                        const value = intent.id;
+
+                                        setCheckedIntentTopics(
+                                          (currentChecked) => {
+                                            if (
+                                              currentChecked?.includes(value) &&
+                                              isChecked
+                                            ) {
+                                              return currentChecked;
+                                            }
+
+                                            if (
+                                              !currentChecked?.includes(value) &&
+                                              isChecked
+                                            ) {
+                                              return [
+                                                ...(currentChecked || []),
+                                                value,
+                                              ];
+                                            }
+
+                                            return (currentChecked || []).filter(
+                                              (item) => item !== value
+                                            );
                                           }
-
-                                          return (currentChecked || []).filter(
-                                            (item) => item !== value
-                                          );
-                                        }
-                                      );
-                                    }}
-                                    value={intent.name}
-                                  />
-                                  {intent.name}
-                                </div>
-                              )
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="buying_intent_topics"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col items-start">
-                        <FormLabel
-                          className="text-left"
-                        >
-                          Intent Topics
-                        </FormLabel>
-                        <FormControl>
-                          <div>
-                            {buyingIntentTopics.map(
-                              (intent, index) => (
-                                <div
-                                  className="text-sm flex items-center mb-3"
-                                  key={index}
-                                >
-                                  <Checkbox
-                                    {...field}
-                                    className="mr-2"
-                                    checked={checkedIntentTopics?.includes(
-                                      intent.id
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      const isChecked = checked.valueOf();
-                                      const value = intent.id;
-
-                                      setCheckedIntentTopics(
-                                        (currentChecked) => {
-                                          if (
-                                            currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return currentChecked;
-                                          }
-
-                                          if (
-                                            !currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return [
-                                              ...(currentChecked || []),
-                                              value,
-                                            ];
-                                          }
-
-                                          return (currentChecked || []).filter(
-                                            (item) => item !== value
-                                          );
-                                        }
-                                      );
-                                    }}
-                                    value={intent.name}
-                                  />
-                                  {intent.name}
-                                </div>
-                              )
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                                        );
+                                      }}
+                                      value={intent.name}
+                                    />
+                                    {intent.name}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   </div>
                 </div>

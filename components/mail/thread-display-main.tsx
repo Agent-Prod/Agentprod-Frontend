@@ -189,7 +189,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   const handleAvatarClick = async () => {
     try {
       const isLinkedIn = isLinkedInUrl(recipientEmail);
-      
+
       if (isLinkedIn) {
         console.log('Using LinkedIn URL endpoint:', recipientEmail);
         const response = await axiosInstance.get<Lead>(
@@ -275,7 +275,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
     const handleSendNow = () => {
       SetIsLoadingButton(true);
-      
+
       let payload;
       let endpoint;
 
@@ -361,7 +361,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       const handleSaveClick = () => {
         setIsEditing(false);
-        
+
         const payload = {
           conversation_id: conversationId,
           received_datetime: email.received_datetime,
@@ -386,7 +386,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           .then((response) => {
             toast.success("Draft updated successfully!");
             // Update the thread with the new data
-            const updatedThread = thread.map(msg => 
+            const updatedThread = thread.map(msg =>
               msg.id === email.id ? { ...msg, subject: editableSubject, body: editableBody } : msg
             );
             setThread(updatedThread);
@@ -779,7 +779,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     const handleSendNow = () => {
       SetIsLoadingButton(true);
 
-      
+
       let payload;
       let endpoint;
 
@@ -1019,7 +1019,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             )}
           </div>
         )}
-        
+
         <div className="flex w-full">
           <Avatar
             className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
@@ -1169,7 +1169,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   const matchingCampaign = campaigns.find((campaign) => campaign.id === leadId);
   const lastEmail = thread && thread[thread.length - 1];
 
-  
+
   return (
     <div className="relative">
       <div className="bg-accent w-[3px] h-full absolute left-7 -z-10"></div>
@@ -1179,7 +1179,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         ) : (
           <>
             {/* LinkedIn Connection Status */}
-           
+
 
             {/* Campaign Info */}
             {/* {matchingCampaign && (
@@ -1195,7 +1195,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </div>
               </div>
             )} */}
-            {thread[0]?.channel === 'Linkedin' && <div className="m-4">
+            {thread?.[0]?.channel === 'Linkedin' && <div className="m-4">
               <div className="flex items-center gap-3">
                 <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
                   <Linkedin className="h-4 w-4 text-gray-400" />

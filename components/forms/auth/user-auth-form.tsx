@@ -18,7 +18,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { setCookie } from "cookies-next";
 import { toast } from "sonner";
-import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 import { redirect, useRouter } from "next/navigation";
@@ -37,7 +36,6 @@ export default function UserAuthForm({
 }: {
   formType: "signin" | "signup";
 }) {
-  const { login } = useAuth();
   const { user, setUser } = useUserContext();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -53,72 +51,49 @@ export default function UserAuthForm({
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
     try {
-      let userData;
-      console.log("button clicked");
       if (formType === "signin") {
-        try {
-          // userData = await supabaseLogin({
-          //   email: data.email,
-          //   password: data.password,
-          // });
-          const response = await axiosInstance.post("v2/users/login", {
-            email: data.email,
-            password: data.password,
-          });
-          userData = response.data;
-          toast.success("Sign-in Successful!");
+        const response = await axiosInstance.post("v2/users/login", {
+          email: data.email,
+          password: data.password,
+        });
 
-          console.log("User details on signin:", userData.user);
-          if (response.data.user_id) {
-            setCookie('Authorization', response.data.user_id);
-            
-            // Set user data first
-            const userData = await axiosInstance.get('/v2/settings');
-            setUser({
-              user_id: userData.data.user_id,
-              email: userData.data.email,
-              first_name: userData.data.first_name,
-              last_name: userData.data.last_name,
-              job_title: userData.data.job_title,
-              phone_number: userData.data.phone_number,
-              company: userData.data.company,
-              company_id: userData.data.company_id,
-              notifications: userData.data.notifications,
-              plan: "",
-              leads_used: 0,
-              thread_id: "",
-              hubspot_token: "",
-              salesforce_token: ""
-            });
-
-            toast.success("Sign-in Successful!");
-            
-            // Use replace: true to prevent back navigation to login page
-            router.replace('/dashboard');
-            // Alternatively, you can use:
-            // router.push('/dashboard', { scroll: false });
-          }
-
+        if (response.data.user_id) {
+          setCookie('Authorization', response.data.user_id);
           
-        } catch (error) {
-          toast.error("Sign-in failed. Please try again.");
-          console.error("Error during sign-in:", error);
+          // Get user settings in a separate request
+          const userSettingsResponse = await axiosInstance.get('/v2/settings');
+          const userData = userSettingsResponse.data;
+          
+          setUser({
+            user_id: userData.user_id,
+            email: userData.email,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            job_title: userData.job_title,
+            phone_number: userData.phone_number,
+            company: userData.company,
+            company_id: userData.company_id,
+            notifications: userData.notifications,
+            plan: "",
+            leads_used: 0,
+            thread_id: "",
+            hubspot_token: "",
+            salesforce_token: ""
+          });
+
+          toast.success("Sign-in Successful!");
+          router.replace('/dashboard');
         }
       } else if (formType === "signup") {
-        // userData = await supabaseSignup({
-        //   email: data.email,
-        //   password: data.password,
-        // });
-        const response = await axiosInstance.post("v2/users/signup", {
+        await axiosInstance.post("v2/users/signup", {
           email: data.email,
           password: data.password,
         });
         toast.success("Verification email sent!");
-        console.log("User details on signup:", userData);
       }
-      
     } catch (error: any) {
-      console.error(error.message || "An error occurred");
+      toast.error("Sign-in failed. Please try again.");
+      console.error("Error during authentication:", error);
     } finally {
       setLoading(false);
     }

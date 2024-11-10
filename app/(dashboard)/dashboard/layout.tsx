@@ -43,9 +43,7 @@ export default function DashboardLayout({
 
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+    
 
     if (!hasInitializedRef.current) {
       const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -60,7 +58,7 @@ export default function DashboardLayout({
         clearInterval(verificationIntervalRef.current);
       }
     };
-  }, [user]);
+  }, []);
 
   const startVerification = () => {
     const domain = localStorage.getItem('domainInput');

@@ -23,16 +23,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const session = await getServerSession();
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
   let authData: AuthStateInterface["user"] = null;
 
-  const { data, error } = await supabase.auth.getUser();
-  if (!error && data?.user) {
-    authData = data?.user;
-  }
+  
 
   return (
       <html lang="en" suppressHydrationWarning>

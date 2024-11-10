@@ -1610,7 +1610,7 @@ export default function PeopleForm(): JSX.Element {
         try {
           await axiosInstance.post(`v2/contacts/left?without_template=true`, {
             "campaign_id": params.campaignId,
-            "user_id": user?.id
+            "user_id": user?.user_id
           });
           console.log('Refresh API called successfully after 2 minutes');
         } catch (error) {

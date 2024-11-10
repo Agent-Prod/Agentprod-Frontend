@@ -139,7 +139,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       if (user && user.user_id) {
         setIsLoading(true);
         axiosInstance
-          .get<CampaignEntry[]>(`v2/campaigns/all/${user.user_id}`)
+          .get<CampaignEntry[]>(`v2/campaigns/all/`)
           .then((response) => {
             console.log("Campaign From Inbox", response);
             // Sort campaigns based on created_at field

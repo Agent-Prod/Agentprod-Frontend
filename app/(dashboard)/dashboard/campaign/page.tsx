@@ -15,7 +15,6 @@ import { MailIcon, Plus } from "lucide-react";
 import Link from "next/link";
 import { useCampaignContext } from "@/context/campaign-provider";
 import { Icons } from "@/components/icons";
-import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { UKFlag, USAFlag } from "@/app/icons";
 import { useUserContext } from "@/context/user-context";
@@ -25,6 +24,9 @@ import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Linkedin } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 
 
 interface CampaignEntry {
@@ -36,6 +38,7 @@ interface CampaignEntry {
   daily_outreach_number?: number;
   start_date?: string;
   end_date?: string;
+  selected?: boolean;
   schedule_type: string;
   description?: string;
   additional_details?: string;
@@ -52,22 +55,74 @@ interface CampaignEntry {
   id: string;
   contacts?: number;
   channel?: string;
-  offering_details?: string[];
+  offering_details?: string[] | string;
   replies?: number;
   meetings_booked?: number;
 }
 
+const DeleteConfirmationDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  description,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  description: string;
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onConfirm}>
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function CampaignPage() {
   const { campaigns, deleteCampaign, isLoading, setCampaigns } =
     useCampaignContext();
-  const [loading, setLoading] = useState<string | null>(null);
-  const [showAllCampaigns, setShowAllCampaigns] = useState(false);
+  const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
   const [recurringCampaignData, setRecurringCampaignData] = useState<any[]>([]);
   const { user } = useUserContext();
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const LIMIT = 10;
 
-  console.log("fromCampaignPage", campaigns);
+  const BulkActions = () => {
+    if (selectedCampaigns.size === 0) return null;
 
-  localStorage.removeItem("formsTracker");
+    return (
+      <div className="fixed bottom-4 right-4 bg-background border rounded-lg shadow-lg p-4 flex gap-2 items-center">
+        <span className="text-sm text-muted-foreground">
+          {selectedCampaigns.size} selected
+        </span>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          Delete Selected
+        </Button>
+      </div>
+    );
+  };
 
   useEffect(() => {
     async function fetchRecurringCampaignData() {
@@ -105,7 +160,6 @@ export default function CampaignPage() {
     campaignId: string,
     isActive: boolean
   ) => {
-    setLoading(campaignId);
     const campaign = campaigns.find((campaign) => campaign.id === campaignId);
     const campaignName = campaign ? campaign.campaign_name : "Unknown Campaign";
     try {
@@ -118,7 +172,6 @@ export default function CampaignPage() {
           }
         );
         if (response.status === 200) {
-          // Update recurringCampaignData state
           setRecurringCampaignData((prevData) =>
             prevData.map((item) =>
               item.campaign_id === campaignId
@@ -127,13 +180,11 @@ export default function CampaignPage() {
             )
           );
           toast.success(
-            `${campaignName} has been ${
-              !isActive ? "resumed" : "paused"
+            `${campaignName} has been ${!isActive ? "resumed" : "paused"
             } successfully`
           );
         }
       } else {
-        // Existing logic for non-recurring campaigns
         if (isActive) {
           const response = await axiosInstance.put(
             `/v2/campaigns/pause/${campaignId}`
@@ -167,32 +218,38 @@ export default function CampaignPage() {
     } catch (error) {
       console.error("Failed to toggle campaign activity status", error);
       toast.error(`Failed to update ${campaignName}`);
-    } finally {
-      setLoading(null);
     }
   };
 
   useEffect(() => {
     async function fetchCampaigns() {
       try {
-        const response = await axiosInstance.get(`v2/campaigns/all/${user.id}`);
-        const sortedCampaigns = response.data.sort((a: any, b: any) => {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
-          return dateB - dateA; // Sort in descending order (newest first)
-        });
-        setCampaigns(sortedCampaigns);
-        console.log("campaign called effect");
+        const response = await axiosInstance.get(
+          `v2/campaigns/all/${user.id}?limit=${LIMIT}&offset=${offset}`
+        );
+
+        const newCampaigns = response.data.campaigns;
+        const total = response.data.total;
+
+        setCampaigns(prevCampaigns =>
+          offset === 0 ? newCampaigns : [...prevCampaigns, ...newCampaigns]
+        );
+
+        setHasMore(offset + LIMIT < total);
+
       } catch (error) {
         console.error("Failed to fetch campaigns", error);
       }
     }
     fetchCampaigns();
-  }, [setCampaigns, user.id]);
+    localStorage.removeItem("formsTracker");
+  }, [setCampaigns, user.id, offset]);
 
-  const displayedCampaigns = showAllCampaigns
-    ? campaigns
-    : campaigns.slice(0, 4);
+  const handleLoadMore = () => {
+    setOffset(prevOffset => prevOffset + LIMIT);
+  };
+
+  const displayedCampaigns = campaigns;
 
   const renderCampaignCard = (campaignItem: CampaignEntry) => (
     <Card key={campaignItem.id}>
@@ -206,82 +263,61 @@ export default function CampaignPage() {
             <p className="text-sm text-muted-foreground">
               {campaignItem?.replies || 0}/{campaignItem?.contacts || 0}
             </p>
-            {/* <CircularProgressbar
-              value={
-                campaignItem?.daily_outreach_number && campaignItem?.contacts
-                  ? (campaignItem.daily_outreach_number /
-                      campaignItem.contacts) *
-                    100
-                  : 0
-              }
-              maxValue={100}
-              text={`${
-                campaignItem?.daily_outreach_number && campaignItem?.contacts
-                  ? Math.round(
-                      (campaignItem.daily_outreach_number /
-                        campaignItem.contacts) *
-                        100
-                    )
-                  : 0
-              }%`}
-              className="w-10 h-10"
-            /> */}
           </div>
         </div>
         <div className="space-y-2">
-
-        <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
-          {campaignItem?.schedule_type === "recurring"
-            ? "Contact Leads Every Day"
-            : "One-time"}
-        </div>
-        <div className={`text-xs flex items-center gap-1 dark:text-white/80 text-black ${
-          campaignItem?.channel === "Linkedin" 
-            ? "bg-blue-400/80 dark:bg-blue-400/20" 
+          <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
+            {campaignItem?.campaign_type || "Unknown Type"}
+          </div>
+          <div className={`text-xs flex items-center gap-1 dark:text-white/80 text-black ${campaignItem?.channel?.toLowerCase() === "linkedin"
+            ? "bg-blue-400/80 dark:bg-blue-400/20"
             : "bg-purple-400/80 dark:bg-purple-400/20"
-        } w-max px-4 py-1 rounded-3xl`}>
-          {campaignItem?.channel === "Linkedin"
-            ? "Linkedin"
-            : "Email"}
-          <span className="w-4 h-4 flex items-center justify-center">
-            {campaignItem?.channel === "Linkedin" 
-              ? <Linkedin className="w-3 h-3" />
-              : <MailIcon className="w-3 h-3" />
-            }
-          </span>
+            } w-max px-4 py-1 rounded-3xl`}>
+            {campaignItem?.channel?.toLowerCase() === "linkedin" ? (
+              <>
+                LinkedIn
+                <Linkedin className="w-3 h-3" />
+              </>
+            ) : (
+              <>
+                Email
+                <MailIcon className="w-3 h-3" />
+              </>
+            )}
+          </div>
         </div>
-
-            </div>
         <div className="flex flex-col gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <p className="text-sm font-medium leading-none truncate w-full max-w-72">
-                  {campaignItem?.campaign_name}
+                  {campaignItem?.campaign_name || "Untitled Campaign"}
                 </p>
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-sm font-medium leading-none">
-                  {campaignItem?.campaign_name}
+                  {campaignItem?.campaign_name || "Untitled Campaign"}
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
           <p className="text-sm text-muted-foreground truncate">
-            {(campaignItem?.offering_details &&
-              campaignItem?.offering_details[0]) ||
-              "No details"}
+            {typeof campaignItem?.offering_details === 'string'
+              ? campaignItem.offering_details.split('\n')[0]
+              : Array.isArray(campaignItem?.offering_details)
+                ? campaignItem.offering_details[0]
+                : "No details available"}
           </p>
         </div>
 
         <div className="flex space-x-4 text-sm text-muted-foreground">
           <div className="flex items-center">
             <Icons.circle className="mr-1 h-3 w-3" />
-            Reply-{campaignItem?.replies}
+            Replies: {campaignItem?.replies || 0}
           </div>
           <div className="flex items-center">
             <Icons.star className="mr-1 h-3 w-3" />
-            Meetings booked-{campaignItem?.meetings_booked}
+            Meetings: {campaignItem?.meetings_booked || 0}
           </div>
         </div>
 
@@ -317,8 +353,11 @@ export default function CampaignPage() {
 
           <div>
             <Button
-              variant={"ghost"}
-              onClick={() => deleteCampaign(campaignItem.id)}
+              variant="ghost"
+              onClick={() => {
+                setCampaignToDelete(campaignItem.id);
+                setShowDeleteDialog(true);
+              }}
             >
               <Icons.trash2 size={16} />
             </Button>
@@ -346,6 +385,22 @@ export default function CampaignPage() {
           </Link>
         </Button>
       </Card>
+
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={selectedCampaigns.size === displayedCampaigns.length}
+            onCheckedChange={(checked) => {
+              const newSelected = new Set<string>();
+              if (checked) {
+                displayedCampaigns.forEach((campaign) => newSelected.add(campaign.id));
+              }
+              setSelectedCampaigns(newSelected);
+            }}
+          />
+          <span className="text-sm text-muted-foreground">Select All</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {!isLoading ? (
@@ -375,16 +430,45 @@ export default function CampaignPage() {
         )}
       </div>
 
-      {!isLoading && campaigns.length > 4 && (
+      {hasMore && !isLoading && campaigns.length > 0 && (
         <div className="flex justify-center mt-4">
           <Button
-            onClick={() => setShowAllCampaigns(!showAllCampaigns)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 mt-20"
+            variant="outline"
+            onClick={handleLoadMore}
+            className="w-full max-w-xs"
           >
-            {showAllCampaigns ? "Show Less" : "Show All Campaigns"}
+            Show More
           </Button>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setCampaignToDelete(null);
+        }}
+        onConfirm={async () => {
+          if (campaignToDelete) {
+            await deleteCampaign(campaignToDelete);
+          } else {
+            // Bulk delete
+            const deletePromises = Array.from(selectedCampaigns).map(deleteCampaign);
+            await Promise.all(deletePromises);
+            setSelectedCampaigns(new Set());
+          }
+          setShowDeleteDialog(false);
+          setCampaignToDelete(null);
+        }}
+        title={campaignToDelete ? "Delete Campaign" : "Delete Selected Campaigns"}
+        description={
+          campaignToDelete
+            ? "Are you sure you want to delete this campaign?"
+            : `Are you sure you want to delete ${selectedCampaigns.size} campaigns?`
+        }
+      />
+
+      <BulkActions />
     </div>
   );
 }

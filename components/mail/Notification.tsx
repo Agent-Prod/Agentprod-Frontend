@@ -373,10 +373,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             </div>
             <p className="ml-1 text-xs">
               {email.is_special === true &&
-                `Sally has scheduled this message as requested by ${
-                  leads.length > 0 && leads[0].first_name
-                    ? leads[0].first_name
-                    : ""
+                `Sally has scheduled this message as requested by ${leads.length > 0 && leads[0].first_name
+                  ? leads[0].first_name
+                  : ""
                 }.`}
             </p>
           </div>
@@ -456,20 +455,18 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
 
               {cleanedCategory === "Later" &&
                 email.is_special &&
-                `A follow-up interaction with ${
-                  leads.length > 0 && leads[0].first_name
-                    ? leads[0].first_name
-                    : "the lead"
+                `A follow-up interaction with ${leads.length > 0 && leads[0].first_name
+                  ? leads[0].first_name
+                  : "the lead"
                 } has been scheduled for ${getTimeDifference(
                   email?.scheduled_datetime
                 )}`}
 
               {cleanedCategory === "Later" &&
                 !email.is_special &&
-                `Follow up with ${
-                  leads.length > 0 && leads[0].first_name
-                    ? leads[0].first_name
-                    : ""
+                `Follow up with ${leads.length > 0 && leads[0].first_name
+                  ? leads[0].first_name
+                  : ""
                 }  as requested.`}
 
               {cleanedCategory === "Demo" &&
@@ -478,16 +475,14 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
 
               {/* Adding new Categories */}
               {cleanedCategory === "Block" &&
-                `${
-                  leads.length > 0 && leads[0].first_name
-                    ? leads[0].first_name
-                    : ""
+                `${leads.length > 0 && leads[0].first_name
+                  ? leads[0].first_name
+                  : ""
                 }  has been blocked.`}
               {cleanedCategory === "Not Interested" &&
-                `${
-                  leads.length > 0 && leads[0].first_name
-                    ? leads[0].first_name
-                    : ""
+                `${leads.length > 0 && leads[0].first_name
+                  ? leads[0].first_name
+                  : ""
                 } has expressed no interest.`}
               {/* Adding new Categories */}
             </p>
@@ -709,11 +704,11 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           <p className="ml-1 text-xs">
             {email.status?.toLowerCase() === "scheduled"
               ? `Your draft has been scheduled to be sent at ${formatDate(
-                  email.scheduled_datetime
-                )}`
+                email.scheduled_datetime
+              )}`
               : `Your draft was scheduled to be sent at ${formatDate(
-                  email.scheduled_datetime
-                )}`}
+                email.scheduled_datetime
+              )}`}
           </p>
         </div>
       )}
@@ -766,9 +761,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Mail className="h-4 w-4 text-gray-400" />
             </div>
-                {email.channel === "Linkedin"
-                  ? <p className="ml-1 text-xs">Message was delivered to recipient&apos;s LinkedIn</p>
-                  : <p className="ml-1 text-xs">Mail was delivered to recipient&apos;s inbox</p>}
+            {email.channel === "Linkedin"
+              ? <p className="ml-1 text-xs">Message was delivered to recipient&apos;s LinkedIn</p>
+              : <p className="ml-1 text-xs">Mail was delivered to recipient&apos;s inbox</p>}
             <span className="text-gray-400 text-xs">
               {email.send_datetime && (
                 <span className="text-gray-400 text-xs">
@@ -780,7 +775,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
         )}
 
 
-       
+
 
       {(email?.status &&
         !email.is_reply &&

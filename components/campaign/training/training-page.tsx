@@ -626,9 +626,9 @@ export default function Training() {
                       onValueChange={(value) => setSelectedOption(parseInt(value))}
                     >
                       {[
-                        { label: 'Short', value: 60 },
-                        { label: 'Medium', value: 120 },
-                        { label: 'Long', value: 180 }
+                        { label: 'Short', value: 50 },
+                        { label: 'Medium', value: 80 },
+                        { label: 'Long', value: 120 }
                       ].map((option) => (
                         <div key={option.label} className="flex items-center">
                           <RadioGroupItem

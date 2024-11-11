@@ -94,6 +94,71 @@ const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
 
 const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain);
 
+const CampaignDropdown = React.memo(({ 
+  campaigns, 
+  handleCampaignChange, 
+  currentCampaign 
+}: { 
+  campaigns: any[], 
+  handleCampaignChange: (campaign: { campaignName: string; campaignId: string } | null) => void,
+  currentCampaign: { campaignName: string; campaignId: string } | null
+}) => {
+  const dropdownContent = React.useMemo(() => (
+    <DropdownMenuContent className="w-80">
+      <DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <ScrollArea className="h-[400px] w-full rounded-md">
+          <DropdownMenuItem onClick={() => handleCampaignChange(null)}>
+            <p className="cursor-pointer">All Campaigns</p>
+          </DropdownMenuItem>
+          {Array.isArray(campaigns) && campaigns.length > 0 ? (
+            campaigns.map((campaignItem) => (
+              <DropdownMenuItem
+                key={campaignItem.id}
+                onClick={() =>
+                  handleCampaignChange({
+                    campaignName: campaignItem.campaign_name,
+                    campaignId: campaignItem.id,
+                  })
+                }
+              >
+                <p className="cursor-pointer">
+                  {campaignItem.campaign_name}
+                  {campaignItem.additional_details &&
+                    ` - ${campaignItem.additional_details}`}
+                </p>
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <div className="text-center py-4">
+              <p>No campaigns available.</p>
+            </div>
+          )}
+        </ScrollArea>
+      </DropdownMenuGroup>
+    </DropdownMenuContent>
+  ), [campaigns, handleCampaignChange]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="flex items-center justify-center space-x-2"
+        >
+          <span>
+            {currentCampaign ? currentCampaign.campaignName : "All Campaigns"}
+          </span>
+          <ChevronDown size={20} />
+        </Button>
+      </DropdownMenuTrigger>
+      {dropdownContent}
+    </DropdownMenu>
+  );
+});
+
+CampaignDropdown.displayName = 'CampaignDropdown';
+
 export function Mail({
   defaultLayout = [265, 440, 655],
   defaultCollapsed = false,
@@ -104,7 +169,8 @@ export function Mail({
   const [showLoadingOverlay, setShowLoadingOverlay] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [filter, setFilter] = React.useState("all");
-  const { campaigns } = useCampaignContext();
+  const [campaigns, setCampaigns] = React.useState<any[]>([]);
+  // const { campaigns } = useCampaignContext();
   const [campaign, setCampaign] = React.useState<{
     campaignName: string;
     campaignId: string;
@@ -145,6 +211,34 @@ export function Mail({
   const mailListRef = React.useRef<HTMLDivElement>(null);
 
   const cancelTokenRef = React.useRef<CancelTokenSource | null>(null);
+
+  // Separate campaigns loading state
+  const [isCampaignsLoading, setIsCampaignsLoading] = React.useState(false);
+
+  const fetchCampaigns = React.useCallback(async () => {
+    setIsCampaignsLoading(true);
+    try {
+      const response = await axiosInstance.get(`v2/campaigns/names/${user?.id}`);
+      const campaignData = response.data.campaigns || response.data;
+      if (Array.isArray(campaignData)) {
+        setCampaigns(campaignData);
+      } else {
+        console.error('Campaigns data is not in expected format:', campaignData);
+        setCampaigns([]);
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      setCampaigns([]);
+    } finally {
+      setIsCampaignsLoading(false);
+    }
+  }, [user?.id]);
+
+  React.useEffect(() => {
+    if (user?.id) {
+      fetchCampaigns();
+    }
+  }, [fetchCampaigns]);
 
   const fetchCampaignStatus = React.useCallback(async (campaignId: string) => {
     setShowStatus(true);
@@ -328,7 +422,7 @@ export function Mail({
         setShowLoadingOverlay(false);
       }
     },
-    [user?.id, showLoadingOverlay, campaigns]
+    [user?.id]
   );
 
   const loadMore = React.useCallback(() => {
@@ -372,12 +466,30 @@ export function Mail({
     localStorage.removeItem("redirectFromCampaign");
   }, [campaigns]);
 
+  // Add a ref to track initial mount
+  const isInitialMount = React.useRef(true);
+
+  // Update the useEffect that triggers mail fetching
   React.useEffect(() => {
-    if (!isUserInitiatedSearch) {
+    // Skip the first render
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Only fetch if this is a campaign change or filter change
+    if (!isUserInitiatedSearch && !isCampaignsLoading) {
       fetchConversations(campaign?.campaignId, 1, searchTerm, filter);
     }
     setIsUserInitiatedSearch(false);
-  }, [campaign, filter, fetchConversations, isUserInitiatedSearch]);
+  }, [campaign?.campaignId, filter]); // Minimize dependencies, only include what should trigger a refetch
+
+  // Update the initial data fetch
+  React.useEffect(() => {
+    if (user?.id) {
+      fetchConversations(campaign?.campaignId, 1, searchTerm, filter);
+    }
+  }, []); // Empty dependency array for initial fetch only
 
   React.useEffect(() => {
     if (mails.length > 0 && !initialMailIdSet) {
@@ -425,20 +537,23 @@ export function Mail({
     [mails, selectedMailId]
   );
 
-  const handleFilterChange = React.useCallback((newFilter: string) => {
-    setFilter(newFilter);
-    setPage(1);
-  }, []);
-
+  // Update handleCampaignChange to explicitly trigger fetch
   const handleCampaignChange = React.useCallback(
     (newCampaign: { campaignName: string; campaignId: string } | null) => {
-      console.log("camp filtered");
       setCampaign(newCampaign);
       setPage(1);
       setMails([]);
+      fetchConversations(newCampaign?.campaignId, 1, searchTerm, filter);
     },
-    []
+    [searchTerm, filter, fetchConversations]
   );
+
+  // Update handleFilterChange to explicitly trigger fetch
+  const handleFilterChange = React.useCallback((newFilter: string) => {
+    setFilter(newFilter);
+    setPage(1);
+    fetchConversations(campaign?.campaignId, 1, searchTerm, newFilter);
+  }, [campaign?.campaignId, searchTerm, fetchConversations]);
 
   const handleSearchChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -549,54 +664,11 @@ export function Mail({
                 >
                   Replied
                 </TabsTrigger>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center space-x-2"
-                    >
-                      <span>
-                        {campaign ? campaign.campaignName : "All Campaigns"}
-                      </span>
-                      <ChevronDown size={20} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-80">
-                    <DropdownMenuGroup>
-                      <DropdownMenuSeparator />
-                      <ScrollArea className="h-[400px] w-full rounded-md">
-                        <DropdownMenuItem
-                          onClick={() => handleCampaignChange(null)}
-                        >
-                          <p className="cursor-pointer">All Campaigns</p>
-                        </DropdownMenuItem>
-                        {campaigns && campaigns.length > 0 ? (
-                          campaigns.map((campaignItem) => (
-                            <DropdownMenuItem
-                              key={campaignItem.id}
-                              onClick={() =>
-                                handleCampaignChange({
-                                  campaignName: campaignItem.campaign_name,
-                                  campaignId: campaignItem.id,
-                                })
-                              }
-                            >
-                              <p className="cursor-pointer">
-                                {campaignItem.campaign_name}{" "}
-                                {campaignItem.additional_details &&
-                                  `- ${campaignItem.additional_details}`}
-                              </p>
-                            </DropdownMenuItem>
-                          ))
-                        ) : (
-                          <p className="text-center mt-10">
-                            No campaign available.
-                          </p>
-                        )}
-                      </ScrollArea>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <CampaignDropdown 
+                  campaigns={campaigns} 
+                  handleCampaignChange={handleCampaignChange}
+                  currentCampaign={campaign}
+                />
               </TabsList>
             </div>
 
@@ -656,7 +728,7 @@ export function Mail({
               className="flex-grow overflow-hidden m-0"
             >
               <div ref={mailListRef} className="h-full flex flex-col">
-                {(isInitialLoading && page === 1) || isTransitioning ? (
+                {(isInitialLoading && page === 1 && !isCampaignsLoading) || isTransitioning ? (
                   <div className="flex flex-col space-y-3 p-4 pt-0">
                     {[...Array(6)].map((_, index) => (
                       <Skeleton

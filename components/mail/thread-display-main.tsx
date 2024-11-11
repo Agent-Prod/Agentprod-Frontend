@@ -134,34 +134,34 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
   const leadId = leads[0]?.campaign_id;
 
-  React.useEffect(() => {
-    const fetchCampaigns = () => {
-      if (user && user.id) {
-        setIsLoading(true);
-        axiosInstance
-          .get<CampaignEntry[]>(`v2/campaigns/all/${user.id}`)
-          .then((response) => {
-            console.log("Campaign From Inbox", response);
-            // Sort campaigns based on created_at field
-            const sortedCampaigns = response.data.sort((a: any, b: any) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA; // Sort in descending order (newest first)
-            });
+  // React.useEffect(() => {
+  //   const fetchCampaigns = () => {
+  //     if (user && user.id) {
+  //       setIsLoading(true);
+  //       axiosInstance
+  //         .get<CampaignEntry[]>(`v2/campaigns/all/${user.id}`)
+  //         .then((response) => {
+  //           console.log("Campaign From Inbox", response);
+  //           // Sort campaigns based on created_at field
+  //           const sortedCampaigns = response.data.sort((a: any, b: any) => {
+  //             const dateA = new Date(a.created_at).getTime();
+  //             const dateB = new Date(b.created_at).getTime();
+  //             return dateB - dateA; // Sort in descending order (newest first)
+  //           });
 
-            setCampaigns(sortedCampaigns);
-            setIsLoading(false);
-          })
-          .catch((error) => {
-            console.error("Error fetching campaigns:", error);
-            setError(error.message || "Failed to load campaigns.");
-            setIsLoading(false);
-          });
-      }
-    };
+  //           setCampaigns(sortedCampaigns);
+  //           setIsLoading(false);
+  //         })
+  //         .catch((error) => {
+  //           console.error("Error fetching campaigns:", error);
+  //           setError(error.message || "Failed to load campaigns.");
+  //           setIsLoading(false);
+  //         });
+  //     }
+  //   };
 
-    fetchCampaigns();
-  }, [user?.id]);
+  //   fetchCampaigns();
+  // }, [user?.id]);
 
   React.useEffect(() => {
     // For handleing, the thread if some error occurs

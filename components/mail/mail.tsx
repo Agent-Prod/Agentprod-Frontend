@@ -70,7 +70,8 @@ export interface Conversations {
   photo_url: string;
   company_name: string;
   category: string;
-  channel?: string
+  channel?: string;
+  campaign_name?: string;
 }
 
 interface CampaignStatus {
@@ -786,6 +787,7 @@ export function Mail({
                 setSelectedMailId={setSelectedMailId}
                 mailStatus={currentMail.status}
                 name={currentMail.name}
+                campaign_name={currentMail?.campaign_name || ""}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

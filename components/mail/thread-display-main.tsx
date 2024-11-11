@@ -76,6 +76,7 @@ interface ThreadDisplayMainProps {
   setSelectedMailId: (id: string | null) => void;
   mailStatus: string;
   name: string;
+  campaign_name: string;
 }
 
 const frameworks = [
@@ -96,6 +97,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   setSelectedMailId,
   mailStatus,
   name,
+  campaign_name,
 }) => {
   const {
     conversationId,
@@ -1182,19 +1184,18 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
 
             {/* Campaign Info */}
-            {/* {matchingCampaign && (
+            {true && (
               <div className="m-4">
                 <div className="flex items-center gap-3">
                   <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
                     <User className="h-4 w-4 text-gray-400" />
                   </div>
                   <div className="text-xs ml-1">
-                    {name} was added in {matchingCampaign.campaign_type}{" "}
-                    {matchingCampaign.campaign_name} campaign
+                    {name} was added in {campaign_name} campaign
                   </div>
                 </div>
               </div>
-            )} */}
+            )}
             {thread?.[0]?.channel === 'Linkedin' && <div className="m-4">
               <div className="flex items-center gap-3">
                 <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">

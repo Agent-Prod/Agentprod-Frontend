@@ -307,7 +307,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
     const postData = {
       campaign_id: campaignId,
       emails: data.emails.map((email) => email.value),
-      current_email: data.emails[0].value,
+      current_email: data.emails[0]?.value,
       success_metric: data.success_metric,
       scheduling_link: `${data.scheduling_link}`,
       follow_up_days: data.follow_up_days,

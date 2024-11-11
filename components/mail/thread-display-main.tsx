@@ -1017,7 +1017,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             ) : leads[0]?.connected_on_linkedin === 'CONNECTED' ? (
               <p className="ml-1 text-xs">{leads[0]?.name} has accepted your connection request</p>
             ) : (
-              <p className="ml-1 text-xs">Connection request scheduled for {leads[0]?.name}</p>
+              <p className="ml-1 text-xs">Connection request scheduled for {name}</p>
             )}
           </div>
         )}
@@ -1202,13 +1202,13 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   <Linkedin className="h-4 w-4 text-gray-400" />
                 </div>
                 {leads[0]?.connected_on_linkedin === 'SENT' ? (
-                  <p className="ml-1 text-xs">{leads[0]?.name} has been sent a connection request</p>
+                  <p className="ml-1 text-xs">{name} has been sent a connection request</p>
                 ) : leads[0]?.connected_on_linkedin === 'FAILED' ? (
-                  <p className="ml-1 text-xs">{leads[0]?.name} has rejected your connection request</p>
+                  <p className="ml-1 text-xs">{name} has rejected your connection request</p>
                 ) : leads[0]?.connected_on_linkedin === 'CONNECTED' ? (
-                  <p className="ml-1 text-xs">{leads[0]?.name} has accepted your connection request</p>
+                  <p className="ml-1 text-xs">{name} has accepted your connection request</p>
                 ) : (
-                  <p className="ml-1 text-xs">Connection request scheduled for {leads[0]?.name}</p>
+                  <p className="ml-1 text-xs">Connection request scheduled for {name}</p>
                 )}
               </div>
             </div>}

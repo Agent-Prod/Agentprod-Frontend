@@ -708,7 +708,7 @@ export default function Training() {
                 className="mt-4"
               >
                 <div className="flex items-center justify-center">
-                  Preview Email <span className="ml-2">{loadingWriteAI ? <LoadingCircle /> : <AutoAwesomeIcon />}</span>
+                  Preview <span className="ml-2">{loadingWriteAI ? <LoadingCircle /> : <AutoAwesomeIcon />}</span>
                 </div>
               </Button>
             </CardContent>
@@ -727,7 +727,7 @@ export default function Training() {
                 className="mt-4"
               >
                 <div className="flex items-center justify-center">
-                  Preview Email <span className="ml-2">{loadingWriteAI ? <LoadingCircle /> : <AutoAwesomeIcon />}</span>
+                  Preview 
                 </div>
               </Button>
             </CardContent>

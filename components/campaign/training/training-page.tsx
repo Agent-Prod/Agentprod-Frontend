@@ -717,7 +717,7 @@ export default function Training() {
           <Card className="w-full mt-4">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-center">
-                Use AI Template
+                Give Your Script
               </CardTitle>
             </CardHeader>
             <CardContent>

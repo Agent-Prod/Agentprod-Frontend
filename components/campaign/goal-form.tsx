@@ -60,17 +60,18 @@ const dummyEmails = [
 
 const goalFormSchema = z.object({
   success_metric: z.string(),
-  scheduling_link: z.string().url({ message: "Invalid URL" }),
+  scheduling_link: z.union([
+    z.string().url({ message: "Invalid URL" }),
+    z.string().length(0),  // Allow empty string
+    z.null()
+  ]).optional(),
   emails: z
     .array(
       z.object({
         value: z.string().email({ message: "Invalid email address" }),
       })
     )
-    .refine((value) => value.length > 0, {
-      message:
-        "Please select at least one email. You can add a mailbox on the settings page.",
-    }),
+    .optional(),
   follow_up_days: z
     .number()
     .min(0, { message: "Follow-up days must be a non-negative number" }),
@@ -80,6 +81,15 @@ const goalFormSchema = z.object({
   mark_as_lost: z
     .number()
     .min(0, { message: "Mark as lost must be a non-negative number" }),
+}).refine((data) => {
+  // Only validate scheduling_link when success_metric is "Meeting scheduled"
+  if (data.success_metric === "Meeting scheduled") {
+    return !!data.scheduling_link && data.scheduling_link.length > 0;
+  }
+  return true;
+}, {
+  message: "Scheduling link is required when Meeting scheduled is selected",
+  path: ["scheduling_link"],
 });
 
 type GoalFormValues = z.infer<typeof goalFormSchema>;
@@ -107,6 +117,7 @@ export function GoalForm() {
   const [originalData, setOriginalData] = useState<GoalFormData>();
   const [displayEmail, setDisplayEmail] = useState("Select Email"); // Select Email
   const [type, setType] = useState<"create" | "edit">("create");
+  const [campaignChannel, setCampaignChannel] = useState<string>("");
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
@@ -172,7 +183,7 @@ export function GoalForm() {
   const onSubmit: SubmitHandler<GoalFormValues> = async (data) => {
     if (type === "create") {
       console.log("Link " + data.scheduling_link);
-      createGoal(data, params.campaignId);
+      createGoal(data as GoalFormData, params.campaignId);
     }
     if (type === "edit") {
       console.log(watchAllFields);
@@ -191,9 +202,8 @@ export function GoalForm() {
         }
         return acc;
       }, {} as GoalFormValues);
-
       if (Object.keys(changes).length > 0 && goalData) {
-        editGoal(changes, goalData.id, params.campaignId);
+        editGoal(changes as GoalFormData, goalData.id, params.campaignId);
       }
     }
     const updatedFormsTracker = {
@@ -275,6 +285,23 @@ export function GoalForm() {
     fetchMailboxes();
   }, []);
 
+  useEffect(() => {
+    const fetchCampaignDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+        );
+        setCampaignChannel(response.data.channel);
+      } catch (error) {
+        console.error("Error fetching campaign details:", error);
+      }
+    };
+
+    if (params.campaignId) {
+      fetchCampaignDetails();
+    }
+  }, [params.campaignId]);
+
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 mb-5">
@@ -330,105 +357,111 @@ export function GoalForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="scheduling_link"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <div>
-                <FormLabel>Scheduling Link</FormLabel>
-                <FormDescription>
-                  Where prospects can schedule a meeting with you
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Input
-                  type="url"
-                  placeholder="https://calendly.com/example"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="emails"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <div>
-                <FormLabel>Sender Email</FormLabel>
-                <FormDescription>
-                  Where prospects can schedule a meeting with you
-                </FormDescription>
-              </div>
-              <FormControl>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center space-x-3"
-                    >
-                      <span>{displayEmail}</span>
-                      <ChevronDown size={20} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-max">
-                    <ScrollArea className="h-60">
-                      <DropdownMenuGroup>
-                        {mailboxes &&
-                        mailboxes.length > 0 &&
-                        mailboxes[0].mailbox !== null ? (
-                          mailboxes.map((mailbox, index) => (
-                            <DropdownMenuItem key={index}>
-                              <div
-                                className="flex items-center space-x-2"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                <Checkbox
-                                  checked={emailFields.some(
-                                    (emailField) =>
-                                      emailField.value === mailbox.mailbox
-                                  )}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      onEmailAppend(mailbox.mailbox);
-                                    } else {
-                                      onEmailRemove(mailbox.mailbox);
-                                    }
-                                  }}
-                                />
-                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                  {mailbox.sender_name} - {mailbox.mailbox}
-                                </label>
-                              </div>
-                            </DropdownMenuItem>
-                          ))
-                        ) : (
-                          <div className="text-sm m-2 text-center">
-                            <p> No mailboxes connected.</p>
-                            <p>
-                              You can add a mailbox on the{" "}
-                              <Link
-                                href="/dashboard/settings/mailbox"
-                                className="text-blue-600 underline"
-                              >
-                                Settings
-                              </Link>{" "}
-                              page.
-                            </p>
-                          </div>
-                        )}
-                      </DropdownMenuGroup>
-                    </ScrollArea>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {form.watch("success_metric") === "Meeting scheduled" && (
+          <FormField
+            control={form.control}
+            name="scheduling_link"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>Scheduling Link</FormLabel>
+                  <FormDescription>
+                    Where prospects can schedule a meeting with you
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Input
+                    type="url"
+                    placeholder="https://calendly.com/example"
+                    {...field}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {campaignChannel !== "Linkedin" && (
+          <FormField
+            control={form.control}
+            name="emails"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>Sender Email</FormLabel>
+                  <FormDescription>
+                    Where prospects can schedule a meeting with you
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center justify-center space-x-3"
+                      >
+                        <span>{displayEmail}</span>
+                        <ChevronDown size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-max">
+                      <ScrollArea className="h-60">
+                        <DropdownMenuGroup>
+                          {mailboxes &&
+                          mailboxes.length > 0 &&
+                          mailboxes[0].mailbox !== null ? (
+                            mailboxes.map((mailbox, index) => (
+                              <DropdownMenuItem key={index}>
+                                <div
+                                  className="flex items-center space-x-2"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <Checkbox
+                                    checked={emailFields.some(
+                                      (emailField) =>
+                                        emailField.value === mailbox.mailbox
+                                    )}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        onEmailAppend(mailbox.mailbox);
+                                      } else {
+                                        onEmailRemove(mailbox.mailbox);
+                                      }
+                                    }}
+                                  />
+                                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {mailbox.sender_name} - {mailbox.mailbox}
+                                  </label>
+                                </div>
+                              </DropdownMenuItem>
+                            ))
+                          ) : (
+                            <div className="text-sm m-2 text-center">
+                              <p> No mailboxes connected.</p>
+                              <p>
+                                You can add a mailbox on the{" "}
+                                <Link
+                                  href="/dashboard/settings/mailbox"
+                                  className="text-blue-600 underline"
+                                >
+                                  Settings
+                                </Link>{" "}
+                                page.
+                              </p>
+                            </div>
+                          )}
+                        </DropdownMenuGroup>
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div>
           <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>

@@ -161,6 +161,8 @@ export function SchedulingForm() {
         "campaignType",
         campaignData.campaign_type as "Outbound" | "Inbound" | "Nurturing"
       );
+      form.setValue("scheduleType", campaignData.schedule_type as "recurring" | "immediate");
+      form.setValue("channelType", campaignData.channel);
 
       const processTime = (timeString: string) => {
         const [hours, minutes] = timeString.split(":").map(Number);

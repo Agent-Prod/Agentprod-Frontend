@@ -297,8 +297,8 @@ function PreviewContent() {
       <ResizablePanel defaultSize={70}>
         <div className="flex justify-center p-6">
           <div className="flex-col w-full">
-            <div className="flex justify-end">
-              <Button onClick={newPreview}>
+            <div className="flex justify-end ">
+              <Button onClick={newPreview} className="bg-secondary text-secondary-foreground hover:bg-secondary-foreground hover:text-secondary">
                 {loadingNewPreview ? <LoadingCircle /> : "New preview"}
               </Button>
             </div>

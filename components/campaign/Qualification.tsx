@@ -54,7 +54,7 @@ function Qualification() {
   const addCriteria = () => {
     setCriteria([
       ...criteria,
-      { question: "", type: "yes/no", answer: ""},
+      { question: "", type: "yes/no", answer: "yes" },
     ]);
   };
 
@@ -128,7 +128,10 @@ function Qualification() {
 }
 
 function TextInput({ criterion, onUpdate }: any) {
-  const [localCriterion, setLocalCriterion] = useState(criterion);
+  const [localCriterion, setLocalCriterion] = useState({
+    ...criterion,
+    answer: criterion.answer || "yes"
+  });
 
   const handleUpdate = () => {
     onUpdate(localCriterion);

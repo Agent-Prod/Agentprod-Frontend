@@ -309,7 +309,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       emails: data.emails.map((email) => email.value),
       current_email: data.emails[0]?.value,
       success_metric: data.success_metric,
-      scheduling_link: `${data.scheduling_link}`,
+      scheduling_link: data?.scheduling_link || null,
       follow_up_days: data.follow_up_days,
       follow_up_times: data.follow_up_times,
       mark_as_lost: data.mark_as_lost,

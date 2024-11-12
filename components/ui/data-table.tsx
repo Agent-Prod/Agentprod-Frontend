@@ -32,7 +32,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { useCampaignContext } from "@/context/campaign-provider";
+import { CampaignEntry, useCampaignContext } from "@/context/campaign-provider";
+import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "@/context/user-context";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -66,8 +68,8 @@ export function DataTable<TData extends { id: string }, TValue>({
     campaignName: string;
     campaignId: string;
   } | null>(null);
-  const { campaigns } = useCampaignContext();
-
+  // const { campaigns } = useCampaignContext();
+  const [campaigns, setCampaigns] = useState<CampaignEntry[]>([]);
   // Initialize row selection state based on selectedLeadIds
   const rowSelection = React.useMemo(() => {
     const selection: RowSelectionState = {};
@@ -78,6 +80,16 @@ export function DataTable<TData extends { id: string }, TValue>({
     });
     return selection;
   }, [data, selectedLeadIds]);
+
+  const { user } = useUserContext();
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      const campaigns = await axiosInstance.get(`v2/campaigns/names/${user.id}`);
+      setCampaigns(campaigns.data.campaigns);
+    };
+    fetchCampaigns();
+  }, []);
 
   const handleRowSelectionChange = useCallback(
     (updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => {

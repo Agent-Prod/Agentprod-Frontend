@@ -26,7 +26,7 @@ import Image from "next/image";
 import { Linkedin } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 
 interface CampaignEntry {
@@ -75,7 +75,7 @@ const DeleteConfirmationDialog = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -261,7 +261,7 @@ export default function CampaignPage() {
           </div>
           <div className="flex gap-4 items-center">
             <p className="text-sm text-muted-foreground">
-              {campaignItem?.replies || 0}/{campaignItem?.contacts || 0}
+              Leads = {campaignItem?.contacts || 0}
             </p>
           </div>
         </div>

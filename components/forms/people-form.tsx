@@ -142,14 +142,15 @@ const FormSchema = z.object({
       })
     )
     .optional(),
-  search_signals: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
+  // search_signals: z company_headcount: z.array(z.string()).optional(),
+  //   .array(
+  //     z.object({
+  //       id: z.string(),
+  //       text: z.string()
+  //     })
+  //   )
+  //   .optional(),
+  search_signals: z.array(z.string()).optional(),
   buying_intent_topics: z
     .array(
       z.object({
@@ -738,7 +739,7 @@ export default function PeopleForm(): JSX.Element {
         .join("");
     }
 
-    // console.log(url)
+    console.log(url)
 
     return url;
   };
@@ -780,7 +781,7 @@ export default function PeopleForm(): JSX.Element {
       company_headcount: checkedCompanyHeadcount || [],
       organization_latest_funding_stage_cd:
         data.organization_latest_funding_stage_cd,
-      search_signals: data.search_signals,
+      search_signals: checkedSearchSignal || [],
       minimum_company_funding: data.minimum_company_funding,
       maximum_company_funding: data.maximum_company_funding,
       person_titles: data.person_titles,
@@ -1391,6 +1392,16 @@ export default function PeopleForm(): JSX.Element {
         shouldDirty: true,
       });
 
+      const searchSignal = Array.isArray(allFiltersFromDB.search_signals)
+        ? allFiltersFromDB.search_signals
+        : [];
+
+      setCheckedSearchSignal(searchSignal)
+      form.setValue("search_signals", searchSignal, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
       // Currently using Technologies
       if (allFiltersFromDB.currently_using_technologies) {
         setCurrentlyUsingTechnologiesTags(
@@ -1791,6 +1802,7 @@ export default function PeopleForm(): JSX.Element {
         organization_num_employees_ranges: checkedCompanyHeadcount?.length
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
+        
         organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
@@ -1799,12 +1811,14 @@ export default function PeopleForm(): JSX.Element {
         q_organization_domains: formData.q_organization_domains?.map((tag: any) => tag.text),
         person_titles: formData.person_titles?.map((tag: any) => tag.text),
         organization_latest_funding_stage_cd: checkedFields(checkedFundingRounds, false),
-        search_signal_ids: checkedFields(checkedSearchSignal, false),
+        search_signals: checkedFields(checkedSearchSignal, false),
         currently_using_any_of_technology_uids: formData.currently_using_technologies?.map((tag: any) => tag.text.toLowerCase()),
         revenue_range: {
           min: formData.minimum_company_funding?.text?.toString(),
           max: formData.maximum_company_funding?.text?.toString()
-        }
+        },
+        buying_intent_topics: checkedFields(checkedIntentTopics, false),
+        buying_intent_scores: checkedFields(checkedIntentScores, false)
       };
 
       // Remove undefined or empty array properties
@@ -2923,32 +2937,15 @@ export default function PeopleForm(): JSX.Element {
                                       const isChecked = checked.valueOf();
                                       const value = signal.id;
 
-                                      setCheckedSearchSignal(
-                                        (currentChecked) => {
-                                          if (
-                                            currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return currentChecked;
-                                          }
 
-                                          if (
-                                            !currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return [
-                                              ...(currentChecked || []),
-                                              value,
-                                            ];
-                                          }
+                                      const newCheckedValues = isChecked
+                                      ? [...(checkedSearchSignal || []), value]
+                                      : (checkedSearchSignal || []).filter(item => item !== value);
 
-                                          return (currentChecked || []).filter(
-                                            (item) => item !== value
-                                          );
-                                        }
-                                      );
+                                      setCheckedSearchSignal(newCheckedValues);
+                                      field.onChange(newCheckedValues)
                                     }}
-                                    value={signal.name}
+                                    value={signal.id}
                                   />
                                   {signal.name}
                                 </div>

@@ -151,22 +151,8 @@ const FormSchema = z.object({
   //   )
   //   .optional(),
   search_signals: z.array(z.string()).optional(),
-  buying_intent_topics: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
-  buying_intent_scores: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
+  buying_intent_topics: z.array(z.string()).optional(),
+  buying_intent_scores: z.array(z.string()).optional(),
   job_posting_titles: z
     .array(
       z.object({
@@ -739,7 +725,7 @@ export default function PeopleForm(): JSX.Element {
         .join("");
     }
 
-    console.log(url)
+    // console.log(url)
 
     return url;
   };
@@ -789,8 +775,8 @@ export default function PeopleForm(): JSX.Element {
       email_status: data.email_status,
       organization_job_locations: data.organization_job_locations,
       q_organization_job_titles: data.q_organization_job_titles,
-      buying_intent_topics: data.buying_intent_topics,
-      buying_intent_scores: data.buying_intent_scores,
+      buying_intent_topics: checkedIntentTopics || [],
+      buying_intent_scores: checkedIntentScores || [],
     };
     setIsSubmitting(true);
     setPageCompletion("audience", true);
@@ -1398,6 +1384,26 @@ export default function PeopleForm(): JSX.Element {
 
       setCheckedSearchSignal(searchSignal)
       form.setValue("search_signals", searchSignal, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
+      const intentTopic = Array.isArray(allFiltersFromDB.buying_intent_topics)
+        ? allFiltersFromDB.buying_intent_topics
+        : [];
+
+      setCheckedIntentTopics(intentTopic)
+      form.setValue("buying_intent_topics", intentTopic, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
+      const intentScore = Array.isArray(allFiltersFromDB.buying_intent_scores)
+      ? allFiltersFromDB.buying_intent_scores
+      : [];
+
+      setCheckedIntentTopics(intentScore)
+      form.setValue("buying_intent_scores", intentScore, {
         shouldValidate: true,
         shouldDirty: true,
       })
@@ -3090,30 +3096,12 @@ export default function PeopleForm(): JSX.Element {
                                         const isChecked = checked.valueOf();
                                         const value = intent.id;
 
-                                        setCheckedIntentScores(
-                                          (currentChecked) => {
-                                            if (
-                                              currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return currentChecked;
-                                            }
+                                        const newCheckedValues = isChecked
+                                          ? [...(checkedIntentScores || []), value]
+                                          : (checkedIntentScores || []).filter(item => item !== value);
 
-                                            if (
-                                              !currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return [
-                                                ...(currentChecked || []),
-                                                value,
-                                              ];
-                                            }
-
-                                            return (currentChecked || []).filter(
-                                              (item) => item !== value
-                                            );
-                                          }
-                                        );
+                                        setCheckedIntentScores(newCheckedValues);
+                                        field.onChange(newCheckedValues);
                                       }}
                                       value={intent.name}
                                     />
@@ -3152,35 +3140,19 @@ export default function PeopleForm(): JSX.Element {
                                       checked={checkedIntentTopics?.includes(
                                         intent.id
                                       )}
+                                      
                                       onCheckedChange={(checked) => {
                                         const isChecked = checked.valueOf();
                                         const value = intent.id;
 
-                                        setCheckedIntentTopics(
-                                          (currentChecked) => {
-                                            if (
-                                              currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return currentChecked;
-                                            }
+                                        const newCheckedValues = isChecked
+                                          ? [...(checkedIntentTopics || []), value]
+                                          : (checkedIntentTopics || []).filter(item => item !== value);
 
-                                            if (
-                                              !currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return [
-                                                ...(currentChecked || []),
-                                                value,
-                                              ];
-                                            }
-
-                                            return (currentChecked || []).filter(
-                                              (item) => item !== value
-                                            );
-                                          }
-                                        );
+                                        setCheckedIntentTopics(newCheckedValues);
+                                        field.onChange(newCheckedValues);
                                       }}
+
                                       value={intent.name}
                                     />
                                     {intent.name}

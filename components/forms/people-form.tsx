@@ -233,7 +233,7 @@ export default function PeopleForm(): JSX.Element {
     React.useState<string[]>();
 
   const [checkedSearchSignal, setCheckedSearchSignal] =
-    React.useState<string[]>();
+    React.useState<string[]>([]);
 
   const [checkedIntentTopics, setCheckedIntentTopics] = React.useState<string[]>();
   const [checkedIntentScores, setCheckedIntentScores] = React.useState<string[]>();
@@ -1576,7 +1576,7 @@ export default function PeopleForm(): JSX.Element {
       // Update contacts
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
-      await axiosInstance.post(`v2/lead/bulk/`, audienceBody);
+      await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
 
       toast.success("Audience updated successfully");
       await router.push(`/dashboard/campaign/${params.campaignId}`);

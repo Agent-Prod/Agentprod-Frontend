@@ -66,27 +66,27 @@ interface MailData {
   health: String;
 }
 
-const initialMailboxes = [
-  {
-    id: 1,
-    sender_id: "",
-    mailbox: "",
-    sender_name: "",
-    warmup: true,
-    daily_limit: 30,
-    platform: "",
-    issues: "",
-    dns: [
-      {
-        Name: "",
-        Type: "",
-        Value: "",
-      },
-    ],
-    domain: "",
-    health: 0,
-  },
-];
+// const initialMailboxes = [
+//   {
+//     id: 1,
+//     sender_id: "",
+//     mailbox: "",
+//     sender_name: "",
+//     warmup: true,
+//     daily_limit: 30,
+//     platform: "",
+//     issues: "",
+//     dns: [
+//       {
+//         Name: "",
+//         Type: "",
+//         Value: "",
+//       },
+//     ],
+//     domain: "",
+//     health: 0,
+//   },
+// ];
 
 const createEmailSchema = (domain: any) =>
   z.object({
@@ -103,7 +103,7 @@ const createEmailSchema = (domain: any) =>
   });
 
 export default function Page() {
-  const [getDomainName, setGetDomainName] = useState([]);
+  const [getDomainName, setGetDomainName] = useState<string[]>([]);
   const [isPresentDomain, setIsPresentDomain] = useState();
   const [isConnectDomainButtonLoading, setIsConnectDomainButtonLoading] =
     useState(false);
@@ -120,7 +120,7 @@ export default function Page() {
   const [nameInput, setNameInput] = useState("");
   const [domainInput, setDomainInput] = useState("");
   const [mailData, setMailData] = useState<MailData[]>([]);
-  const [mailboxes, setMailboxes] = useState(initialMailboxes);
+  const [mailboxes, setMailboxes] = useState<any[]>([]);
   const [otpInput, setOtpInput] = useState("");
   const [senderID, setSenderID] = useState("");
   const [isChooseServiceOpen, setIsChooseServiceOpen] = useState(false);
@@ -313,27 +313,27 @@ export default function Page() {
   const fetchMailboxes = async () => {
     setIsLoadingMailboxes(true);
     try {
-      const [mailboxesResponse, healthData] = await Promise.all([
-        axiosInstance.get(`/v2/settings/mailboxes/${user.id}`),
-        fetchHealthData(user.id),
-      ]);
+      // First fetch health data
+      const healthResponse = await fetchHealthData(user.id);
+      const response = await axiosInstance.get(`/v2/settings/mailboxes/${user.id}`);
 
-      const mailboxes = mailboxesResponse.data.map((mailbox: any) => ({
+      // Map the mailboxes with their corresponding health values
+      const updatedMailboxes = response.data.map((mailbox: any) => ({
         ...mailbox,
         dns: mailbox.dns ? JSON.parse(mailbox.dns) : [],
-        health: healthData[mailbox.mailbox] || 0,
+        health: healthResponse[mailbox.mailbox] || 0
       }));
 
-      setMailboxes(mailboxes);
-      const extractDomainName = mailboxes.map((mailbox: any) => mailbox.domain);
+      setMailboxes(updatedMailboxes);
+      const extractDomainName = updatedMailboxes.map((mailbox: any) => mailbox.domain);
       setGetDomainName(extractDomainName);
-      const googleMailbox = mailboxes.find(
+      
+      const googleMailbox = updatedMailboxes.find(
         (mailbox: any) => mailbox.platform === "Google"
       );
       if (googleMailbox) {
         setGoogleMail(googleMailbox.mailbox);
       }
-      // console.log("Mailboxes fetched successfully:", mailboxes);
     } catch (error) {
       console.error("Failed to fetch mailboxes:", error);
     }
@@ -912,7 +912,7 @@ export default function Page() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {mailbox?.dns.map((dns) => (
+                              {(mailbox?.dns || []).map((dns:any) => (
                                   <TableRow key={dns.Value}>
                                     <TableCell>{dns.Type}</TableCell>
                                     <TableCell>

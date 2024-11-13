@@ -718,20 +718,25 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
     React.useEffect(() => {
       setError("");
-      setIsLoading(true);
       axiosInstance
         .get(`/v2/mailbox/draft/${conversationId}`)
         .then((response) => {
           console.log("Initial Draft", response.data);
-          if (response.data.length > 0) {
+          if (response.data && response.data.length > 0) {
             setTitle(response.data[0].subject);
             setBody(response.data[0].body);
             setEmails(response.data);
             if (response.data[0].suggestions) {
               setSuggestions(response.data[0].suggestions);
             }
-            // Store the platform information
             setPlatform(response.data[0].platform);
+          } else {
+            // If response.data is empty array, set emails to null or empty
+            setEmails([]);
+            setTitle("");
+            setBody("");
+            setSuggestions("");
+            setPlatform("");
           }
           setIsLoading(false);
         })
@@ -899,8 +904,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       );
     }
 
-    if (!emails) {
-      <div>Draft is empty</div>;
+    if (!emails?.length) {
+      return null;
     }
 
     if (thread.length > 0 && !lastEmail?.is_reply) {
@@ -1221,6 +1226,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             ))}
           </div>
         )}
+        
 
         {/* Only show draft if drafts exist and either there are no messages or last message is not a reply */}
         {true && (

@@ -621,13 +621,13 @@ export default function Training() {
                   <div className="rounded-md">
                     <Label className="text-sm font-medium mb-2 block">Length of email</Label>
                     <RadioGroup
-                      defaultValue="medium"
+                      defaultValue="80"
                       className="flex space-x-4"
                       onValueChange={(value) => setSelectedOption(parseInt(value))}
                     >
                       {[
                         { label: 'Short', value: 50 },
-                        { label: 'Medium', value: 80 },
+                        { label: 'Medium', value: 80, defaultChecked: true },
                         { label: 'Long', value: 120 }
                       ].map((option) => (
                         <div key={option.label} className="flex items-center">

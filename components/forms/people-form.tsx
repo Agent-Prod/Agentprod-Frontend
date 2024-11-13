@@ -2188,13 +2188,28 @@ export default function PeopleForm(): JSX.Element {
                             placeholder={"Enter the number of leads you want"}
                             className="sm:min-w-[450px] outline-none"
                             value={field.value || leadsNum}
-                            min={0}
+                            min={25}
                             max={500}
+                            step={25}
                             onChange={(e) => {
                               const value = e.target.value;
-                              const numberValue =
-                                value === "" ? undefined : Number(value);
-                              field.onChange(numberValue);
+                              if (value === "") {
+                                field.onChange(undefined);
+                                return;
+                              }
+                              
+                              const numberValue = Math.round(Number(value) / 25) * 25;
+                              const boundedValue = Math.max(25, Math.min(500, numberValue));
+                              
+                              field.onChange(boundedValue);
+                            }}
+                            onBlur={(e) => {
+                              const value = e.target.value;
+                              if (value) {
+                                const numberValue = Math.round(Number(value) / 25) * 25;
+                                const boundedValue = Math.max(25, Math.min(500, numberValue));
+                                field.onChange(boundedValue);
+                              }
                             }}
                           />
                         </div>
@@ -2203,6 +2218,8 @@ export default function PeopleForm(): JSX.Element {
                         These are the number of leads that you&apos;re
                         interested in select between 1 - 125.
                       </FormDescription>
+                      <FormDescription>
+                      Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

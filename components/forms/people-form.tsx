@@ -142,30 +142,17 @@ const FormSchema = z.object({
       })
     )
     .optional(),
-  search_signals: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
-  buying_intent_topics: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
-  buying_intent_scores: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string()
-      })
-    )
-    .optional(),
+  // search_signals: z company_headcount: z.array(z.string()).optional(),
+  //   .array(
+  //     z.object({
+  //       id: z.string(),
+  //       text: z.string()
+  //     })
+  //   )
+  //   .optional(),
+  search_signals: z.array(z.string()).optional(),
+  buying_intent_topics: z.array(z.string()).optional(),
+  buying_intent_scores: z.array(z.string()).optional(),
   job_posting_titles: z
     .array(
       z.object({
@@ -780,7 +767,7 @@ export default function PeopleForm(): JSX.Element {
       company_headcount: checkedCompanyHeadcount || [],
       organization_latest_funding_stage_cd:
         data.organization_latest_funding_stage_cd,
-      search_signals: data.search_signals,
+      search_signals: checkedSearchSignal || [],
       minimum_company_funding: data.minimum_company_funding,
       maximum_company_funding: data.maximum_company_funding,
       person_titles: data.person_titles,
@@ -788,8 +775,8 @@ export default function PeopleForm(): JSX.Element {
       email_status: data.email_status,
       organization_job_locations: data.organization_job_locations,
       q_organization_job_titles: data.q_organization_job_titles,
-      buying_intent_topics: data.buying_intent_topics,
-      buying_intent_scores: data.buying_intent_scores,
+      buying_intent_topics: checkedIntentTopics || [],
+      buying_intent_scores: checkedIntentScores || [],
     };
     setIsSubmitting(true);
     setPageCompletion("audience", true);
@@ -1389,6 +1376,36 @@ export default function PeopleForm(): JSX.Element {
         shouldDirty: true,
       });
 
+      const searchSignal = Array.isArray(allFiltersFromDB.search_signals)
+        ? allFiltersFromDB.search_signals
+        : [];
+
+      setCheckedSearchSignal(searchSignal)
+      form.setValue("search_signals", searchSignal, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
+      const intentTopic = Array.isArray(allFiltersFromDB.buying_intent_topics)
+        ? allFiltersFromDB.buying_intent_topics
+        : [];
+
+      setCheckedIntentTopics(intentTopic)
+      form.setValue("buying_intent_topics", intentTopic, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
+      const intentScore = Array.isArray(allFiltersFromDB.buying_intent_scores)
+      ? allFiltersFromDB.buying_intent_scores
+      : [];
+
+      setCheckedIntentTopics(intentScore)
+      form.setValue("buying_intent_scores", intentScore, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+
       // Currently using Technologies
       if (allFiltersFromDB.currently_using_technologies) {
         setCurrentlyUsingTechnologiesTags(
@@ -1789,6 +1806,7 @@ export default function PeopleForm(): JSX.Element {
         organization_num_employees_ranges: checkedCompanyHeadcount?.length
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
+        
         organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
@@ -1797,12 +1815,14 @@ export default function PeopleForm(): JSX.Element {
         q_organization_domains: formData.q_organization_domains?.map((tag: any) => tag.text),
         person_titles: formData.person_titles?.map((tag: any) => tag.text),
         organization_latest_funding_stage_cd: checkedFields(checkedFundingRounds, false),
-        search_signal_ids: checkedFields(checkedSearchSignal, false),
+        search_signals: checkedFields(checkedSearchSignal, false),
         currently_using_any_of_technology_uids: formData.currently_using_technologies?.map((tag: any) => tag.text.toLowerCase()),
         revenue_range: {
           min: formData.minimum_company_funding?.text?.toString(),
           max: formData.maximum_company_funding?.text?.toString()
-        }
+        },
+        buying_intent_topics: checkedFields(checkedIntentTopics, false),
+        buying_intent_scores: checkedFields(checkedIntentScores, false)
       };
 
       // Remove undefined or empty array properties
@@ -2938,32 +2958,15 @@ export default function PeopleForm(): JSX.Element {
                                       const isChecked = checked.valueOf();
                                       const value = signal.id;
 
-                                      setCheckedSearchSignal(
-                                        (currentChecked) => {
-                                          if (
-                                            currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return currentChecked;
-                                          }
 
-                                          if (
-                                            !currentChecked?.includes(value) &&
-                                            isChecked
-                                          ) {
-                                            return [
-                                              ...(currentChecked || []),
-                                              value,
-                                            ];
-                                          }
+                                      const newCheckedValues = isChecked
+                                      ? [...(checkedSearchSignal || []), value]
+                                      : (checkedSearchSignal || []).filter(item => item !== value);
 
-                                          return (currentChecked || []).filter(
-                                            (item) => item !== value
-                                          );
-                                        }
-                                      );
+                                      setCheckedSearchSignal(newCheckedValues);
+                                      field.onChange(newCheckedValues)
                                     }}
-                                    value={signal.name}
+                                    value={signal.id}
                                   />
                                   {signal.name}
                                 </div>
@@ -3108,30 +3111,12 @@ export default function PeopleForm(): JSX.Element {
                                         const isChecked = checked.valueOf();
                                         const value = intent.id;
 
-                                        setCheckedIntentScores(
-                                          (currentChecked) => {
-                                            if (
-                                              currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return currentChecked;
-                                            }
+                                        const newCheckedValues = isChecked
+                                          ? [...(checkedIntentScores || []), value]
+                                          : (checkedIntentScores || []).filter(item => item !== value);
 
-                                            if (
-                                              !currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return [
-                                                ...(currentChecked || []),
-                                                value,
-                                              ];
-                                            }
-
-                                            return (currentChecked || []).filter(
-                                              (item) => item !== value
-                                            );
-                                          }
-                                        );
+                                        setCheckedIntentScores(newCheckedValues);
+                                        field.onChange(newCheckedValues);
                                       }}
                                       value={intent.name}
                                     />
@@ -3170,35 +3155,19 @@ export default function PeopleForm(): JSX.Element {
                                       checked={checkedIntentTopics?.includes(
                                         intent.id
                                       )}
+                                      
                                       onCheckedChange={(checked) => {
                                         const isChecked = checked.valueOf();
                                         const value = intent.id;
 
-                                        setCheckedIntentTopics(
-                                          (currentChecked) => {
-                                            if (
-                                              currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return currentChecked;
-                                            }
+                                        const newCheckedValues = isChecked
+                                          ? [...(checkedIntentTopics || []), value]
+                                          : (checkedIntentTopics || []).filter(item => item !== value);
 
-                                            if (
-                                              !currentChecked?.includes(value) &&
-                                              isChecked
-                                            ) {
-                                              return [
-                                                ...(currentChecked || []),
-                                                value,
-                                              ];
-                                            }
-
-                                            return (currentChecked || []).filter(
-                                              (item) => item !== value
-                                            );
-                                          }
-                                        );
+                                        setCheckedIntentTopics(newCheckedValues);
+                                        field.onChange(newCheckedValues);
                                       }}
+
                                       value={intent.name}
                                     />
                                     {intent.name}

@@ -848,7 +848,6 @@ export default function PeopleForm(): JSX.Element {
     });
 
     const APIFY_TOKEN = "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa";
-    const APIFY_EMAIL = "info@agentprod.com";
 
     const fetchLead = async (startPage: number): Promise<any[]> => {
       const TIMEOUT = 90000;
@@ -859,7 +858,6 @@ export default function PeopleForm(): JSX.Element {
         try {
           const scraperBody = {
             ...createScraperBody(25, startPage),
-            email: APIFY_EMAIL,
           };
 
           const controller = new AbortController();

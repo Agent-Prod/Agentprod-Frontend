@@ -88,7 +88,7 @@ export default function Training() {
   const [testEmail, setTestEmail] = useState("");
   const [testCamp, setTestCamp] = useState<any[]>([]);
   const [testCampLoading, setTestCampLoading] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<number>(180);
+  const [selectedOption, setSelectedOption] = useState<number>(80);
   const [customPrompt, setCustomPrompt] = useState('');
   const { user } = useUserContext();
   const params = useParams<{ campaignId: string }>();

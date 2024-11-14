@@ -1814,7 +1814,7 @@ export default function PeopleForm(): JSX.Element {
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
         
-        organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
+        person_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
         q_organization_job_titles: formData.job_posting_titles?.map((tag: any) => tag.text),
@@ -1829,7 +1829,8 @@ export default function PeopleForm(): JSX.Element {
           max: formData.maximum_company_funding?.text?.toString()
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
-        buying_intent_scores: checkedFields(checkedIntentScores, false)
+        buying_intent_scores: checkedFields(checkedIntentScores, false),
+        contact_email_status_v2:["likely_to_engage","verified"]
       };
 
       // Remove undefined or empty array properties

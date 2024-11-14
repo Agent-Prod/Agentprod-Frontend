@@ -660,6 +660,12 @@ export function Mail({
                   To Approve
                 </TabsTrigger>
                 <TabsTrigger
+                  value="sent"
+                  className="text-zinc-800 dark:text-zinc-200"
+                >
+                  Sent
+                </TabsTrigger>
+                <TabsTrigger
                   value="replied"
                   className="text-zinc-800 dark:text-zinc-200"
                 >

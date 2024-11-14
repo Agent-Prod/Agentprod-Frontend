@@ -89,14 +89,7 @@ const FormSchema = z.object({
     )
     .optional(),
   company_headcount: z.array(z.string()).optional(),
-  organization_latest_funding_stage_cd: z
-    .array(
-      z.object({
-        id: z.string(),
-        text: z.string(),
-      })
-    )
-    .optional(),
+  organization_latest_funding_stage_cd: z.array(z.string()).optional(),
   minimum_company_funding: z
     .object({
       id: z.string(),
@@ -213,8 +206,7 @@ export default function PeopleForm(): JSX.Element {
   const [jobPostingTitles, setJobPostingTitles] = React.useState<Tag[]>([]);
   const [jobPostingLocations, setJobPostingLocations] = React.useState<Tag[]>([]);
 
-  const [checkedFundingRounds, setCheckedFundingRounds] =
-    React.useState<string[]>();
+  const [checkedFundingRounds, setCheckedFundingRounds] = React.useState<string[]>([]);
 
   const [checkedCompanyHeadcount, setCheckedCompanyHeadcount] =
     React.useState<string[]>();
@@ -661,7 +653,7 @@ export default function PeopleForm(): JSX.Element {
           (tag: any) =>
             `&qOrganizationJobTitles[]=${encodeURIComponent(tag.text)}`
         )
-        .join("")
+        .join("");
     }
 
     if (formData.job_posting_locations && formData.job_posting_locations.length > 0) {
@@ -765,8 +757,7 @@ export default function PeopleForm(): JSX.Element {
       job_posting_titles: data.job_posting_titles,
       organization_locations: data.organization_locations,
       company_headcount: checkedCompanyHeadcount || [],
-      organization_latest_funding_stage_cd:
-        data.organization_latest_funding_stage_cd,
+      organization_latest_funding_stage_cd: checkedFundingRounds || [],
       search_signals: checkedSearchSignal || [],
       minimum_company_funding: data.minimum_company_funding,
       maximum_company_funding: data.maximum_company_funding,
@@ -1072,20 +1063,20 @@ export default function PeopleForm(): JSX.Element {
   }
 
   const fundingRounds = [
-    { name: "Seed", checked: false, value: "0" },
-    { name: "Angel", checked: false, value: "1" },
-    { name: "Venture (Round not Specified)", checked: false, value: "10" },
-    { name: "Series A", checked: false, value: "2" },
-    { name: "Series B", checked: false, value: "3" },
-    { name: "Series C", checked: false, value: "4" },
-    { name: "Series D", checked: false, value: "5" },
-    { name: "Series E", checked: false, value: "6" },
-    { name: "Series F", checked: false, value: "7" },
-    { name: "Debt Financing", checked: false, value: "13" },
-    { name: "Equity Crowdfunding", checked: false, value: "14" },
-    { name: "Convertible Note", checked: false, value: "15" },
-    { name: "Private Equity", checked: false, value: "11" },
-    { name: "Other", checked: false, value: "12" },
+    { id: "0", name: "Seed" },
+    { id: "1", name: "Angel" },
+    { id: "10", name: "Venture (Round not Specified)" },
+    { id: "2", name: "Series A" },
+    { id: "3", name: "Series B" },
+    { id: "4", name: "Series C" },
+    { id: "5", name: "Series D" },
+    { id: "6", name: "Series E" },
+    { id: "7", name: "Series F" },
+    { id: "13", name: "Debt Financing" },
+    { id: "14", name: "Equity Crowdfunding" },
+    { id: "15", name: "Convertible Note" },
+    { id: "11", name: "Private Equity" },
+    { id: "12", name: "Other" },
   ];
 
   const companyHeadcountOptions: CheckboxOptions[] = [
@@ -1468,13 +1459,15 @@ export default function PeopleForm(): JSX.Element {
 
       // Funding Rounds
       if (allFiltersFromDB.organization_latest_funding_stage_cd) {
-        setCheckedFundingRounds(
-          allFiltersFromDB.organization_latest_funding_stage_cd
-        );
-        setValue(
-          "organization_latest_funding_stage_cd",
-          allFiltersFromDB.organization_latest_funding_stage_cd
-        );
+        const fundingRounds = Array.isArray(allFiltersFromDB.organization_latest_funding_stage_cd)
+          ? allFiltersFromDB.organization_latest_funding_stage_cd
+          : [];
+
+        setCheckedFundingRounds(fundingRounds);
+        form.setValue("organization_latest_funding_stage_cd", fundingRounds, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       }
 
       // Search Signals
@@ -2636,62 +2629,40 @@ export default function PeopleForm(): JSX.Element {
                       control={form.control}
                       name="organization_latest_funding_stage_cd"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col items-start py-4 w-8/12">
+                        <FormItem className="flex flex-col items-start">
                           <FormLabel
-                            className="w-full text-left h-1 my-2 flex items-center"
+                            className="flex justify-between font-normal w-full py-3 cursor-pointer items-center text-left"
                             onClick={() => toggleDropdown("funding")}
                           >
-                            <div className="bold">
-                              Funding rounds and Raises
-                            </div>
+                            <div>Funding Rounds</div>
                             {dropdownsOpen.funding ? (
-                              <ChevronUp
-                                width="25"
-                                color="#000000"
-                                className="ml-2"
-                              />
+                              <ChevronUp color="#000000" />
                             ) : (
                               <ChevronUp
-                                width={25}
                                 color="#000000"
-                                className="ml-2 transition-transform duration-200 transform rotate-180 text-white"
+                                className="transition-transform duration-200 transform rotate-180"
                               />
                             )}
                           </FormLabel>
                           <FormControl>
-                            <div
-                              className={`${dropdownsOpen.funding ? "block" : "hidden"
-                                }`}
-                            >
-                              {fundingRounds.map((round, index) => (
-                                <div
-                                  className="text-sm flex items-center mb-3"
-                                  key={index}
-                                >
+                            <div className={`${dropdownsOpen.funding ? "block" : "hidden"}`}>
+                              {fundingRounds.map((round) => (
+                                <div className="text-sm flex items-center mb-3" key={round.id}>
                                   <Checkbox
-                                    {...field}
                                     className="mr-2"
-                                    checked={checkedFundingRounds?.includes(
-                                      round.value
-                                    )}
-                                    onCheckedChange={(e) => {
-                                      if (e.valueOf()) {
-                                        setCheckedFundingRounds([
-                                          ...(checkedFundingRounds
-                                            ? checkedFundingRounds
-                                            : []),
-                                          round.value,
-                                        ]);
-                                      } else {
-                                        setCheckedFundingRounds(
-                                          checkedFundingRounds?.filter(
-                                            (item) => item !== round.value
-                                          )
-                                        );
-                                      }
-                                      console.log(checkedFundingRounds);
+                                    checked={checkedFundingRounds?.includes(round.id)}
+                                    onCheckedChange={(checked) => {
+                                      const isChecked = checked.valueOf();
+                                      const value = round.id;
+
+                                      const newCheckedValues = isChecked
+                                        ? [...(checkedFundingRounds || []), value]
+                                        : (checkedFundingRounds || []).filter(item => item !== value);
+
+                                      setCheckedFundingRounds(newCheckedValues);
+                                      field.onChange(newCheckedValues);
                                     }}
-                                    value={round.value}
+                                    value={round.id}
                                   />
                                   {round.name}
                                 </div>
@@ -3222,8 +3193,7 @@ export default function PeopleForm(): JSX.Element {
                         />
                       </div>
                     </div>
-                  </div>
-                </div> */}
+                  </div> */}
 
 
               </div>

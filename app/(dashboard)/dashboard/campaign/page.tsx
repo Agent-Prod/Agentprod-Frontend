@@ -267,7 +267,9 @@ export default function CampaignPage() {
         </div>
         <div className="space-y-2">
           <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
-            {campaignItem?.campaign_type || "Unknown Type"}
+            {campaignItem?.schedule_type === "recurring"
+            ? "Contact Leads Every Day"
+            : "One-time"}
           </div>
           <div className={`text-xs flex items-center gap-1 dark:text-white/80 text-black ${campaignItem?.channel?.toLowerCase() === "linkedin"
             ? "bg-blue-400/80 dark:bg-blue-400/20"

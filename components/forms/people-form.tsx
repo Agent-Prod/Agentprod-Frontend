@@ -1585,7 +1585,21 @@ export default function PeopleForm(): JSX.Element {
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
       await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
-
+      const getRecData = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+      );
+      if (getRecData.data.schedule_type === "recurring") {
+        const recurringResponse = await axiosInstance.put(
+          "v2/recurring_campaign_request",
+          {
+            campaign_id: params.campaignId,
+            apollo_url: apolloUrl,
+            page :calculatedPages + 1,
+            
+          }
+        );
+        console.log("Recurring campaign request: ", recurringResponse.data);
+      }
       toast.success("Audience updated successfully");
       await router.push(`/dashboard/campaign/${params.campaignId}`);
       setTimeout(async () => {

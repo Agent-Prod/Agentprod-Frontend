@@ -283,8 +283,9 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (email.channel === "linkedin") {
         payload = {
-          email: recipientEmail,
-          user_id: user.id, 
+          receiver: recipientEmail,
+          sender: senderEmail,
+          user_id: user.id,
           message: email.body,
           conversation_id: conversationId,
         };
@@ -793,7 +794,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (platform === "linkedin") {
         payload = {
-          email: recipientEmail,
+          receiver: recipientEmail,
+          sender: senderEmail,
           user_id: user.id, 
           message: body,
           conversation_id: conversationId,

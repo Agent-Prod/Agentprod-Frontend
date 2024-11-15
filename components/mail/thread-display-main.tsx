@@ -281,7 +281,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let payload;
       let endpoint;
 
-      if (email.channel === "Linkedin") {
+      if (email.channel === "linkedin") {
         payload = {
           email: recipientEmail,
           user_id: user.id, // Assuming you have access to the user object
@@ -489,7 +489,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </CardContent>
               <CardFooter className="flex justify-between text-xs items-center">
                 <div>
-                  {email.channel !== "Linkedin" && (
+                  {email.channel !== "linkedin" && (
                     <Button disabled={isEditing} onClick={handleApproveEmail}>
                       {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
                     </Button>
@@ -729,7 +729,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             if (response.data[0].suggestions) {
               setSuggestions(response.data[0].suggestions);
             }
-            setPlatform(response.data[0].platform);
+            setPlatform(response.data[0].platform.toLowerCase());
           } else {
             // If response.data is empty array, set emails to null or empty
             setEmails([]);
@@ -790,7 +790,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let payload;
       let endpoint;
 
-      if (platform === "Linkedin") {
+      if (platform === "linkedin") {
         payload = {
           email: recipientEmail,
           user_id: user.id, // Assuming you have access to the user object
@@ -1010,7 +1010,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
     return (
       <div className="flex gap-2 flex-col m-4 h-full">
-        {platform === "Linkedin" && (
+        {platform === "linkedin" && (
           <div className="flex items-center gap-3 mb-4">
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Linkedin className="h-4 w-4 text-gray-400" />
@@ -1047,15 +1047,15 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 {"You to " + name}
               </span>
               <div className="flex gap-3">
-                <span className={`${platform === "Linkedin" ? "text-blue-500" : "text-green-500"} text-sm flex items-center space-x-2`}>
-                  {platform === "Linkedin" ? "LinkedIn Message" : "Email Draft"}
+                <span className={`${platform === "linkedin" ? "text-blue-500" : "text-green-500"} text-sm flex items-center space-x-2`}>
+                  {platform === "linkedin" ? "LinkedIn Message" : "Email Draft"}
                   <div className="h-4 w-4 pl-2">
-                    {platform === "Linkedin" && <Linkedin className="h-4 w-4" />}
+                    {platform === "linkedin" && <Linkedin className="h-4 w-4" />}
                   </div>
                 </span>
               </div>
             </div>
-            {platform !== "Linkedin" && (
+            {platform !== "linkedin" && (
               <CardHeader>
                 <CardTitle className="text-sm flex -mt-8 -ml-3">
                   <Input
@@ -1079,13 +1079,13 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             </CardContent>
             <CardFooter className="flex justify-between text-xs items-center">
               <div>
-                {platform !== "Linkedin" && (
+                {platform !== "linkedin" && (
                   <Button disabled={editable} onClick={handleApproveEmail}>
                     {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
                   </Button>
                 )}
                 <Button
-                  variant={platform === "Linkedin" ? "default" : "secondary"}
+                  variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
                   onClick={handleSendNow}
                 >
@@ -1118,7 +1118,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <div ref={internalScrollRef} />
           </Card>
         </div>
-        {platform !== "Linkedin" && <SuggestionDisplay suggestions={suggestions} />}
+        {platform !== "linkedin" && <SuggestionDisplay suggestions={suggestions} />}
       </div>
     );
   };

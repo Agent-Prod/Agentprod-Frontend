@@ -268,8 +268,8 @@ export default function CampaignPage() {
         <div className="space-y-2">
           <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
             {campaignItem?.schedule_type === "recurring"
-            ? "Contact Leads Every Day"
-            : "One-time"}
+              ? "Contact Leads Every Day"
+              : "One-time"}
           </div>
           <div className={`text-xs flex items-center gap-1 dark:text-white/80 text-black ${campaignItem?.channel?.toLowerCase() === "linkedin"
             ? "bg-blue-400/80 dark:bg-blue-400/20"
@@ -364,7 +364,7 @@ export default function CampaignPage() {
               <Icons.trash2 size={16} />
             </Button>
             <Button variant={"ghost"}>
-              <Link href={`/dashboard/campaign/${campaignItem.id}`}>
+              <Link href={`/campaign/${campaignItem.id}`}>
                 <Icons.pen size={16} />
               </Link>
             </Button>
@@ -380,7 +380,7 @@ export default function CampaignPage() {
         <CardTitle>Send Your Email Campaign</CardTitle>
         <Button className="mt-4">
           <Link
-            href={`/dashboard/campaign/${uuid()}`}
+            href={`/campaign/${uuid()}`}
             className="flex items-center gap-1"
           >
             <Plus size={16} /> Create Campaign

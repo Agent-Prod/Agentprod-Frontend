@@ -1272,7 +1272,7 @@ export default function PeopleForm(): JSX.Element {
             if (Array.isArray(response.data) && response.data.length >= 1) {
 
               setTimeout(() => {
-                router.push(`/dashboard/campaign/${params.campaignId}`);
+                router.push(`/campaign/${params.campaignId}`);
               }, 4000);
 
               return true;
@@ -1605,7 +1605,7 @@ export default function PeopleForm(): JSX.Element {
         console.log("Recurring campaign request: ", recurringResponse.data);
       }
       toast.success("Audience updated successfully");
-      await router.push(`/dashboard/campaign/${params.campaignId}`);
+      await router.push(`/campaign/${params.campaignId}`);
       setTimeout(async () => {
         try {
           await axiosInstance.post(`v2/contacts/left?without_template=true`, {
@@ -2324,7 +2324,7 @@ export default function PeopleForm(): JSX.Element {
                       <div>
                         <div className="flex flex-row items-center gap-1 mb-2">
                           <p className="text-xs">Contact our team to add your taget company's into the list</p>
-                          
+
                         </div>
 
                         <FormField

@@ -283,9 +283,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (email.channel === "linkedin") {
         payload = {
-          email: recipientEmail,
-          user_id: user.id, // Assuming you have access to the user object
-          message: email.body
+          receiver: recipientEmail,
+          sender: senderEmail,
+          user_id: user.id,
+          message: email.body,
+          conversation_id: conversationId,
         };
         endpoint = "/v2/linkedin/send-message";
       } else {
@@ -792,9 +794,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (platform === "linkedin") {
         payload = {
-          email: recipientEmail,
-          user_id: user.id, // Assuming you have access to the user object
-          message: body
+          receiver: recipientEmail,
+          sender: senderEmail,
+          user_id: user.id,
+          message: body,
+          conversation_id: conversationId,
         };
         endpoint = "/v2/linkedin/send-message";
       } else {

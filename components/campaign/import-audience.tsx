@@ -259,7 +259,7 @@ export const ImportAudience = () => {
         organization_id: lead.organization_id,
         seniority: lead.seniority || "",
         revealed_for_current_team: lead.revealed_for_current_team || false,
-        linkedin_posts: [], 
+        linkedin_posts: [],
         linkedin_bio: lead.linkedin_bio || "",
         social_monitoring_data: lead.social_monitoring_data || "",
       }));
@@ -367,43 +367,43 @@ export const ImportAudience = () => {
       const maxAttempts = 10;
       const pollInterval = 6000; // 7 seconds
 
-        const checkLeads = async () => {
-          try {
-            const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
-            );
-            if (Array.isArray(response.data) && response.data.length >= 1) {
-              setIsCreateBtnLoading(false);
-              setTimeout(() => {
-                router.push(`/dashboard/campaign/${params.campaignId}`);
-              }, 4000);
-
-              return true;
-            }
-          } catch (error) {
-            console.error("Error checking leads:", error);
-          }
-          return false;
-        };
-
-        const poll = async () => {
-          const success = await checkLeads();
-          if (success) {
-            return;
-          }
-
-          attempts++;
-          if (attempts >= maxAttempts) {
-            console.log("Max attempts reached. Stopping polling.");
-            toast.error("Failed to update leads. Please try again later.");
+      const checkLeads = async () => {
+        try {
+          const response = await axios.get(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          );
+          if (Array.isArray(response.data) && response.data.length >= 1) {
             setIsCreateBtnLoading(false);
-            return;
+            setTimeout(() => {
+              router.push(`/campaign/${params.campaignId}`);
+            }, 4000);
+
+            return true;
           }
+        } catch (error) {
+          console.error("Error checking leads:", error);
+        }
+        return false;
+      };
 
-          setTimeout(poll, pollInterval);
-        };
+      const poll = async () => {
+        const success = await checkLeads();
+        if (success) {
+          return;
+        }
 
-        poll();
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.log("Max attempts reached. Stopping polling.");
+          toast.error("Failed to update leads. Please try again later.");
+          setIsCreateBtnLoading(false);
+          return;
+        }
+
+        setTimeout(poll, pollInterval);
+      };
+
+      poll();
     } catch (error) {
       console.error(error);
       setError(error instanceof Error ? error.toString() : String(error));
@@ -420,7 +420,7 @@ export const ImportAudience = () => {
     "LinkedIn URL",
     "Company Name",
     "Company Website URL",
-    
+
   ];
 
   const handleCardClick = () => {
@@ -447,6 +447,7 @@ export const ImportAudience = () => {
                 <CardDescription>
                   <ul className="list-disc list-inside space-y-2">
                     <li>Upload your file (CSV, Excel, etc.)</li>
+                    // eslint-disable-next-line react/no-unescaped-entities
                     <li>We'll enrich each contact with additional details</li>
                     <li>Get their email ID, LinkedIn ID, job titles, company size, etc.</li>
                     <li>Save time on manual research</li>
@@ -521,8 +522,8 @@ export const ImportAudience = () => {
               </TableBody>
             </Table>
             <DialogFooter className="flex sm:justify-start">
-              <Button 
-                onClick={enrichmentHandler} 
+              <Button
+                onClick={enrichmentHandler}
                 className="w-1/3"
                 disabled={isEnrichmentLoading}
               >

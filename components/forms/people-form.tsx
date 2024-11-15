@@ -816,7 +816,7 @@ export default function PeopleForm(): JSX.Element {
       minDelay: 8,
       password: "Agentprod06ms",
       searchUrl: apolloUrl,
-      startPage: startPage,
+      startPage: (startPage - 1) * 2 + 1,
       waitForVerification: true,
       proxy: {
         useApifyProxy: true,

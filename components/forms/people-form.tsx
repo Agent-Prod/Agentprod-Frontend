@@ -2323,19 +2323,8 @@ export default function PeopleForm(): JSX.Element {
 
                       <div>
                         <div className="flex flex-row items-center gap-1 mb-2">
-                          <p className="text-xs">Contact us to add your company in the list</p>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <a href="mailto:info@agentprod.com" title="info@agnetprod.com">
-                                  <ExternalLink size={12} />
-                                </a>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>info@agentprod.com</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <p className="text-xs">Contact our team to add your taget company's into the list</p>
+                          
                         </div>
 
                         <FormField

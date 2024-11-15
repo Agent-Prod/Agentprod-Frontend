@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -26,20 +26,41 @@ import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { useMailGraphContext } from "@/context/chart-data-provider";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
+import type { Campaign, DashboardData } from "@/types/dashboard";
 
-const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: {
-  campaigns: any[],
-  isLoading: boolean
-}) => {
+interface TopPerformingCampaignsTableProps {
+  campaigns: Campaign[];
+  isLoading: boolean;
+}
+
+const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformingCampaignsTableProps) => {
+  const renderCampaignRow = useCallback((campaign: Campaign) => (
+    <TableRow key={campaign.campaign_name}>
+      <TableCell>{campaign.campaign_name}</TableCell>
+      <TableCell className="hidden sm:table-cell text-center">
+        {Math.round(campaign.engaged_leads)}
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-center">
+        {Math.round(campaign.response_rate)}
+      </TableCell>
+      <TableCell className="text-center">
+        {campaign.bounce_rate === null ? "0%" : `${Math.round(campaign.bounce_rate)}%`}
+      </TableCell>
+      <TableCell className="text-center">
+        {campaign.open_rate === null ? "0%" : `${Math.round(campaign.open_rate)}%`}
+      </TableCell>
+    </TableRow>
+  ), []);
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>NAME</TableHead>
-          <TableHead className="hidden sm:table-cell">ENGAGED LEADS</TableHead>
-          <TableHead className="hidden md:table-cell">RESPONSE RATE</TableHead>
-          <TableHead className="text-right">BOUNCE RATE</TableHead>
-          <TableHead className="text-right">OPEN RATE</TableHead>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">Engaged Leads</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">Response Rate</TableHead>
+          <TableHead className="text-center">Bounce Rate</TableHead>
+          <TableHead className="text-center">Open Rate</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -49,30 +70,14 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: {
               <LoadingCircle />
             </TableCell>
           </TableRow>
-        ) : campaigns?.length > 0 ? (
-          campaigns.map((campaign, index) => (
-            <TableRow key={index}>
-              <TableCell>{campaign.campaign_name}</TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                {Math.round(campaign.engaged_leads)}
-              </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                {Math.round(campaign.response_rate)}
-              </TableCell>
-              <TableCell className="text-center">
-                {campaign.bounce_rate === null ? "0%" : `${Math.round(campaign.bounce_rate)}%`}
-              </TableCell>
-              <TableCell className="text-center">
-                {campaign.open_rate === null ? "0%" : `${Math.round(campaign.open_rate)}%`}
-              </TableCell>
-            </TableRow>
-          ))
-        ) : (
+        ) : !campaigns?.length ? (
           <TableRow>
             <TableCell colSpan={5} className="text-center">
               No top performing campaigns available.
             </TableCell>
           </TableRow>
+        ) : (
+          campaigns.map(renderCampaignRow)
         )}
       </TableBody>
     </Table>
@@ -81,10 +86,12 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: {
 
 TopPerformingCampaignsTable.displayName = 'TopPerformingCampaignsTable';
 
-const MailboxHealth = memo(({ healthData, isLoading }: {
-  healthData: Record<string, number>,
-  isLoading: boolean
-}) => {
+interface MailboxHealthProps {
+  healthData: Record<string, number>;
+  isLoading: boolean;
+}
+
+const MailboxHealth = memo(({ healthData, isLoading }: MailboxHealthProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center">
@@ -99,12 +106,12 @@ const MailboxHealth = memo(({ healthData, isLoading }: {
 
   return (
     <>
-      {Object.entries(healthData).map(([email, health], index) => (
-        <div key={index}>
+      {Object.entries(healthData).map(([email, health]) => (
+        <div key={email} className="space-y-2">
           <p className="text-sm">
             {email} - {health}%
           </p>
-          <Progress value={health} className="h-5 mt-2" />
+          <Progress value={health} className="h-5" />
         </div>
       ))}
     </>
@@ -112,6 +119,51 @@ const MailboxHealth = memo(({ healthData, isLoading }: {
 });
 
 MailboxHealth.displayName = 'MailboxHealth';
+
+const DashboardMetrics = memo(({ dashboardData, isLoading }: {
+  dashboardData: DashboardData;
+  isLoading: boolean
+}) => {
+  const metrics = [
+    {
+      title: "Total Emails Sent",
+      value: dashboardData?.emails_sent ?? 0
+    },
+    {
+      title: "Engaged Leads",
+      value: dashboardData?.engaged ?? 0
+    },
+    {
+      title: "Total Meetings Booked",
+      value: dashboardData?.meetings_booked ?? 0
+    },
+    {
+      title: "Response Rate",
+      value: dashboardData?.response_rate ? Math.round(dashboardData.response_rate) : 0
+    }
+  ];
+
+  return (
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-4">
+      {metrics.map((metric) => (
+        <Card key={metric.title}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
+            <CardTitle className="text-sm font-medium">
+              {metric.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-1/2 md:mt-2">
+            <div className="text-2xl font-bold">
+              {isLoading ? <LoadingCircle /> : metric.value}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+});
+
+DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
   const { dashboardData, isLoading } = useDashboardContext();
@@ -165,58 +217,7 @@ export default function Page() {
                 </CardContent>
               </Card>
 
-              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Emails Sent
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-1/2 md:mt-2">
-                    <div className="text-2xl font-bold">
-                      {isLoading ? <LoadingCircle /> : dashboardData?.emails_sent}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
-                    <CardTitle className="text-sm font-medium">
-                      Engaged Leads
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-1/2 md:mt-2">
-                    <div className="text-2xl font-bold">
-                      {isLoading ? <LoadingCircle /> : dashboardData?.engaged}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Meetings Booked (Via Calendly)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-1/2 md:mt-2">
-                    <div className="text-2xl font-bold">
-                      {isLoading ? <LoadingCircle /> : dashboardData?.meetings_booked}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
-                    <CardTitle className="text-sm font-medium">
-                      Response Rate
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-1/2 md:mt-2">
-                    <div className="text-2xl font-bold">
-                      {isLoading ? <LoadingCircle /> :
-                        Math.round(dashboardData?.response_rate)
-                      }
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
             <Card className="col-span-2">
@@ -275,10 +276,12 @@ export default function Page() {
                   <CardTitle>Top Performing Campaigns</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <TopPerformingCampaignsTable
-                    campaigns={dashboardData?.top_performing_campaigns}
-                    isLoading={isLoading}
-                  />
+                  <div className="relative">
+                    <TopPerformingCampaignsTable
+                      campaigns={dashboardData?.top_performing_campaigns}
+                      isLoading={isLoading}
+                    />
+                  </div>
                 </CardContent>
               </ScrollArea>
             </Card>

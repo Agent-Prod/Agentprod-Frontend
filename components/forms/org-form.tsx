@@ -478,7 +478,7 @@ export default function OrgFormComponenet(): JSX.Element {
       // console.log(leads);
       toast.success("api called");
 
-      router.push('/dashboard/campaign/create');
+      router.push('/campaign/create');
 
       // console.log("BODY: ", body);
     } catch (err) {

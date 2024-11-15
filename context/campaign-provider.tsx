@@ -137,16 +137,16 @@ interface CampaignContextType {
 
 const defaultCampaignState: CampaignContextType = {
   campaigns: [],
-  createCampaign: () => {},
-  editCampaign: () => {},
-  deleteCampaign: () => {},
-  createOffering: () => {},
-  editOffering: () => {},
-  createGoal: () => {},
-  editGoal: () => {},
-  toggleCampaignIsActive: () => {},
+  createCampaign: () => { },
+  editCampaign: () => { },
+  deleteCampaign: () => { },
+  createOffering: () => { },
+  editOffering: () => { },
+  createGoal: () => { },
+  editGoal: () => { },
+  toggleCampaignIsActive: () => { },
   isLoading: false,
-  setCampaigns: () => {},
+  setCampaigns: () => { },
 };
 
 // Use the default state when creating the context
@@ -229,7 +229,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       .put(`v2/campaigns/${campaignId}`, data)
       .then((response) => {
         console.log("Campaign edited successfully:", response.data);
-        router.push(`/dashboard/campaign/${campaignId}`);
+        router.push(`/campaign/${campaignId}`);
       })
       .catch((error) => {
         console.error("Error editing campaign:", error);
@@ -248,7 +248,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
         setCampaigns((currentCampaigns) =>
           currentCampaigns.filter((campaign) => campaign.id !== campaignId)
         );
-        router.push("/dashboard/campaign");
+        router.push("/campaign");
       })
       .catch((error) => {
         console.error("Error deleting campaign:", error);
@@ -276,7 +276,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
         localStorage.setItem("formsTracker", JSON.stringify(formsTracker));
 
         console.log("Offering created successfully:", response.data);
-        router.push(`/dashboard/campaign/${campaignId}`);
+        router.push(`/campaign/${campaignId}`);
       })
       .catch((error) => {
         console.error("Error creating offering:", error);
@@ -292,7 +292,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       .put(`v2/offerings/${campaignId}`, data)
       .then((response) => {
         console.log("Offering edited successfully:", response.data);
-        router.push(`/dashboard/campaign/${campaignId}`);
+        router.push(`/campaign/${campaignId}`);
       })
       .catch((error) => {
         console.error("Error editing offering:", error);
@@ -325,7 +325,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
         localStorage.setItem("formsTracker", JSON.stringify(formsTracker));
 
         console.log("Goal created successfully:", response.data);
-        router.push(`/dashboard/campaign/${campaignId}`);
+        router.push(`/campaign/${campaignId}`);
       })
       .catch((error) => {
         console.error("Error creating goal:", error);
@@ -341,7 +341,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       .put(`v2/goals/${goalId}`, data)
       .then((response) => {
         console.log("Goal edited successfully:", response.data);
-        router.push(`/dashboard/campaign/${campaignId}`);
+        router.push(`/campaign/${campaignId}`);
       })
       .catch((error) => {
         console.error("Error editing goal:", error);

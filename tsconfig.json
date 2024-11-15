@@ -23,6 +23,12 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/(dashboard)/dashboard/settings/integration/ArkoseCaptchaIntegration.js"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/(protected)/settings/integration/ArkoseCaptchaIntegration.js"
+  ],
   "exclude": ["node_modules"]
 }

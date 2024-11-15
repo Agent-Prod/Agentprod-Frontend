@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { Mail } from "../../../../components/mail/mail";
+import { Mail } from "../../../components/mail/mail";
 import { accounts, mails } from "@/constants/data";
 
 export default function MailPage() {
@@ -28,7 +28,7 @@ export default function MailPage() {
         />
       </div> */}
       <div className="hidden flex-col md:flex">
-        
+
         <Mail
           accounts={accounts}
           mails={mails}

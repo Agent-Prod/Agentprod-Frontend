@@ -1,4 +1,3 @@
-
 "use client";
 import React from "react";
 import { Nav } from "@/components/layout/nav/nav";
@@ -10,21 +9,21 @@ const navItems: NavInterface[] = [
     items: [
       {
         title: "Account Info",
-        href: "/dashboard/settings/account-info",
+        href: "/settings/account-info",
         label: "Account Info",
         isCollapsible: false,
         icon: "user",
       },
       {
         title: "Mailboxes",
-        href: "/dashboard/settings/mailbox",
+        href: "/settings/mailbox",
         label: "Mailboxes",
         isCollapsible: false,
         icon: "mail",
       },
       {
         title: "Integrations",
-        href: "/dashboard/settings/integration",
+        href: "/settings/integration",
         label: "Integrations",
         isCollapsible: false,
         icon: "kanban",

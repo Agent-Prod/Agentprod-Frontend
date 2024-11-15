@@ -79,7 +79,7 @@ function Qualification() {
         );
         toast.success("Qualification updated successfully");
       }
-      router.push(`/dashboard/campaign/${params.campaignId}`);
+      router.push(`/campaign/${params.campaignId}`);
     } catch (error) {
       toast.error("Error submitting qualification");
       console.error("Error submitting qualification:", error);
@@ -109,7 +109,7 @@ function Qualification() {
             onUpdate={(updatedCriterion: any) =>
               updateCriteria(index, updatedCriterion)
             }
-            // onDelete={() => deleteCriterion(index)}
+          // onDelete={() => deleteCriterion(index)}
           />
         ))}
 
@@ -189,58 +189,58 @@ function TextInput({ criterion, onUpdate }: any) {
                     value={localCriterion.type || "yes/no"}
                     defaultValue="yes/no"
                     onValueChange={(value) =>
-                      setLocalCriterion({ 
-                        ...localCriterion, 
+                      setLocalCriterion({
+                        ...localCriterion,
                         type: value,
-                        answer: value === "research" ? null : localCriterion.answer 
+                        answer: value === "research" ? null : localCriterion.answer
                       })
                     }
                   >
                     <Card className="p-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes/no" id="option-one" />
-                      <Label htmlFor="option-one">Decision Based (Yes/No)</Label>
-                    </div>
-                    <div className="ml-6 dark:text-white/40 text-start">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes/no" id="option-one" />
+                        <Label htmlFor="option-one">Decision Based (Yes/No)</Label>
+                      </div>
+                      <div className="ml-6 dark:text-white/40 text-start">
                         Ask a yes-no question to qualify a lead to add them to the
                         campaign
                       </div>
                       {localCriterion.type === "yes/no" && (
                         <div className="ml-6 -mt-5">
-                      <div className="text-start mt-6">
-                        Add to Campaign if answer is..
+                          <div className="text-start mt-6">
+                            Add to Campaign if answer is..
+                          </div>
+
+                          <RadioGroup
+                            className="my-3"
+                            value={localCriterion.answer || "yes"}
+                            defaultValue="yes"
+                            onValueChange={(value) =>
+                              setLocalCriterion({ ...localCriterion, answer: value })
+                            }
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id="option-one" />
+                              <Label htmlFor="option-one">Yes</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id="option-two" />
+                              <Label htmlFor="option-two">No</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      )}
+                    </Card>
+                    <Card className="p-4">
+
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="research" id="option-two" />
+                        <Label htmlFor="option-two">Research</Label>
                       </div>
-
-                      <RadioGroup
-                        className="my-3"
-                        value={localCriterion.answer || "yes"}
-                        defaultValue="yes"
-                        onValueChange={(value) =>
-                          setLocalCriterion({ ...localCriterion, answer: value })
-                        }
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="yes" id="option-one" />
-                          <Label htmlFor="option-one">Yes</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="no" id="option-two" />
-                          <Label htmlFor="option-two">No</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  )}
-                  </Card>
-                  <Card className="p-4">
-
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="research" id="option-two" />
-                      <Label htmlFor="option-two">Research</Label>
-                    </div>
-                    <div className="ml-6 dark:text-white/40 text-start">
-                      Ask a research based question to know more about the lead
-                    </div>
-                  </Card>
+                      <div className="ml-6 dark:text-white/40 text-start">
+                        Ask a research based question to know more about the lead
+                      </div>
+                    </Card>
                   </RadioGroup>
 
 

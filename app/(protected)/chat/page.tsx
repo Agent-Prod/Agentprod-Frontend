@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChat } from "ai/react";
 import va from "@vercel/analytics";
 import clsx from "clsx";
-import { LoadingCircle, SendIcon } from "../../../icons";
+import { LoadingCircle, SendIcon } from "../../icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -138,7 +138,7 @@ export default function Home() {
           setAllMessages(adaptedMessages);
           setLoader(false);
         })
-        .catch((error) => {});
+        .catch((error) => { });
     };
 
     fetchMessages();
@@ -251,7 +251,7 @@ export default function Home() {
       },
     });
 
-  useEffect(() => {}, [inputRef.current?.value]);
+  useEffect(() => { }, [inputRef.current?.value]);
 
   const disabled = isLoading || input.length === 0;
 

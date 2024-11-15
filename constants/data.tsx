@@ -118,7 +118,7 @@ export const navItems: NavInterface[] = [
     items: [
       {
         title: "Chat with Sally",
-        href: "/dashboard/chat",
+        href: "/chat",
         icon: "chat",
         label: "chat with sally",
         isCollapsible: false,
@@ -138,14 +138,14 @@ export const navItems: NavInterface[] = [
       },
       {
         title: "Inbox",
-        href: "/dashboard/mail",
+        href: "/mail",
         icon: "mail",
         label: "mail",
         isCollapsible: true,
       },
       {
         title: "Campaign",
-        href: "/dashboard/campaign",
+        href: "/campaign",
         icon: "campaign",
         label: "campaign",
         isCollapsible: false,
@@ -157,21 +157,21 @@ export const navItems: NavInterface[] = [
     items: [
       {
         title: "Leads",
-        href: "/dashboard/leads",
+        href: "/leads",
         icon: "lead",
         label: "leads",
         isCollapsible: false,
       },
       {
         title: "Analytics",
-        href: "/dashboard/analytics",
+        href: "/analytics",
         icon: "analytics",
         label: "analytics",
         isCollapsible: false,
       },
       {
         title: "Settings",
-        href: "/dashboard/settings/account-info",
+        href: "/settings/account-info",
         icon: "settings",
         label: "settings",
         isCollapsible: false,
@@ -181,7 +181,7 @@ export const navItems: NavInterface[] = [
   {
     category: "Report a bug",
     items: [
-     
+
     ],
   },
 ];

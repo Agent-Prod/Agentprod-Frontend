@@ -173,7 +173,7 @@ export default function Page() {
 
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`);
-        
+
         if (!response.data.error) {
           clearInterval(verificationIntervalRef.current!);
           setIsVerifying(false);
@@ -189,7 +189,7 @@ export default function Page() {
         toast.error("An error occurred while verifying the domain. Please try again later.");
         console.error("Domain verification error:", error);
       }
-    }, 60 * 1000); 
+    }, 60 * 1000);
   };
 
   const handleOpenAddMailbox = () => setIsChooseServiceOpen(true);
@@ -328,7 +328,7 @@ export default function Page() {
       setMailboxes(updatedMailboxes);
       const extractDomainName = updatedMailboxes.map((mailbox: any) => mailbox.domain);
       setGetDomainName(extractDomainName);
-      
+
       const googleMailbox = updatedMailboxes.find(
         (mailbox: any) => mailbox.platform === "Google"
       );
@@ -592,9 +592,8 @@ export default function Page() {
         </AlertDescription>
       </Alert>
       <div
-        className={`rounded-md ${
-          mailboxes.length > 0 ? "border" : ""
-        } border-collapse mt-4`}
+        className={`rounded-md ${mailboxes.length > 0 ? "border" : ""
+          } border-collapse mt-4`}
       >
         {isLoadingMailboxes ? (
           <div className="border-none">
@@ -636,8 +635,9 @@ export default function Page() {
                         />
                       )}
                       <span>
-                        {mailbox.platform === "Linkedin" 
-                          ? mailbox.mailbox.split('/in/')[1].replace('/', '') 
+                        {console.log(mailbox.mailbox)}
+                        {mailbox.platform === "Linkedin"
+                          ? mailbox.mailbox?.split('/in/')[1]?.replace('/', '')
                           : mailbox.mailbox
                         }
                       </span>
@@ -649,7 +649,7 @@ export default function Page() {
                   <TableCell>
                     {mailbox?.platform === "Google" ? (
                       mailbox.warmup ||
-                      localStorage.getItem(`warmupSetup_${mailbox.mailbox}`) ? (
+                        localStorage.getItem(`warmupSetup_${mailbox.mailbox}`) ? (
                         <Switch
                           checked={mailbox.warmup}
                           onCheckedChange={(isChecked) =>
@@ -686,12 +686,10 @@ export default function Page() {
                           textSize: "25px",
                           strokeLinecap: "butt",
                           pathTransitionDuration: 0.5,
-                          pathColor: `${
-                            mailbox.health === 100 ? "#3ae374" : "#f88"
-                          }`,
-                          textColor: `${
-                            mailbox.health === 100 ? "#00c04b" : "#f88"
-                          }`,
+                          pathColor: `${mailbox.health === 100 ? "#3ae374" : "#f88"
+                            }`,
+                          textColor: `${mailbox.health === 100 ? "#00c04b" : "#f88"
+                            }`,
                           trailColor: "#d6d6d6",
                           backgroundColor: "#3e98c7",
                         })}
@@ -795,71 +793,71 @@ export default function Page() {
                                       >
                                         {issue.Name ===
                                           "DNS Record Published" && (
-                                          <div className="flex flex-col gap-1">
-                                            <div className="flex gap-1 items-center">
-                                              <Lightbulb className="h-4 w-4 text-green-700" />
-                                              DNS Records:
+                                            <div className="flex flex-col gap-1">
+                                              <div className="flex gap-1 items-center">
+                                                <Lightbulb className="h-4 w-4 text-green-700" />
+                                                DNS Records:
+                                              </div>
+                                              <div className="flex gap-1 items-center">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>A Records:</b> Connect your
+                                                domain to your server&apos;s IP
+                                                address.
+                                              </div>
+                                              <div className="flex gap-1 items-center">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>MX Records:</b> Set up your
+                                                email servers.
+                                              </div>
+                                              <div className="flex gap-1 items-center">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>CNAME Records:</b> Link an
+                                                alias to another domain.
+                                              </div>
                                             </div>
-                                            <div className="flex gap-1 items-center">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>A Records:</b> Connect your
-                                              domain to your server&apos;s IP
-                                              address.
-                                            </div>
-                                            <div className="flex gap-1 items-center">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>MX Records:</b> Set up your
-                                              email servers.
-                                            </div>
-                                            <div className="flex gap-1 items-center">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>CNAME Records:</b> Link an
-                                              alias to another domain.
-                                            </div>
-                                          </div>
-                                        )}
+                                          )}
                                         {issue.Name ===
                                           "SPF Record Published" && (
-                                          <div className="flex flex-col gap-1">
-                                            <div className="flex gap-1 items-center">
-                                              <Lightbulb className="h-4 w-4 text-green-700 mt-1" />
-                                              SPF Record:
+                                            <div className="flex flex-col gap-1">
+                                              <div className="flex gap-1 items-center">
+                                                <Lightbulb className="h-4 w-4 text-green-700 mt-1" />
+                                                SPF Record:
+                                              </div>
+                                              <div className="flex gap-1 items-center ">
+                                                <Dot className="text-green-700 ml-2" />
+                                                Add TXT Record:
+                                              </div>
+                                              <div className="flex gap-1 items-center ml-3">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>Name:</b> @
+                                              </div>
+                                              <div className="flex gap-1 items-center ml-3">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>Type:</b> TXT
+                                              </div>
                                             </div>
-                                            <div className="flex gap-1 items-center ">
-                                              <Dot className="text-green-700 ml-2" />
-                                              Add TXT Record:
-                                            </div>
-                                            <div className="flex gap-1 items-center ml-3">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>Name:</b> @
-                                            </div>
-                                            <div className="flex gap-1 items-center ml-3">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>Type:</b> TXT
-                                            </div>
-                                          </div>
-                                        )}
+                                          )}
                                         {issue.Name ===
                                           "DMARC Record Published" && (
-                                          <div className="flex flex-col gap-1">
-                                            <div className="flex gap-1 items-center">
-                                              <Lightbulb className="h-4 w-4 text-green-700 mt-1" />
-                                              DMARC Record:
+                                            <div className="flex flex-col gap-1">
+                                              <div className="flex gap-1 items-center">
+                                                <Lightbulb className="h-4 w-4 text-green-700 mt-1" />
+                                                DMARC Record:
+                                              </div>
+                                              <div className="flex gap-1 items-center ">
+                                                <Dot className="text-green-700 ml-2" />
+                                                Add a TXT Record:
+                                              </div>
+                                              <div className="flex gap-1 items-center ml-3">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>Name:</b>_dmarc
+                                              </div>
+                                              <div className="flex gap-1 items-center ml-3">
+                                                <Dot className="text-green-700 ml-2" />
+                                                <b>Type:</b> TXT
+                                              </div>
                                             </div>
-                                            <div className="flex gap-1 items-center ">
-                                              <Dot className="text-green-700 ml-2" />
-                                              Add a TXT Record:
-                                            </div>
-                                            <div className="flex gap-1 items-center ml-3">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>Name:</b>_dmarc
-                                            </div>
-                                            <div className="flex gap-1 items-center ml-3">
-                                              <Dot className="text-green-700 ml-2" />
-                                              <b>Type:</b> TXT
-                                            </div>
-                                          </div>
-                                        )}
+                                          )}
                                       </li>
                                     )
                                   )}
@@ -920,7 +918,7 @@ export default function Page() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                              {(mailbox?.dns || []).map((dns:any) => (
+                                {(mailbox?.dns || []).map((dns: any) => (
                                   <TableRow key={dns.Value}>
                                     <TableCell>{dns.Type}</TableCell>
                                     <TableCell>
@@ -1374,7 +1372,7 @@ export default function Page() {
               </TableRow>
             </TableBody>
           </Table>
-          
+
           <DialogFooter>
             <Button
               type="button"
@@ -1384,9 +1382,9 @@ export default function Page() {
               {isVerifying ? 'Verifying...' : 'Verify Domain'}
             </Button>
           </DialogFooter>
-            <p className="text-gray-600 italic text-sm mt-2">
-      Note: Please set the priority of all other MX records to 10.
-    </p>
+          <p className="text-gray-600 italic text-sm mt-2">
+            Note: Please set the priority of all other MX records to 10.
+          </p>
         </DialogContent>
       </Dialog>
     </div>

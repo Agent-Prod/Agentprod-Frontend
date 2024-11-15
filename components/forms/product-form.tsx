@@ -80,12 +80,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const defaultValues = initialData
     ? initialData
     : {
-        name: "",
-        description: "",
-        price: 0,
-        imgUrl: [],
-        category: "",
-      };
+      name: "",
+      description: "",
+      price: 0,
+      imgUrl: [],
+      category: "",
+    };
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -102,7 +102,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         // console.log("product", res);
       }
       router.refresh();
-      router.push(`/dashboard/products`);
+      router.push(`/products`);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",

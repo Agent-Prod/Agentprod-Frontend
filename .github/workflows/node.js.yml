@@ -18,20 +18,24 @@ jobs:
       RAZORPAY_API_SECRET_KEY: ${{ secrets.RAZORPAY_API_SECRET_KEY }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           clean: true
-      - name: Install dependencies for production
-        run: npm install
-      - name: Build the app
-        if: success()
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
         run: npm run build
-      - name: Restart the process
-        if: success()
-        run: pm2 reload 7
-      - name: Save the PM2
-        if: success()
-        run: pm2 save
-      - name: List PM2
-        if: success()
-        run: pm2 list
+
+      - name: Update PM2 process
+        run: |
+          pm2 reload 7 && pm2 save
+        continue-on-error: false

@@ -794,8 +794,9 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       if (platform === "linkedin") {
         payload = {
           email: recipientEmail,
-          user_id: user.id, // Assuming you have access to the user object
-          message: body
+          user_id: user.id, 
+          message: body,
+          conversation_id: conversationId,
         };
         endpoint = "/v2/linkedin/send-message";
       } else {

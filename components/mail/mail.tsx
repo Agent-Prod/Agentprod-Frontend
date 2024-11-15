@@ -1,19 +1,15 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import * as React from "react";
-import { ChevronDown, Info, Search } from "lucide-react";
-import MailList from "./mail-list";
-import type { Mail } from "@/constants/data";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
+import React from 'react';
+import { ChevronDown, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from '@/components/ui/resizable';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,39 +17,48 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '../ui/scroll-area';
+import axiosInstance from '@/utils/axiosInstance';
+import { useUserContext } from '@/context/user-context';
+import { Button } from '../ui/button';
+import { useMailbox } from '@/context/mailbox-provider';
+import { Contact, useLeads } from '@/context/lead-user';
+import { PeopleProfileSheet } from '../people-profile-sheet';
+import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { LoadingOverlay } from './LoadingOverlay';
+import type { Mail } from "@/constants/data";
+import { toast } from 'sonner';
+import axios, { CancelTokenSource } from 'axios';
+import MailList from "./mail-list";
 import ThreadDisplayMain from "./thread-display-main";
-import { ScrollArea } from "../ui/scroll-area";
-import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
-import { Button } from "../ui/button";
-import { useCampaignContext } from "@/context/campaign-provider";
-import { useMailbox } from "@/context/mailbox-provider";
-import { Contact, useLeads } from "@/context/lead-user";
-import { PeopleProfileSheet } from "../people-profile-sheet";
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
-import { LoadingOverlay } from "./LoadingOverlay";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
-import axios, { CancelTokenSource } from "axios";
 
 const ITEMS_PER_PAGE = 10;
 
 interface MailProps {
+  defaultLayout: number[] | undefined;
+  defaultCollapsed?: boolean;
+  navCollapsedSize: number;
   accounts: {
     label: string;
     email: string;
     icon: React.ReactNode;
   }[];
   mails: Mail[];
-  defaultLayout: number[] | undefined;
-  defaultCollapsed?: boolean;
-  navCollapsedSize: number;
+}
+
+interface CampaignDropdownProps {
+  campaigns: CampaignData[];
+  handleCampaignChange: (campaign: { campaignName: string; campaignId: string } | null) => void;
+  currentCampaign: { campaignName: string; campaignId: string } | null;
+}
+
+interface CampaignData {
+  id: string;
+  campaign_name: string;
+  channel?: string;
+  additional_details?: string;
 }
 
 export interface Conversations {
@@ -67,22 +72,84 @@ export interface Conversations {
   updated_at: string;
   status: string;
   name: string;
-  photo_url: string;
+  photo_url: string | null;
   company_name: string;
   category: string;
   channel?: string;
-  campaign_name?: string;
+  campaign_name: string | null;
 }
 
-interface CampaignStatus {
-  id: number;
-  campaign_id: string;
-  in_progress: number;
-  complete: number;
-  duplicate: number;
-  failed: number;
-  total: number;
-}
+const CampaignDropdown = React.memo(
+  ({
+    campaigns,
+    handleCampaignChange,
+    currentCampaign,
+  }: {
+    campaigns: any[];
+    handleCampaignChange: (
+      campaign: { campaignName: string; campaignId: string } | null
+    ) => void;
+    currentCampaign: { campaignName: string; campaignId: string } | null;
+  }) => {
+    const dropdownContent = React.useMemo(
+      () => (
+        <DropdownMenuContent className="w-80">
+          <DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <ScrollArea className="h-[400px] w-full rounded-md">
+              <DropdownMenuItem onClick={() => handleCampaignChange(null)}>
+                <p className="cursor-pointer">All Campaigns</p>
+              </DropdownMenuItem>
+              {Array.isArray(campaigns) && campaigns.length > 0 ? (
+                campaigns.map((campaignItem) => (
+                  <DropdownMenuItem
+                    key={campaignItem.id}
+                    onClick={() =>
+                      handleCampaignChange({
+                        campaignName: campaignItem.campaign_name || 'Untitled Campaign',
+                        campaignId: campaignItem.id,
+                      })
+                    }
+                  >
+                    <p className="cursor-pointer">
+                      {campaignItem.campaign_name || 'Untitled Campaign'}
+                      {campaignItem.additional_details &&
+                        ` - ${campaignItem.additional_details}`}
+                    </p>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <p>No campaigns available.</p>
+                </div>
+              )}
+            </ScrollArea>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      ),
+      [campaigns, handleCampaignChange]
+    );
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center justify-center space-x-2"
+          >
+            <span>
+              {currentCampaign ? currentCampaign.campaignName : 'All Campaigns'}
+            </span>
+            <ChevronDown size={20} />
+          </Button>
+        </DropdownMenuTrigger>
+        {dropdownContent}
+      </DropdownMenu>
+    );
+  }
+);
+
+CampaignDropdown.displayName = 'CampaignDropdown';
 
 const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
   return (
@@ -95,105 +162,28 @@ const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
 
 const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain);
 
-const CampaignDropdown = React.memo(({ 
-  campaigns, 
-  handleCampaignChange, 
-  currentCampaign 
-}: { 
-  campaigns: any[], 
-  handleCampaignChange: (campaign: { campaignName: string; campaignId: string } | null) => void,
-  currentCampaign: { campaignName: string; campaignId: string } | null
-}) => {
-  const dropdownContent = React.useMemo(() => (
-    <DropdownMenuContent className="w-80">
-      <DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[400px] w-full rounded-md">
-          <DropdownMenuItem onClick={() => handleCampaignChange(null)}>
-            <p className="cursor-pointer">All Campaigns</p>
-          </DropdownMenuItem>
-          {Array.isArray(campaigns) && campaigns.length > 0 ? (
-            campaigns.map((campaignItem) => (
-              <DropdownMenuItem
-                key={campaignItem.id}
-                onClick={() =>
-                  handleCampaignChange({
-                    campaignName: campaignItem.campaign_name,
-                    campaignId: campaignItem.id,
-                  })
-                }
-              >
-                <p className="cursor-pointer">
-                  {campaignItem.campaign_name}
-                  {campaignItem.additional_details &&
-                    ` - ${campaignItem.additional_details}`}
-                </p>
-              </DropdownMenuItem>
-            ))
-          ) : (
-            <div className="text-center py-4">
-              <p>No campaigns available.</p>
-            </div>
-          )}
-        </ScrollArea>
-      </DropdownMenuGroup>
-    </DropdownMenuContent>
-  ), [campaigns, handleCampaignChange]);
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="flex items-center justify-center space-x-2"
-        >
-          <span>
-            {currentCampaign ? currentCampaign.campaignName : "All Campaigns"}
-          </span>
-          <ChevronDown size={20} />
-        </Button>
-      </DropdownMenuTrigger>
-      {dropdownContent}
-    </DropdownMenu>
-  );
-});
-
-CampaignDropdown.displayName = 'CampaignDropdown';
-
 export function Mail({
   defaultLayout = [265, 440, 655],
   defaultCollapsed = false,
   navCollapsedSize,
 }: MailProps) {
   const [mails, setMails] = React.useState<Conversations[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [showLoadingOverlay, setShowLoadingOverlay] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [filter, setFilter] = React.useState("all");
+  const [filter, setFilter] = React.useState('all');
   const [campaigns, setCampaigns] = React.useState<any[]>([]);
-  // const { campaigns } = useCampaignContext();
   const [campaign, setCampaign] = React.useState<{
     campaignName: string;
     campaignId: string;
   } | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedMailId, setSelectedMailId] = React.useState<string | null>(
     null
   );
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [activeTab, setActiveTab] = React.useState('all');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
-  const [moreOptionSelected, setMoreOptionSelected] = React.useState("");
   const [initialMailIdSet, setInitialMailIdSet] = React.useState(false);
-  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState("");
-  const [campaignStatus, setCampaignStatus] =
-    React.useState<CampaignStatus | null>(null);
-  const [isRedirectedFromCampaign, setIsRedirectedFromCampaign] =
-    React.useState(false);
-  const [showStatus, setShowStatus] = React.useState(false);
-  const [isUserInitiatedSearch, setIsUserInitiatedSearch] =
-    React.useState(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isInitialLoading, setIsInitialLoading] = React.useState(true);
 
@@ -208,12 +198,10 @@ export function Mail({
 
   const [localIsContextBarOpen, setLocalIsContextBarOpen] =
     React.useState(false);
-  const loadingStartTimeRef = React.useRef<number | null>(null);
   const mailListRef = React.useRef<HTMLDivElement>(null);
 
   const cancelTokenRef = React.useRef<CancelTokenSource | null>(null);
 
-  // Separate campaigns loading state
   const [isCampaignsLoading, setIsCampaignsLoading] = React.useState(false);
 
   const fetchCampaigns = React.useCallback(async () => {
@@ -222,7 +210,14 @@ export function Mail({
       const response = await axiosInstance.get(`v2/campaigns/names/${user?.id}`);
       const campaignData = response.data.campaigns || response.data;
       if (Array.isArray(campaignData)) {
-        setCampaigns(campaignData);
+        // Ensure the data is in the correct format
+        const formattedCampaigns = campaignData.map(campaign => ({
+          id: campaign.id,
+          campaign_name: campaign.campaign_name,
+          channel: campaign.channel,
+          additional_details: campaign.additional_details
+        }));
+        setCampaigns(formattedCampaigns);
       } else {
         console.error('Campaigns data is not in expected format:', campaignData);
         setCampaigns([]);
@@ -241,68 +236,6 @@ export function Mail({
     }
   }, [fetchCampaigns]);
 
-  const fetchCampaignStatus = React.useCallback(async (campaignId: string) => {
-    setShowStatus(true);
-    try {
-      const response = await axiosInstance.get<CampaignStatus>(
-        `/v2/contacts/status/${campaignId}`
-      );
-      console.log("Response,", response.data);
-      setCampaignStatus(response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching campaign status:", error);
-      setShowStatus(false);
-      return null;
-    }
-  }, []);
-
-  React.useEffect(() => {
-    setShowStatus(true);
-    const newCampaignId = localStorage.getItem("newCampaignId");
-    const isRedirectFromCampaign = localStorage.getItem("redirectFromCampaign");
-    const campaignDraftStatus = localStorage.getItem("campaignDraftStatus");
-
-    if (
-      newCampaignId &&
-      isRedirectFromCampaign === "true" &&
-      campaignDraftStatus === "pending"
-    ) {
-      setIsRedirectedFromCampaign(true);
-
-      let intervalId: NodeJS.Timeout;
-
-      const checkAndFetchStatus = async () => {
-        const status = await fetchCampaignStatus(newCampaignId);
-        if (status && status.complete === status.total) {
-          console.log("status completed");
-          setShowStatus(false);
-          toast.success("Draft Generation Completed");
-          // clearInterval(intervalId); // uncomment this too
-        }
-      };
-
-      // Initial fetch
-      checkAndFetchStatus();
-
-      // Set up interval
-      // intervalId = setInterval(checkAndFetchStatus, 5000); <- uncomment this when you need API Polling.
-
-      // Clear localStorage items
-      localStorage.removeItem("newCampaignId");
-      localStorage.removeItem("redirectFromCampaign");
-      localStorage.removeItem("campaignDraftStatus");
-
-      // Cleanup function
-      return () => {
-        // clearInterval(intervalId); // uncomment this too
-        setIsRedirectedFromCampaign(false);
-      };
-    }
-  }, [fetchCampaignStatus]);
-
-  // ------------------
-
   React.useEffect(() => {
     setLocalIsContextBarOpen(isContextBarOpen);
   }, [isContextBarOpen]);
@@ -315,7 +248,9 @@ export function Mail({
       status?: string
     ) => {
       if (cancelTokenRef.current) {
-        cancelTokenRef.current.cancel('Operation canceled due to new request.');
+        cancelTokenRef.current.cancel(
+          'Operation canceled due to new request.'
+        );
       }
 
       cancelTokenRef.current = axios.CancelToken.source();
@@ -333,33 +268,33 @@ export function Mail({
         }
 
         // Set ITEMS_PER_PAGE to 100 if the status is "replied"
-        const itemsPerPage = status === "replied" ? 100 : ITEMS_PER_PAGE;
+        const itemsPerPage = status === 'replied' ? 100 : ITEMS_PER_PAGE;
 
         // Calculate the offset based on page number
         const offset = (pageNum - 1) * itemsPerPage;
-        
+
         url += `?limit=${itemsPerPage}&offset=${offset}`;
 
         if (search) {
           const searchWords = search
-            .split(" ")
-            .filter((word) => word.trim() !== "");
+            .split(' ')
+            .filter((word) => word.trim() !== '');
           const searchParams = searchWords
             .map((word) => `search_filter=${encodeURIComponent(word)}`)
-            .join("&");
+            .join('&');
           url += `&${searchParams}`;
         }
 
-        if (status && status !== "all") {
+        if (status && status !== 'all') {
           url += `&_filter=${status.toUpperCase()}`;
         }
 
-        console.log("Fetching conversations with URL:", url);
+        console.log('Fetching conversations with URL:', url);
 
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`,
           {
-            cancelToken: cancelTokenRef.current.token
+            cancelToken: cancelTokenRef.current.token,
           }
         );
 
@@ -376,15 +311,24 @@ export function Mail({
 
         const totalCount = response.data.total_count || 0;
 
-        const campaignChannelMap = campaigns.reduce((map: {[key: string]: string}, campaign: any) => {
-          map[campaign.id] = campaign.channel;
-          return map;
-        }, {});
+        const campaignChannelMap = campaigns.reduce(
+          (map: { [key: string]: string }, campaign: any) => {
+            map[campaign.id] = campaign.channel;
+            return map;
+          },
+          {}
+        );
 
-        const mailsWithChannel = response.data.mails.map((mail: any) => ({
-          ...mail,
-          channel: campaignChannelMap[mail.campaign_id] || null
-        }));
+        const mailsWithChannel = response.data.mails.map((mail: any) => {
+          const campaignInfo = campaigns.find(c => c.id === mail.campaign_id);
+          return {
+            ...mail,
+            channel: campaignChannelMap[mail.campaign_id] || null,
+            campaign_name: campaignInfo?.campaign_name,
+            name: mail.name || mail.recipient_name,
+            company_name: mail.company_name
+          };
+        });
 
         setMails((prevMails) => {
           if (pageNum === 1) {
@@ -395,21 +339,22 @@ export function Mail({
         });
 
         // Only set hasMore to true if we received data and there's more to load
-        const hasMoreItems = mailsWithChannel.length > 0 && offset + itemsPerPage < totalCount;
+        const hasMoreItems =
+          mailsWithChannel.length > 0 &&
+          offset + itemsPerPage < totalCount;
         setHasMore(hasMoreItems);
-        
+
         setPage(pageNum);
         setLoading(false);
         if (pageNum === 1) {
           setIsInitialLoading(false);
           setIsTransitioning(false);
         }
-
       } catch (err: any) {
         if (axios.isCancel(err)) {
           console.log('Request cancelled, keeping loader');
         } else {
-          console.error("Error fetching mails:", err);
+          console.error('Error fetching mails:', err);
           setHasMore(false); // Stop further API calls on error
           // Don't set error state to avoid showing error on screen
           if (pageNum === 1) {
@@ -423,14 +368,14 @@ export function Mail({
         setShowLoadingOverlay(false);
       }
     },
-    [user?.id]
+    [user?.id, campaigns]
   );
 
   const loadMore = React.useCallback(() => {
     if (!loading && hasMore) {
       fetchConversations(campaign?.campaignId, page + 1, searchTerm, filter);
       if (page === 1 && mailListRef.current) {
-        mailListRef.current.style.overflowY = "auto";
+        mailListRef.current.style.overflowY = 'auto';
       }
     }
   }, [
@@ -444,53 +389,10 @@ export function Mail({
   ]);
 
   React.useEffect(() => {
-    const newCampaignId = localStorage.getItem("newCampaignId");
-    const isRedirectFromCampaign = localStorage.getItem("redirectFromCampaign");
-
-    if (
-      newCampaignId &&
-      campaigns.length > 0 &&
-      isRedirectFromCampaign === "true"
-    ) {
-      setShowLoadingOverlay(true);
-      loadingStartTimeRef.current = Date.now();
-      const newCampaign = campaigns.find((c) => c.id === newCampaignId);
-      if (newCampaign) {
-        setCampaign({
-          campaignName: newCampaign.campaign_name,
-          campaignId: newCampaign.id,
-        });
-      }
-    }
-
-    localStorage.removeItem("newCampaignId");
-    localStorage.removeItem("redirectFromCampaign");
-  }, [campaigns]);
-
-  // Add a ref to track initial mount
-  const isInitialMount = React.useRef(true);
-
-  // Update the useEffect that triggers mail fetching
-  React.useEffect(() => {
-    // Skip the first render
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    // Only fetch if this is a campaign change or filter change
-    if (!isUserInitiatedSearch && !isCampaignsLoading) {
-      fetchConversations(campaign?.campaignId, 1, searchTerm, filter);
-    }
-    setIsUserInitiatedSearch(false);
-  }, [campaign?.campaignId, filter]); // Minimize dependencies, only include what should trigger a refetch
-
-  // Update the initial data fetch
-  React.useEffect(() => {
     if (user?.id) {
       fetchConversations(campaign?.campaignId, 1, searchTerm, filter);
     }
-  }, []); // Empty dependency array for initial fetch only
+  }, []);
 
   React.useEffect(() => {
     if (mails.length > 0 && !initialMailIdSet) {
@@ -507,7 +409,7 @@ export function Mail({
           setLeads([response.data]);
         })
         .catch((error) => {
-          console.error("Error fetching lead data:", error);
+          console.error('Error fetching lead data:', error);
         });
     }
   }, [
@@ -534,11 +436,11 @@ export function Mail({
   );
 
   const currentMail = React.useMemo(
-    () => mails.find((mail) => mail.id === selectedMailId) || mails[0] || null,
+    () =>
+      mails.find((mail) => mail.id === selectedMailId) || mails[0] || null,
     [mails, selectedMailId]
   );
 
-  // Update handleCampaignChange to explicitly trigger fetch
   const handleCampaignChange = React.useCallback(
     (newCampaign: { campaignName: string; campaignId: string } | null) => {
       setCampaign(newCampaign);
@@ -549,12 +451,15 @@ export function Mail({
     [searchTerm, filter, fetchConversations]
   );
 
-  // Update handleFilterChange to explicitly trigger fetch
-  const handleFilterChange = React.useCallback((newFilter: string) => {
-    setFilter(newFilter);
-    setPage(1);
-    fetchConversations(campaign?.campaignId, 1, searchTerm, newFilter);
-  }, [campaign?.campaignId, searchTerm, fetchConversations]);
+  const handleFilterChange = React.useCallback(
+    (newFilter: string) => {
+      setFilter(newFilter);
+      setPage(1);
+      setMails([]);
+      fetchConversations(campaign?.campaignId, 1, searchTerm, newFilter);
+    },
+    [campaign?.campaignId, searchTerm, fetchConversations]
+  );
 
   const handleSearchChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -565,25 +470,17 @@ export function Mail({
 
   const handleSearchClick = React.useCallback(() => {
     const trimmedSearchTerm = searchTerm.trim();
-    console.log("Search term:", trimmedSearchTerm);
-
-    setIsUserInitiatedSearch(true);
+    console.log('Search term:', trimmedSearchTerm);
     setPage(1);
+    setMails([]);
 
-    // Pass the search term as a string to fetchConversations
     fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filter);
   }, [searchTerm, campaign, filter, fetchConversations]);
 
   const handleTabChange = (value: string) => {
-    console.log("Tab", value);
+    console.log('Tab', value);
     setActiveTab(value);
     handleFilterChange(value);
-    if (value !== "all" && value !== "to-approve") {
-      setMoreOptionSelected(value);
-    } else {
-      setMoreOptionSelected("");
-    }
-    // Reset page and mails when changing tabs
     setPage(1);
     setMails([]);
   };
@@ -592,7 +489,7 @@ export function Mail({
     async (id: string) => {
       try {
         await axiosInstance.delete(`/v2/email/conversations/${id}`);
-        toast.success("Mail Deleted");
+        toast.success('Mail Deleted');
 
         setMails((prevMails) => prevMails.filter((mail) => mail.id !== id));
 
@@ -606,14 +503,14 @@ export function Mail({
             setRecipientEmail(newSelectedMail.recipient);
           } else {
             setSelectedMailId(null);
-            setSenderEmail("");
-            setConversationId("");
-            setRecipientEmail("");
+            setSenderEmail('');
+            setConversationId('');
+            setRecipientEmail('');
           }
         }
       } catch (error) {
-        console.error("Failed to delete mail:", error);
-        toast.error("Failed to delete mail");
+        console.error('Failed to delete mail:', error);
+        toast.error('Failed to delete mail');
       }
     },
     [
@@ -636,7 +533,7 @@ export function Mail({
           )}`;
         }}
         className="h-full items-stretch"
-        style={{ height: "calc(100vh - 80px)" }}
+        style={{ height: 'calc(100vh - 80px)' }}
       >
         <ResizablePanel defaultSize={localIsContextBarOpen ? 40 : 20}>
           <Tabs
@@ -671,8 +568,8 @@ export function Mail({
                 >
                   Replied
                 </TabsTrigger>
-                <CampaignDropdown 
-                  campaigns={campaigns} 
+                <CampaignDropdown
+                  campaigns={campaigns}
                   handleCampaignChange={handleCampaignChange}
                   currentCampaign={campaign}
                 />
@@ -699,43 +596,13 @@ export function Mail({
               </div>
             </div>
 
-            {/* {isRedirectedFromCampaign && campaignStatus && showStatus && (
-              <div className="flex justify-end mr-8">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="text-xs flex hover:text-gray-300 transition-colors ">
-                      Draft Generated <Info className="h-2 w-2" />
-                      {campaignStatus &&
-                        "-" +
-                          campaignStatus?.complete +
-                          "/" +
-                          campaignStatus?.total}
-                    </TooltipTrigger>
-                    <TooltipContent side="top" align="end">
-                      <p>
-                        In progress:{" "}
-                        {campaignStatus && campaignStatus?.in_progress}
-                      </p>
-                      <p>Failed: {campaignStatus && campaignStatus?.failed} </p>
-                      <p>
-                        Duplicate: {campaignStatus && campaignStatus?.duplicate}
-                      </p>
-                      <p>
-                        Complete: {campaignStatus && campaignStatus?.complete}
-                      </p>
-                      <p>Total: {campaignStatus && campaignStatus?.total} </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )} */}
-
             <TabsContent
               value={activeTab}
               className="flex-grow overflow-hidden m-0"
             >
               <div ref={mailListRef} className="h-full flex flex-col">
-                {(isInitialLoading && page === 1 && !isCampaignsLoading) || isTransitioning ? (
+                {(isInitialLoading && page === 1 && !isCampaignsLoading) ||
+                  isTransitioning ? (
                   <div className="flex flex-col space-y-3 p-4 pt-0">
                     {[...Array(6)].map((_, index) => (
                       <Skeleton
@@ -793,7 +660,7 @@ export function Mail({
                 setSelectedMailId={setSelectedMailId}
                 mailStatus={currentMail.status}
                 name={currentMail.name}
-                campaign_name={currentMail?.campaign_name || ""}
+                campaign_name={currentMail?.campaign_name || ''}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

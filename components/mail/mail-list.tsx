@@ -218,7 +218,7 @@ const MailList: React.FC<MailListProps> = ({
             <div className="flex items-center">
               <div className="flex items-center gap-2">
                 <Avatar className="flex h-8 w-8 items-center justify-center space-y-0 border bg-white">
-                  <AvatarImage src={item.photo_url} alt="avatar" />
+                  <AvatarImage src={item.photo_url || ""} alt="avatar" />
                   <AvatarFallback className="bg-yellow-400 text-black text-xs">
                     {item.name
                       ? item.name

@@ -384,85 +384,85 @@ export function GoalForm() {
         )}
 
 
-          <FormField
-            control={form.control}
-            name="emails"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <div>
-                  <FormLabel>Sender Email</FormLabel>
-                  <FormDescription>
-                    Where prospects can schedule a meeting with you
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center justify-center space-x-3"
-                      >
-                        <span>{displayEmail}</span>
-                        <ChevronDown size={20} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-max">
-                      <ScrollArea className="h-60">
-                        <DropdownMenuGroup>
-                          {mailboxes &&
+        <FormField
+          control={form.control}
+          name="emails"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <div>
+                <FormLabel>Sender Email</FormLabel>
+                <FormDescription>
+                  Where prospects can schedule a meeting with you
+                </FormDescription>
+              </div>
+              <FormControl>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-center space-x-3"
+                    >
+                      <span>{displayEmail}</span>
+                      <ChevronDown size={20} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-max">
+                    <ScrollArea className="h-60">
+                      <DropdownMenuGroup>
+                        {mailboxes &&
                           mailboxes.length > 0 &&
                           mailboxes[0].mailbox !== null ? (
-                            mailboxes.map((mailbox, index) => (
-                              <DropdownMenuItem key={index}>
-                                <div
-                                  className="flex items-center space-x-2"
-                                  onClick={(event) => event.stopPropagation()}
-                                >
-                                  <Checkbox
-                                    checked={emailFields.some(
-                                      (emailField) =>
-                                        emailField.value === mailbox.mailbox
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        onEmailAppend(mailbox.mailbox);
-                                      } else {
-                                        onEmailRemove(mailbox.mailbox);
-                                      }
-                                    }}
-                                  />
-                                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          mailboxes.map((mailbox, index) => (
+                            <DropdownMenuItem key={index}>
+                              <div
+                                className="flex items-center space-x-2"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <Checkbox
+                                  checked={emailFields.some(
+                                    (emailField) =>
+                                      emailField.value === mailbox.mailbox
+                                  )}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      onEmailAppend(mailbox.mailbox);
+                                    } else {
+                                      onEmailRemove(mailbox.mailbox);
+                                    }
+                                  }}
+                                />
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
 
-                                    {mailbox.sender_name} - {mailbox.mailbox}
-                                  </label>
-                                </div>
-                              </DropdownMenuItem>
-                            ))
-                          ) : (
-                            <div className="text-sm m-2 text-center">
-                              <p> No mailboxes connected.</p>
-                              <p>
-                                You can add a mailbox on the{" "}
-                                <Link
-                                  href="/dashboard/settings/mailbox"
-                                  className="text-blue-600 underline"
-                                >
-                                  Settings
-                                </Link>{" "}
-                                page.
-                              </p>
-                            </div>
-                          )}
-                        </DropdownMenuGroup>
-                      </ScrollArea>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        
+                                  {mailbox.sender_name} - {mailbox.mailbox}
+                                </label>
+                              </div>
+                            </DropdownMenuItem>
+                          ))
+                        ) : (
+                          <div className="text-sm m-2 text-center">
+                            <p> No mailboxes connected.</p>
+                            <p>
+                              You can add a mailbox on the{" "}
+                              <Link
+                                href="/settings/mailbox"
+                                className="text-blue-600 underline"
+                              >
+                                Settings
+                              </Link>{" "}
+                              page.
+                            </p>
+                          </div>
+                        )}
+                      </DropdownMenuGroup>
+                    </ScrollArea>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
 
         <div>
           <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>

@@ -24,11 +24,10 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import logo from "../../../../../public/bw-logo.png";
+import logo from "../../../../public/bw-logo.png";
 import { ArrowLeftRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 

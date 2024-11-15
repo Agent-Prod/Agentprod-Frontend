@@ -124,7 +124,7 @@ export default function Training() {
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/personas/custom_instructions/${params.campaignId}`
         );
-        
+
         if (response.data) {
           setSelectedOption(parseInt(response.data.length_of_email));
           setCustomPrompt(response.data.custom_instructions?.[0] || '');
@@ -262,7 +262,7 @@ export default function Training() {
       // Set a timeout to redirect after 20 seconds
       setTimeout(() => {
         setStartCampaignIsLoading(false);
-        router.push("/dashboard/mail");
+        router.push("/mail");
       }, 30000);
     } catch (error: any) {
       console.log("TrainingResponse", error);

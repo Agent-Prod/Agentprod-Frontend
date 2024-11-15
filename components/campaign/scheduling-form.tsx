@@ -107,14 +107,14 @@ export function SchedulingForm() {
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/`,
           campaignData
         );
-        router.push(`/dashboard/campaign/${response.data.id}`);
+        router.push(`/campaign/${response.data.id}`);
         toast.success("Campaign is scheduled successfully!");
       } else {
         await axios.put(
           `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,
           campaignData
         );
-        router.push(`/dashboard/campaign/${params.campaignId}`);
+        router.push(`/campaign/${params.campaignId}`);
         toast.success("Campaign is updated successfully!");
       }
 

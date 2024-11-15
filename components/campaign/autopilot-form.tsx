@@ -147,7 +147,7 @@ export function AutopilotForm() {
         toast.success("Autopilot settings updated successfully.");
       }
       setTimeout(() => {
-        router.push(`/dashboard/campaign/${params.campaignId}`);
+        router.push(`/campaign/${params.campaignId}`);
       }, 2000);
     } catch {
       toast.error("An error occurred while saving the autopilot settings.");

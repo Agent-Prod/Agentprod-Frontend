@@ -86,7 +86,7 @@ const defaultDashboardState: DashboardContextType = {
     },
   },
   isLoading: true,
-  setDashboardData: () => {},
+  setDashboardData: () => { },
 };
 
 const DashboardContext = createContext<DashboardContextType>(

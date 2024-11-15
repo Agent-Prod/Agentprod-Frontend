@@ -24,7 +24,7 @@ export const SelectFromExisting = () => {
   const [totalLeads, setTotalLeads] = useState(0);
   const [searchFilter, setSearchFilter] = useState("");
   const size = 10;
-  
+
   const { user } = useUserContext();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
@@ -35,7 +35,7 @@ export const SelectFromExisting = () => {
 
   const fetchLeads = async (pageToFetch: number) => {
     if (!user?.id) return;
-    
+
     try {
       const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
         params: {
@@ -105,17 +105,17 @@ export const SelectFromExisting = () => {
   const handleLeadSelection = (selectedRows: Contact[]) => {
     const newSelectedLeads = new Map(allSelectedLeads);
     const currentPageLeadIds = new Set(currentPageData.map(lead => lead.id));
-    
+
     currentPageLeadIds.forEach(id => {
       if (!selectedRows.find(row => row.id === id)) {
         newSelectedLeads.delete(id);
       }
     });
-    
+
     selectedRows.forEach(lead => {
       newSelectedLeads.set(lead.id, lead);
     });
-    
+
     setAllSelectedLeads(newSelectedLeads);
     setSelectedLeads(Array.from(newSelectedLeads.values()));
   };
@@ -184,15 +184,15 @@ export const SelectFromExisting = () => {
       const audienceBody = mapLeadsToBodies(Array.from(allSelectedLeads.values()), params.campaignId);
       const response = await axiosInstance.post<Contact[]>(`v2/nurturing/leads`, audienceBody);
       const data = response.data;
-      
+
       if (Array.isArray(data)) {
         setLeads(data);
       } else {
         setLeads([data]);
       }
-      
+
       toast.success("Audience created successfully");
-      router.push(`/dashboard/campaign/${params.campaignId}`);
+      router.push(`/campaign/${params.campaignId}`);
     } catch (error) {
       console.error(error);
       setError(error instanceof Error ? error.toString() : String(error));

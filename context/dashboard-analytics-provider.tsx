@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { useUserContext } from "./user-context";
+import { DashboardData } from "@/types/dashboard";
 
 type HotLead = {
   id: string;
@@ -27,10 +28,6 @@ type TopPerformingCampaign = {
   open_rate: number;
 };
 
-type ConversionFunnel = {
-  [key: string]: number;
-};
-
 type EmailStats = {
   open_rate: number;
   reply_rate: number;
@@ -41,25 +38,10 @@ type EmailStats = {
   positive_email_rate: number;
 };
 
-interface DashboardEntry {
-  id: number;
-  pending_approvals: number;
-  user_id: string;
-  emails_sent: number | null;
-  engaged: number | null;
-  meetings_booked: number | null;
-  response_rate: number;
-  conversion_funnel: ConversionFunnel;
-  hot_leads: HotLead[];
-  mailbox_health: { [email: string]: number };
-  top_performing_campaigns: TopPerformingCampaign[];
-  email_stats: EmailStats;
-}
-
 interface DashboardContextType {
-  dashboardData: DashboardEntry;
+  dashboardData: DashboardData;
   isLoading: boolean;
-  setDashboardData: (dashboardData: DashboardEntry) => void;
+  setDashboardData: (dashboardData: DashboardData) => void;
 }
 
 const defaultDashboardState: DashboardContextType = {
@@ -73,7 +55,14 @@ const defaultDashboardState: DashboardContextType = {
     response_rate: 0,
     hot_leads: [],
     mailbox_health: {},
-    conversion_funnel: {},
+    conversion_funnel: {
+      sent: 0,
+      opened: 0,
+      cta_clicked: 0,
+      goal: 0,
+      'goal/click': 0,
+      'goal/subscription': 0
+    },
     top_performing_campaigns: [],
     email_stats: {
       open_rate: 0,
@@ -101,7 +90,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
   const { user } = useUserContext();
-  const [dashboardData, setDashboardData] = useState<DashboardEntry>(
+  const [dashboardData, setDashboardData] = useState<DashboardData>(
     defaultDashboardState.dashboardData
   );
   const [isLoading, setIsLoading] = React.useState(true);
@@ -109,7 +98,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
 
   const fetchDashboardData = async (userId: string, retryCount = 0): Promise<void> => {
     try {
-      const response = await axiosInstance.get<DashboardEntry>(`v2/dashboard/${userId}`);
+      const response = await axiosInstance.get<DashboardData>(`v2/dashboard/${userId}`);
       if (response.data === null) {
         // If response is null, retry up to 3 times with increasing delay
         if (retryCount < 3) {

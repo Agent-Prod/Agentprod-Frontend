@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -24,9 +26,8 @@ export const LoadingOverlay = () => {
         />
         <p className="text-lg font-semibold">Generating Drafts</p>
         <p
-          className={`mt-2 transition-opacity duration-1000 ${
-            showWaitMessage ? "opacity-100" : "opacity-0"
-          }`}
+          className={`mt-2 transition-opacity duration-1000 ${showWaitMessage ? "opacity-100" : "opacity-0"
+            }`}
         >
           Please wait
         </p>

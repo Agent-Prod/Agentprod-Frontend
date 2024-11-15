@@ -191,14 +191,14 @@ const MailList: React.FC<MailListProps> = ({
             {category.trim() === "Later"
               ? "Later"
               : category.trim() === "Information Required"
-              ? "Info Req"
-              : category.trim() === "Not Interested"
-              ? "Disinterested"
-              : category.trim() === "Forwarded"
-              ? "Referral"
-              : category.trim() === "Forwarded to"
-              ? "Forwarded"
-              : category}
+                ? "Info Req"
+                : category.trim() === "Not Interested"
+                  ? "Disinterested"
+                  : category.trim() === "Forwarded"
+                    ? "Referral"
+                    : category.trim() === "Forwarded to"
+                      ? "Forwarded"
+                      : category}
           </Badge>
         );
       };
@@ -222,19 +222,18 @@ const MailList: React.FC<MailListProps> = ({
                   <AvatarFallback className="bg-yellow-400 text-black text-xs">
                     {item.name
                       ? item.name
-                          .split(" ")
-                          .map((namePart, index, arr) =>
-                            index === 0 || (index === 1 && arr.length > 1)
-                              ? namePart[0]
-                              : ""
-                          )
-                          .join("")
+                        .split(" ")
+                        .map((namePart, index, arr) =>
+                          index === 0 || (index === 1 && arr.length > 1)
+                            ? namePart[0]
+                            : ""
+                        )
+                        .join("")
                       : ""}
                   </AvatarFallback>
                 </Avatar>
-                <div className="font-semibold w-72 truncate">{`${
-                  item.name || "unknown"
-                } from ${item.company_name || "unknown company"}`}</div>
+                <div className="font-semibold w-72 truncate">{`${item.name || "unknown"
+                  } from ${item.company_name || "unknown company"}`}</div>
                 <span className="text-xs">
                   {item.category && getCategoryBadge(item.category)}
                 </span>
@@ -262,12 +261,12 @@ const MailList: React.FC<MailListProps> = ({
               {(item.body_substr as string)?.substring(0, 80)}
               {hoveredMailId === item.id && (
                 <Trash2Icon
-                className="w-4 h-4 dark:hover:text-white hover:text-black cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(item.id);
-                }}
-              />
+                  className="w-4 h-4 dark:hover:text-white hover:text-black cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item.id);
+                  }}
+                />
               )}
             </div>
           </div>

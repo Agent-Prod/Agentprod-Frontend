@@ -783,14 +783,14 @@ export default function PeopleForm(): JSX.Element {
 
     let pages = 1;
     if (formData.per_page) {
-      if (formData.per_page <= 25) {
+      if (formData.per_page <= 50) {
         pages = 1;
-      } else if (formData.per_page <= 50) {
+      } else if (formData.per_page <= 100) {
         pages = 2;
-      } else if (formData.per_page <= 75) {
+      } else if (formData.per_page <= 150) {
         pages = 3;
       } else {
-        pages = Math.ceil(formData.per_page / 25);
+        pages = Math.ceil(formData.per_page / 50);
       }
     }
     const newApolloUrl = constructApolloUrl(data);
@@ -808,7 +808,7 @@ export default function PeopleForm(): JSX.Element {
       count: number,
       startPage: number
     ) => ({
-      count: Math.min(count, 25),
+      count: Math.min(count, 50),
       email: getRandomEmail(),
       getEmails: true,
       guessedEmails: true,
@@ -827,16 +827,14 @@ export default function PeopleForm(): JSX.Element {
 
     const APIFY_TOKEN = "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa";
 
-    const fetchLead = async (startPage: number): Promise<any[]> => {
+    const fetchLead = async (startPage: number, remainingLeads: number): Promise<any[]> => {
       const TIMEOUT = 90000;
       const maxRetries = 3;
       let retries = 0;
 
       while (retries < maxRetries) {
         try {
-          const scraperBody = {
-            ...createScraperBody(25, startPage),
-          };
+          const scraperBody = createScraperBody(remainingLeads, startPage);
 
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
@@ -900,7 +898,7 @@ export default function PeopleForm(): JSX.Element {
           if (perPage <= 200) return 60;
           if (perPage <= 300) return 90;
           if (perPage <= 400) return 120;
-          return 180; // for anything above 400
+          return 180;
         };
 
         let countdownDuration = calculateCountdownDuration(formData.per_page);
@@ -925,7 +923,6 @@ export default function PeopleForm(): JSX.Element {
           );
 
           if (remainingTime <= 0) {
-            // Reset the timer instead of showing "Taking longer than usual"
             remainingTime = countdownDuration;
             toast.loading(
               `Estimated time: ${Math.floor(countdownDuration / 60)}:${(
@@ -940,30 +937,37 @@ export default function PeopleForm(): JSX.Element {
           }
         }, 1000);
 
-        const batchSize = 8; // Number of concurrent API calls
-        const totalPages = Math.ceil(data.per_page / 25);
+        const batchSize = 4;
+        const totalLeadsNeeded = data.per_page;
+        const maxLeadsPerBatch = 50;
         let enrichedLeads: any[] = [];
+        let remainingLeads = totalLeadsNeeded;
 
-        for (let i = 0; i < totalPages; i += batchSize) {
+        for (let i = 0; remainingLeads > 0; i += batchSize) {
+          const currentBatchSize = Math.min(batchSize, Math.ceil(remainingLeads / maxLeadsPerBatch));
           const batch = Array.from(
-            { length: Math.min(batchSize, totalPages - i) },
-            (_, index) => i + index + 1
-          );
-          console.log(
-            `Processing batch ${i / batchSize + 1} of ${Math.ceil(
-              totalPages / batchSize
-            )}`
+            { length: currentBatchSize },
+            (_, index) => ({
+              startPage: i + index + 1,
+              count: Math.min(maxLeadsPerBatch, remainingLeads - (index * maxLeadsPerBatch))
+            })
           );
 
-          const batchPromises = batch.map(fetchLead);
+          console.log(
+            `Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(totalLeadsNeeded / (batchSize * maxLeadsPerBatch))}`
+          );
+
+          const batchPromises = batch.map(({ startPage, count }) =>
+            fetchLead(startPage, count)
+          );
           const batchResults = await Promise.all(batchPromises);
           const batchLeads = batchResults.flat();
 
           enrichedLeads.push(...batchLeads);
+          remainingLeads -= batchSize * maxLeadsPerBatch;
 
-          // Optional: Add a delay between batches to avoid rate limiting
-          if (i + batchSize < totalPages) {
-            await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
+          if (remainingLeads > 0) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
           }
         }
 
@@ -1036,7 +1040,7 @@ export default function PeopleForm(): JSX.Element {
   };
 
   const min = 0;
-  const [leadsNum, setLeadsNum] = useState<number>(0);
+  const [leadsNum, setLeadsNum] = useState<number>(25);
 
   type CheckboxOptions = {
     name: string;
@@ -1388,8 +1392,8 @@ export default function PeopleForm(): JSX.Element {
       })
 
       const intentScore = Array.isArray(allFiltersFromDB.buying_intent_scores)
-      ? allFiltersFromDB.buying_intent_scores
-      : [];
+        ? allFiltersFromDB.buying_intent_scores
+        : [];
 
       setCheckedIntentTopics(intentScore)
       form.setValue("buying_intent_scores", intentScore, {
@@ -1799,7 +1803,7 @@ export default function PeopleForm(): JSX.Element {
         organization_num_employees_ranges: checkedCompanyHeadcount?.length
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
-        
+
         organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
@@ -2210,10 +2214,10 @@ export default function PeopleForm(): JSX.Element {
                                 field.onChange(undefined);
                                 return;
                               }
-                              
+
                               const numberValue = Math.round(Number(value) / 25) * 25;
                               const boundedValue = Math.max(25, Math.min(500, numberValue));
-                              
+
                               field.onChange(boundedValue);
                             }}
                             onBlur={(e) => {
@@ -2232,7 +2236,7 @@ export default function PeopleForm(): JSX.Element {
                         interested in select between 1 - 125.
                       </FormDescription>
                       <FormDescription>
-                      Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription>
+                        Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -2931,8 +2935,8 @@ export default function PeopleForm(): JSX.Element {
 
 
                                       const newCheckedValues = isChecked
-                                      ? [...(checkedSearchSignal || []), value]
-                                      : (checkedSearchSignal || []).filter(item => item !== value);
+                                        ? [...(checkedSearchSignal || []), value]
+                                        : (checkedSearchSignal || []).filter(item => item !== value);
 
                                       setCheckedSearchSignal(newCheckedValues);
                                       field.onChange(newCheckedValues)
@@ -3126,7 +3130,7 @@ export default function PeopleForm(): JSX.Element {
                                       checked={checkedIntentTopics?.includes(
                                         intent.id
                                       )}
-                                      
+
                                       onCheckedChange={(checked) => {
                                         const isChecked = checked.valueOf();
                                         const value = intent.id;

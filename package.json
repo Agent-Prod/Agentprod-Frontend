@@ -57,7 +57,7 @@
     "eslint": "8.48.0",
     "eslint-config-next": "^14.0.1",
     "https": "^1.0.0",
-    "input-otp": "^1.2.4",
+    "input-otp": "^1.4.1",
     "jotai": "^2.6.4",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.291.0",

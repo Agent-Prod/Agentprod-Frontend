@@ -55,6 +55,12 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArkoseCaptchaIntegration } from "./ArkoseCaptchaIntegration";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 const FormSchema = z.object({
   type: z.enum(["all", "engaged"], {
@@ -77,7 +83,9 @@ export default function Page() {
   const [selectedHubspotLeadType, setSelectedHubspotLeadType] =
     React.useState("all");
   const { user } = useUserContext();
-
+  const [linkedInName, setLinkedInName] = React.useState('');
+  const [linkedInDesignation, setLinkedInDesignation] = React.useState('');
+  const [linkedInCountry, setLinkedInCountry] = React.useState('');
   const [linkedInUrl, setLinkedInUrl] = React.useState('');
   const [linkedInStep, setLinkedInStep] = React.useState(1);
   const [captchaToken, setCaptchaToken] = React.useState('');
@@ -87,6 +95,7 @@ export default function Page() {
   const [isCaptchaSolved, setIsCaptchaSolved] = React.useState(false);
   const [showCaptchaButton, setShowCaptchaButton] = React.useState(true);
   const [captchaLoaded, setCaptchaLoaded] = React.useState(false);
+  const [otpValue, setOtpValue] = React.useState('');
 
   const updateHubspotLeadType = async () => {
     setLoading(true);
@@ -189,7 +198,11 @@ export default function Page() {
         user_id: user.id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
-        password: linkedInPassword
+        password: linkedInPassword,
+        name: linkedInName,
+        designation: linkedInDesignation,
+        country: linkedInCountry
+
       };
 
       const response = await axiosInstance.post('/v2/linkedin/login', payload);
@@ -204,6 +217,9 @@ export default function Page() {
           setLinkedInUrl('');
           setLinkedInEmail('');
           setLinkedInPassword('');
+          setLinkedInName('')
+          setLinkedInDesignation('')
+          setLinkedInCountry('')
         } else {
           // CAPTCHA required
           const checkpointData = response.data;
@@ -220,7 +236,6 @@ export default function Page() {
       }
     } catch (error) {
       console.error("Error connecting LinkedIn account:", error);
-      toast.error("An error occurred while connecting your LinkedIn account. Please try again later.");
     }
   };
 
@@ -264,18 +279,21 @@ export default function Page() {
         setIsLinkedInMailboxOpen(false);
         // Reset the LinkedIn connection state
         setLinkedInStep(1);
-        
-      } else if(response.data.type === "errors/invalid_credentials"){
+
+      } else if (response.data.type === "errors/invalid_credentials") {
         toast.error("Invalid LinkedIn credentials. Please try again.");
         setLinkedInStep(1);
         setLinkedInUrl('');
         setLinkedInEmail('');
         setLinkedInPassword('');
+        setLinkedInName('')
+        setLinkedInDesignation('')
+        setLinkedInCountry('')
         setCaptchaToken('');
         setCaptchaPublicKey('');
         setCaptchaData('');
         setCaptchaAccountId('');
-      } else{
+      } else {
         setLinkedInStep(3);
       }
     } catch (error) {
@@ -304,13 +322,36 @@ export default function Page() {
         setIsLinkedInMailboxOpen(false);
         // Reset the LinkedIn connection state
         setLinkedInStep(1);
-        
+
       } else {
         toast.error("Failed to connect LinkedIn account. Please try again.");
       }
     } catch (error) {
       console.error("Error connecting LinkedIn account:", error);
       toast.error("An error occurred while connecting your LinkedIn account. Please try again later.");
+    }
+  };
+
+  const handleOTPVerification = async () => {
+    try {
+      const payload = {
+        code: otpValue,
+        account_id: captchaAccountId
+      };
+
+      const response = await axiosInstance.post('/v2/linkedin/solve', payload);
+
+      if (response.status === 200 && response.data.object === "AccountCreated") {
+        toast.success("LinkedIn account connected successfully!");
+        setIsLinkedInMailboxOpen(false);
+        setLinkedInStep(1);
+        setOtpValue('');
+      } else {
+        toast.error("Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast.error("An error occurred while verifying the OTP. Please try again.");
     }
   };
 
@@ -628,14 +669,45 @@ export default function Page() {
                     </div>
                   </DialogTitle>
                   <DialogDescription>
-                    {linkedInStep === 1 ? "Enter your LinkedIn credentials" : 
-                     linkedInStep === 2 ? "Complete CAPTCHA verification" : 
-                     "LinkedIn account connected successfully!"}
+                    {linkedInStep === 1 ? "Enter your LinkedIn credentials" :
+                      linkedInStep === 2 ? "Complete CAPTCHA verification" :
+                        "Enter verification code"}
                   </DialogDescription>
                 </DialogHeader>
                 <Separator />
                 {linkedInStep === 1 && (
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin-name">Name</Label>
+                      <Input
+                        id="linkedin-name"
+                        placeholder="John Foe"
+                        value={linkedInName}
+                        onChange={(e) => setLinkedInName(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-row gap-4">
+
+
+                      <div className="space-y-2 w-1/2">
+                        <Label htmlFor="linkedin-designation">Designation</Label>
+                        <Input
+                          id="linkedin-designation"
+                          placeholder="CEO"
+                          value={linkedInDesignation}
+                          onChange={(e) => setLinkedInDesignation(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 w-1/2">
+                        <Label htmlFor="linkedin-country">Country</Label>
+                        <Input
+                          id="linkedin-country"
+                          placeholder="United States"
+                          value={linkedInCountry}
+                          onChange={(e) => setLinkedInCountry(e.target.value)}
+                        />
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
                       <Input
@@ -665,6 +737,8 @@ export default function Page() {
                         onChange={(e) => setLinkedInPassword(e.target.value)}
                       />
                     </div>
+
+
                   </div>
                 )}
                 {linkedInStep === 2 && (
@@ -683,7 +757,37 @@ export default function Page() {
                   </div>
                 )}
                 {linkedInStep === 3 && (
-                  <div>Your LinkedIn account has been successfully connected!</div>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500">
+                        Please enter the verification code sent to your Email Address
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center min-h-[100px]">
+                      <InputOTP
+                        maxLength={6}
+                        pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                        value={otpValue}
+                        onChange={(value) => setOtpValue(value)}
+                      >
+                        <InputOTPGroup className="">
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleOTPVerification}
+                      disabled={otpValue.length !== 6}
+                    >
+                      Verify OTP
+                    </Button>
+                  </div>
                 )}
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsLinkedInMailboxOpen(false)}>

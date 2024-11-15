@@ -51,6 +51,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FaLinkedin } from 'react-icons/fa';
 
 interface MailData {
   id: number;
@@ -624,6 +625,8 @@ export default function Page() {
                     <div className="flex items-center gap-3">
                       {mailbox.platform === "Google" ? (
                         <GmailIcon />
+                      ) : mailbox.platform === "Linkedin" ? (
+                        <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
                       ) : (
                         <Image
                           src="/bw-logo.png"
@@ -632,7 +635,12 @@ export default function Page() {
                           height="20"
                         />
                       )}
-                      <span>{mailbox.mailbox}</span>
+                      <span>
+                        {mailbox.platform === "Linkedin" 
+                          ? mailbox.mailbox.split('/in/')[1].replace('/', '') 
+                          : mailbox.mailbox
+                        }
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -723,7 +731,7 @@ export default function Page() {
                           </div>
                         </PopoverContent>
                       </Popover>
-                    ) : mailbox.issues.length > 2 ? (
+                    ) : mailbox?.issues?.length > 2 ? (
                       <Popover>
                         <PopoverTrigger>
                           <Badge className="gap-1 flex text-[10px] w-32 justify-center hover:cursor-pointer items-center rounded-full hover:bg-red-400 hover:text-red-800 bg-red-300 text-red-700">

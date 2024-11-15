@@ -68,7 +68,7 @@ const goalFormSchema = z.object({
   emails: z
     .array(
       z.object({
-        value: z.string().email({ message: "Invalid email address" }),
+        value: z.string(),
       })
     )
     .optional(),
@@ -383,7 +383,7 @@ export function GoalForm() {
           />
         )}
 
-        {campaignChannel !== "Linkedin" && (
+
           <FormField
             control={form.control}
             name="emails"
@@ -432,6 +432,7 @@ export function GoalForm() {
                                     }}
                                   />
                                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+
                                     {mailbox.sender_name} - {mailbox.mailbox}
                                   </label>
                                 </div>
@@ -461,7 +462,7 @@ export function GoalForm() {
               </FormItem>
             )}
           />
-        )}
+        
 
         <div>
           <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>

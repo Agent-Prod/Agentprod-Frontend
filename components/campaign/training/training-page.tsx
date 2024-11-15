@@ -118,6 +118,25 @@ export default function Training() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileType, setFileType] = useState<'image' | 'video' | 'pdf'>('image');
 
+  useEffect(() => {
+    const fetchCustomInstructions = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/personas/custom_instructions/${params.campaignId}`
+        );
+        
+        if (response.data) {
+          setSelectedOption(parseInt(response.data.length_of_email));
+          setCustomPrompt(response.data.custom_instructions?.[0] || '');
+        }
+      } catch (error) {
+        console.error('Error fetching custom instructions:', error);
+      }
+    };
+
+    fetchCustomInstructions();
+  }, [params.campaignId]);
+
   // const handleGenerateWithAI = async () => {
   //   try {
   //     const response = await getAutogenerateTrainingEmail(

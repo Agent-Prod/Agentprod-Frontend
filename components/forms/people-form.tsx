@@ -1589,7 +1589,21 @@ export default function PeopleForm(): JSX.Element {
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
       await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
+      const getRecData = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+      );
+      if (getRecData.data.schedule_type === "recurring") {
+        const recurringResponse = await axiosInstance.put(
+          "v2/recurring_campaign_request",
+          {
+            campaign_id: params.campaignId,
+            apollo_url: apolloUrl,
+            page: calculatedPages + 1,
 
+          }
+        );
+        console.log("Recurring campaign request: ", recurringResponse.data);
+      }
       toast.success("Audience updated successfully");
       await router.push(`/dashboard/campaign/${params.campaignId}`);
       setTimeout(async () => {
@@ -1804,7 +1818,7 @@ export default function PeopleForm(): JSX.Element {
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
 
-        organization_locations: formData.organization_locations?.map((tag: any) => tag.text),
+        person_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
         q_organization_job_titles: formData.job_posting_titles?.map((tag: any) => tag.text),
@@ -1819,7 +1833,8 @@ export default function PeopleForm(): JSX.Element {
           max: formData.maximum_company_funding?.text?.toString()
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
-        buying_intent_scores: checkedFields(checkedIntentScores, false)
+        buying_intent_scores: checkedFields(checkedIntentScores, false),
+        contact_email_status_v2: ["likely_to_engage", "verified"]
       };
 
       // Remove undefined or empty array properties

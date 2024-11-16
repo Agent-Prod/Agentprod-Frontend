@@ -1,16 +1,14 @@
+/* eslint-disable react/display-name */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React from "react";
-import { BsStars } from "react-icons/bs";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, { useCallback, useEffect, useState, memo, useRef } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -18,56 +16,35 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useLeadSheetSidebar } from "@/context/lead-sheet-sidebar";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   BadgeX,
   Bell,
   CalendarCheck,
   Check,
-  ChevronsUpDown,
   Edit3,
   Forward,
   Linkedin,
-  ListTodo,
   MailPlus,
   RefreshCw,
   ThumbsDown,
   ThumbsUp,
   TimerReset,
   Trash2,
-  TrendingUp,
   UserX,
+  User,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
-import { useMailbox, Mailbox, EmailMessage } from "@/context/mailbox-provider";
-import { Lead, useLeads, Contact } from "@/context/lead-user";
+import { useMailbox, EmailMessage } from "@/context/mailbox-provider";
+import { Lead, useLeads } from "@/context/lead-user";
 import { toast } from "sonner";
-import { PeopleProfileSheet } from "../people-profile-sheet";
-import Notification from "./Notification";
-import { CampaignEntry, useCampaignContext } from "@/context/campaign-provider";
-import { User } from "lucide-react";
 import { LoadingCircle } from "@/app/icons";
 import { useUserContext } from "@/context/user-context";
 import { Badge } from "../ui/badge";
-import { last, previous } from "slate";
 import { parseActionDraft } from "./parse-draft";
 import Image from "next/image";
-import { sanitizeSubject } from "./sanitizeSubject";
 import SuggestionDisplay from "./suggestionsDisplay";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ThreadDisplayMainProps {
   ownerEmail: string;
@@ -77,18 +54,64 @@ interface ThreadDisplayMainProps {
   mailStatus: string;
   name: string;
   campaign_name: string;
+  campaign_id: string;
+  contact_id: string;
 }
 
-const frameworks = [
-  {
-    value: "manualmode",
-    label: "Manual mode",
-  },
-  {
-    value: "autopilotmode",
-    label: "Autopilot mode",
-  },
-];
+const initials = (name: string) => {
+  const names = name.split(" ");
+  return names
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+};
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+  const time = new Intl.DateTimeFormat("en-US", timeOptions).format(date);
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "short",
+  };
+  if (date.getFullYear() !== now.getFullYear()) {
+    dateOptions.year = "numeric";
+  }
+  const formattedDate = new Intl.DateTimeFormat("en-GB", dateOptions).format(
+    date
+  );
+
+  const isToday = date.toDateString() === now.toDateString();
+  const isTomorrow =
+    date.toDateString() ===
+    new Date(now.setDate(now.getDate() + 1)).toDateString();
+  const isYesterday =
+    date.toDateString() ===
+    new Date(now.setDate(now.getDate() - 2)).toDateString();
+
+  if (isToday) {
+    return `${time}, Today`;
+  } else if (isTomorrow) {
+    return `${time}, Tomorrow`;
+  } else if (isYesterday) {
+    return `${time}, Yesterday`;
+  } else {
+    return `${time}, ${formattedDate}`;
+  }
+};
+
+const isLinkedInUrl = (recipient: string): boolean => {
+  return recipient.toLowerCase().includes("linkedin.com");
+};
 
 const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   ownerEmail,
@@ -98,6 +121,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   mailStatus,
   name,
   campaign_name,
+  contact_id,
 }) => {
   const {
     conversationId,
@@ -105,265 +129,153 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     setThread,
     recipientEmail,
     senderEmail,
-    setIsContextBarOpen,
-    setConversationId,
   } = useMailbox();
 
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState("");
-  const [campaigns, setCampaigns] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toggleSidebar, setItemId } = useLeadSheetSidebar();
   const { leads, setLeads } = useLeads();
-  const { user } = useUserContext();
 
-  // const { campaigns } = useCampaignContext();
-
-  const [drafts, setDrafts] = React.useState<any[]>([]);
-
-  const initials = (name: string) => {
-    const names = name.split(" ");
-    if (names) {
-      return names
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase();
-    } else {
-      return "NA";
-    }
-  };
-
-  console.log("HEH", conversationId);
-
-  const leadId = leads[0]?.campaign_id;
-
-  // React.useEffect(() => {
-  //   const fetchCampaigns = () => {
-  //     if (user && user.id) {
-  //       setIsLoading(true);
-  //       axiosInstance
-  //         .get<CampaignEntry[]>(`v2/campaigns/all/${user.id}`)
-  //         .then((response) => {
-  //           console.log("Campaign From Inbox", response);
-  //           // Sort campaigns based on created_at field
-  //           const sortedCampaigns = response.data.sort((a: any, b: any) => {
-  //             const dateA = new Date(a.created_at).getTime();
-  //             const dateB = new Date(b.created_at).getTime();
-  //             return dateB - dateA; // Sort in descending order (newest first)
-  //           });
-
-  //           setCampaigns(sortedCampaigns);
-  //           setIsLoading(false);
-  //         })
-  //         .catch((error) => {
-  //           console.error("Error fetching campaigns:", error);
-  //           setError(error.message || "Failed to load campaigns.");
-  //           setIsLoading(false);
-  //         });
-  //     }
-  //   };
-
-  //   fetchCampaigns();
-  // }, [user?.id]);
-
-  React.useEffect(() => {
-    // For handleing, the thread if some error occurs
-    setError(""); // Reset error state when conversationId changes
-    setIsLoading(true); // Set loading state when conversationId changes
-    // For handleing, the thread if some error occurs
+  useEffect(() => {
+    setIsLoading(true);
     axiosInstance
       .get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`)
       .then((response) => {
         setThread(response.data);
-        console.log("Thread Data", response.data);
         setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching conversation:", error);
-        setError(error.message || "Failed to load conversation.");
         setIsLoading(false);
       });
-  }, [conversationId, thread?.length]);
+  }, [conversationId]);
 
-  const isLinkedInUrl = (recipient: string): boolean => {
-    return recipient.toLowerCase().includes('linkedin.com');
-  };
-
-  const handleAvatarClick = async () => {
-    try {
-      const isLinkedIn = isLinkedInUrl(recipientEmail);
-
-      if (isLinkedIn) {
-        console.log('Using LinkedIn URL endpoint:', recipientEmail);
-        const response = await axiosInstance.get<Lead>(
-          `v2/lead/linkedin/info?linkedin_url=${encodeURIComponent(recipientEmail)}`
-        );
+  React.useEffect(() => {
+    const fetchLeadInfo = async () => {
+      try {
+        console.log('Using email endpoint for:', contact_id);
+        const response = await axiosInstance.get<Lead>(`v2/lead/info/${contact_id}`);
         setItemId(response.data.id);
         setLeads([response.data]);
-      } else {
-        console.log('Using email endpoint for:', recipientEmail);
-        const response = await axiosInstance.get<Lead>(`v2/lead/info/${recipientEmail}`);
-        setItemId(response.data.id);
-        setLeads([response.data]);
-      }
-      toggleSidebar(true);
-    } catch (error) {
-      console.error("Error fetching lead info:", error);
-      toast.error("Failed to load lead information");
-    }
-  };
-
-  const EmailComponent = ({ email }: { email: EmailMessage }) => {
-    // const isEmailFromOwner = email.sender === ownerEmail;
-    // console.log("jajaja", email);
-    console.log("Platform", email);
-
-    const [title, setTitle] = React.useState("");
-    const [body, setBody] = React.useState("");
-    const [editable, setEditable] = React.useState(false);
-    const [isLoadingButton, SetIsLoadingButton] = React.useState(false);
-    const [loadingSmartSchedule, setLoadingSmartSchedule] =
-      React.useState(false);
-
-    const { user } = useUserContext();
-
-    const formatDate = (dateString: string) => {
-      if (!dateString) return "";
-
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "";
-
-      const now = new Date();
-
-      const timeOptions: Intl.DateTimeFormatOptions = {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      };
-
-      const time = new Intl.DateTimeFormat("en-US", timeOptions).format(date);
-
-      const dateOptions: Intl.DateTimeFormatOptions = {
-        day: "2-digit",
-        month: "short",
-      };
-
-      if (date.getFullYear() !== now.getFullYear()) {
-        dateOptions.year = "numeric";
-      }
-
-      const formattedDate = new Intl.DateTimeFormat(
-        "en-GB",
-        dateOptions
-      ).format(date);
-
-      const isToday = date.toDateString() === now.toDateString();
-      const isTomorrow =
-        date.toDateString() ===
-        new Date(now.setDate(now.getDate() + 1)).toDateString();
-      const isYesterday =
-        date.toDateString() ===
-        new Date(now.setDate(now.getDate() - 2)).toDateString();
-
-      if (isToday) {
-        return `${time}, Today`;
-      } else if (isTomorrow) {
-        return `${time}, Tomorrow`;
-      } else if (isYesterday) {
-        return `${time}, Yesterday`;
-      } else {
-        return `${time}, ${formattedDate}`;
+      } catch (error) {
+        console.error("Error fetching lead info:", error);
+        toast.error("Failed to load lead information");
       }
     };
 
-    const handleSendNow = () => {
-      SetIsLoadingButton(true);
+    fetchLeadInfo();
+  }, [recipientEmail]);
 
-      let payload;
-      let endpoint;
+  const EmailComponent = memo(
+    ({ email }: { email: EmailMessage }) => {
+      const [isEditing, setIsEditing] = useState(false);
+      const [editableSubject, setEditableSubject] = useState(
+        email.subject || parseActionDraft(email.body).subject || ""
+      );
+      const [editableBody, setEditableBody] = useState(
+        email.body || parseActionDraft(email.body).body || ""
+      );
+      const [isLoadingButton, setIsLoadingButton] = useState(false);
+      const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
 
-      if (email.channel?.toLowerCase() === "linkedin") {
-        payload = {
-          receiver: recipientEmail,
-          sender: senderEmail,
-          user_id: user.id,
-          message: email.body,
-          conversation_id: conversationId,
-        };
-        endpoint = "/v2/linkedin/send-message";
-      } else {
-        payload = {
+      const { user } = useUserContext();
+
+      const handleSendNow = useCallback(() => {
+        setIsLoadingButton(true);
+
+        let payload;
+        let endpoint;
+
+        if (email.channel?.toLowerCase() === "linkedin") {
+          payload = {
+            receiver: recipientEmail,
+            sender: senderEmail,
+            user_id: user.id,
+            message: email.body,
+            conversation_id: conversationId,
+          };
+          endpoint = "/v2/linkedin/send-message";
+        } else {
+          payload = {
+            conversation_id: conversationId,
+            sender: senderEmail,
+            recipient: recipientEmail,
+            subject: email.subject,
+            body: email.body,
+          };
+          endpoint = "/v2/mailbox/send/immediately";
+        }
+
+        axiosInstance
+          .post(endpoint, payload)
+          .then((response) => {
+            toast.success("Your message has been sent successfully!");
+            setThread(response.data);
+            updateMailStatus(conversationId, "sent");
+            setIsLoadingButton(false);
+            setSelectedMailId(conversationId);
+          })
+          .catch((error) => {
+            console.error("Failed to send message:", error);
+            toast.error("Failed to send the message. Please try again.");
+            setIsLoadingButton(false);
+          });
+      }, [
+        conversationId,
+        email.body,
+        email.channel,
+        email.subject,
+        recipientEmail,
+        senderEmail,
+        setSelectedMailId,
+        setThread,
+        updateMailStatus,
+        user.id,
+      ]);
+
+      const handleApproveEmail = useCallback(() => {
+        setLoadingSmartSchedule(true);
+        const payload = {
           conversation_id: conversationId,
           sender: senderEmail,
           recipient: recipientEmail,
           subject: email.subject,
           body: email.body,
         };
-        endpoint = "/v2/mailbox/send/immediately";
-      }
 
-      axiosInstance
-        .post(endpoint, payload)
-        .then((response) => {
-          toast.success("Your message has been sent successfully!");
-          setThread(response.data);
-          updateMailStatus(conversationId, "sent");
-          SetIsLoadingButton(false);
-          setEditable(false);
-          setSelectedMailId(conversationId);
-        })
-        .catch((error) => {
-          console.error("Failed to send message:", error);
-          toast.error("Failed to send the message. Please try again.");
-          SetIsLoadingButton(false);
-        });
-    };
+        axiosInstance
+          .post("/v2/mailbox/draft/send", payload)
+          .then((response) => {
+            toast.success("Draft Approved!");
+            setThread(response.data);
+            setLoadingSmartSchedule(false);
+          })
+          .catch((error) => {
+            console.error("Failed to send email:", error);
+            toast.error("Failed to send the email. Please try again.");
+            setLoadingSmartSchedule(false);
+          });
+      }, [
+        conversationId,
+        email.body,
+        email.subject,
+        recipientEmail,
+        senderEmail,
+        setThread,
+      ]);
 
-    const handleApproveEmail = () => {
-      setLoadingSmartSchedule(true);
-      const payload = {
-        conversation_id: conversationId,
-        sender: senderEmail,
-        recipient: recipientEmail,
-        subject: email.subject,
-        body: email.body,
-      };
+      const handleDeleteDraft = useCallback(() => {
+        axiosInstance
+          .delete(`/v2/mailbox/draft/${conversationId}`)
+          .then(() => {
+            toast.success("Your draft has been deleted successfully!");
+          })
+          .catch((error) => {
+            console.error("Failed to delete draft:", error);
+            toast.error("Failed to delete the draft. Please try again.");
+          });
+      }, [conversationId]);
 
-      axiosInstance
-        .post("/v2/mailbox/draft/send", payload)
-        .then((response) => {
-          toast.success("Draft Approved!");
-          setThread(response.data);
-          // console.log("Approve Data", response.data);
-          // updateMailStatus(conversationId, "scheduled"); // Update mail status
-          setLoadingSmartSchedule(false);
-          setEditable(false);
-        })
-        .catch((error) => {
-          console.error("Failed to send email:", error);
-          toast.error("Failed to send the email. Please try again.");
-        });
-    };
-
-    const handleDeleteDraft = () => {
-      axiosInstance
-        .delete(`/v2/mailbox/draft/${conversationId}`)
-        .then((response) => {
-          toast.success("Your draft has been deleted successfully!");
-          console.log(response.data);
-          setEditable(false);
-        })
-        .catch((error) => {
-          console.error("Failed to delete draft:", error);
-          toast.error("Failed to delete the draft. Please try again.");
-        });
-    };
-
-    if (email?.status === "TO-APPROVE") {
-      const [isEditing, setIsEditing] = React.useState(false);
-      const [editableSubject, setEditableSubject] = React.useState(parseActionDraft(email.body).subject);
-      const [editableBody, setEditableBody] = React.useState(parseActionDraft(email.body).body);
-
-      const handleSaveClick = () => {
+      const handleSaveClick = useCallback(() => {
         setIsEditing(false);
 
         const payload = {
@@ -387,21 +299,33 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
         axiosInstance
           .patch(`/v2/mailbox/action_draft/update?_id=${email.id}`, payload)
-          .then((response) => {
+          .then(() => {
             toast.success("Draft updated successfully!");
-            // Update the thread with the new data
-            const updatedThread = thread.map(msg =>
-              msg.id === email.id ? { ...msg, subject: editableSubject, body: editableBody } : msg
-            );
-            setThread(updatedThread);
+            setThread(thread.map((msg) =>
+              msg.id === email.id
+                ? {
+                  ...msg,
+                  subject: editableSubject,
+                  body: editableBody,
+                } as EmailMessage
+                : msg
+            ));
           })
           .catch((error) => {
             console.error("Failed to update draft:", error);
             toast.error("Failed to update the draft. Please try again.");
           });
-      };
+      }, [
+        conversationId,
+        editableBody,
+        editableSubject,
+        email,
+        recipientEmail,
+        senderEmail,
+        setThread,
+      ]);
 
-      const handleRegenerateDraft = () => {
+      const handleRegenerateDraft = useCallback(() => {
         const payload = {
           user_id: user.id,
           conversation_id: conversationId,
@@ -419,20 +343,115 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             console.error("Failed to regenerate draft:", error);
             toast.error("Failed to regenerate the draft. Please try again.");
           });
-      };
+      }, [conversationId, leads, user.id]);
+
+      if (email?.status === "TO-APPROVE") {
+        return (
+          <div className="flex gap-4 flex-col m-4 h-full">
+            <div className="flex w-full ">
+              <Avatar
+                className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
+                onClick={() => toggleSidebar(true)}
+              >
+                <AvatarImage
+                  src={leads[0]?.photo_url ? leads[0].photo_url : ""}
+                  alt="avatar"
+                />
+                <AvatarFallback className="bg-yellow-400 text-black text-xs">
+                  {name ? initials(name) : ""}
+                </AvatarFallback>
+              </Avatar>
+              <Card className="w-full mr-5 ">
+                <div className="flex gap-5 p-4 items-center">
+                  <span className="text-sm font-semibold">
+                    {leads[0]?.email
+                      ? email.sender !== leads[0].email
+                        ? "You to " + name
+                        : name + " to you"
+                      : ""}
+                  </span>
+                  <div className="flex gap-3">
+                    <span className="text-gray-500 text-sm  ">
+                      {email?.received_datetime &&
+                        formatDate(email?.received_datetime.toString())}
+                    </span>
+                  </div>
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-sm flex -mt-8 -ml-3">
+                    <Input
+                      value={editableSubject}
+                      className="text-xs"
+                      placeholder="Subject"
+                      readOnly={!isEditing}
+                      onChange={(e) => setEditableSubject(e.target.value)}
+                    />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs -ml-3 -mt-4">
+                  <Textarea
+                    value={editableBody}
+                    className="text-xs h-64"
+                    placeholder="Enter email body"
+                    readOnly={!isEditing}
+                    onChange={(e) => setEditableBody(e.target.value)}
+                  />
+                </CardContent>
+                <CardFooter className="flex justify-between text-xs items-center">
+                  <div>
+                    {email.channel !== "linkedin" && (
+                      <Button disabled={isEditing} onClick={handleApproveEmail}>
+                        {loadingSmartSchedule ? (
+                          <LoadingCircle />
+                        ) : (
+                          "Smart Schedule"
+                        )}
+                      </Button>
+                    )}
+                    <Button
+                      variant={"secondary"}
+                      className="ml-2"
+                      disabled={isEditing}
+                      onClick={handleSendNow}
+                    >
+                      {isLoadingButton ? <LoadingCircle /> : "Send Now"}
+                    </Button>
+                  </div>
+                  <div>
+                    {!isEditing ? (
+                      <Button variant={"ghost"} onClick={() => setIsEditing(true)}>
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button variant={"ghost"} onClick={handleSaveClick}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button variant={"ghost"} onClick={handleRegenerateDraft}>
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button variant={"ghost"} onClick={handleDeleteDraft}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        );
+      }
 
       return (
-        <div className="flex gap-4 flex-col m-4 h-full">
+        <div className="flex gap-4 flex-col m-4 h-full ">
           <div className="flex w-full ">
             <Avatar
               className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-              onClick={handleAvatarClick}
+              onClick={() => toggleSidebar(true)}
             >
               <AvatarImage
                 src={leads[0]?.photo_url ? leads[0].photo_url : ""}
                 alt="avatar"
               />
-
               <AvatarFallback className="bg-yellow-400 text-black text-xs">
                 {name ? initials(name) : ""}
               </AvatarFallback>
@@ -448,308 +467,76 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </span>
                 <div className="flex gap-3">
                   <span className="text-gray-500 text-sm  ">
-                    {email?.received_datetime &&
-                      formatDate(email?.received_datetime.toString())}
+                    {email?.created_at &&
+                      formatDate(email?.created_at.toString())}
                   </span>
+                  {/* Add badges based on email properties */}
                 </div>
-
-                <span>
-                  {email.is_reply &&
-                    email.category === "Information Required" && (
-                      <Badge className="gap-1 items-center rounded-full bg-green-600">
-                        <MailPlus className="h-[14px] w-[14px] scale-x-100" />
-                        Information requested
-                      </Badge>
-                    )}
-                  {email.is_reply && email.category === "Positive" && (
-                    <Badge className="gap-1 items-center rounded-full bg-green-600">
-                      <MailPlus className="h-[14px] w-[14px] scale-x-100" />
-                      Postive
-                    </Badge>
-                  )}
-                </span>
               </div>
               <CardHeader>
                 <CardTitle className="text-sm flex -mt-8 -ml-3">
                   <Input
-                    value={editableSubject}
+                    value={email.subject}
                     className="text-xs"
                     placeholder="Subject"
-                    readOnly={!isEditing}
-                    onChange={(e) => setEditableSubject(e.target.value)}
+                    readOnly
                   />
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs -ml-3 -mt-4">
                 <Textarea
-                  value={editableBody}
+                  value={email.body}
+                  readOnly
                   className="text-xs h-64"
                   placeholder="Enter email body"
-                  readOnly={!isEditing}
-                  onChange={(e) => setEditableBody(e.target.value)}
                 />
               </CardContent>
-              <CardFooter className="flex justify-between text-xs items-center">
-                <div>
-                  {email.channel !== "linkedin" && (
-                    <Button disabled={isEditing} onClick={handleApproveEmail}>
-                      {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
-                    </Button>
-                  )}
-                  <Button
-                    variant={"secondary"}
-                    className="ml-2"
-                    disabled={isEditing}
-                    onClick={handleSendNow}
-                  >
-                    {isLoadingButton ? <LoadingCircle /> : "Send Now"}
-                  </Button>
-                </div>
-                <div>
-                  {!isEditing ? (
-                    <Button variant={"ghost"} onClick={() => setIsEditing(true)}>
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button variant={"ghost"} onClick={handleSaveClick}>
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  )}
-
-                  <Button variant={"ghost"} onClick={handleRegenerateDraft}>
-                    <RefreshCw className="h-4 w-4" />
-
-                  </Button>
-                  <Button variant={"ghost"} onClick={handleDeleteDraft}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardFooter>
             </Card>
           </div>
         </div>
       );
     }
+  );
 
-    return (
-      <div className="flex gap-4 flex-col m-4 h-full ">
-        <div className="flex w-full ">
-          <Avatar
-            className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-            onClick={handleAvatarClick}
-          >
-            <AvatarImage
-              src={leads[0]?.photo_url ? leads[0].photo_url : ""}
-              alt="avatar"
-            />
-
-            <AvatarFallback className="bg-yellow-400 text-black text-xs">
-              {name ? initials(name) : ""}
-            </AvatarFallback>
-          </Avatar>
-          <Card className="w-full mr-5 ">
-            <div className="flex gap-5 p-4 items-center">
-              <span className="text-sm font-semibold">
-                {leads[0]?.email
-                  ? email.sender !== leads[0].email
-                    ? "You to " + name
-                    : name + " to you"
-                  : ""}
-              </span>
-              <div className="flex gap-3">
-                <span className="text-gray-500 text-sm  ">
-                  {email?.created_at &&
-                    formatDate(email?.created_at.toString())}
-                </span>
-                <span>
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Positive" && (
-                      <Badge className="gap-1 items-center rounded-full bg-green-600">
-                        <ThumbsUp className="h-[14px] w-[14px] scale-x-100" />
-                        Positive
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "OOO" && (
-                      <Badge className="gap-1 items-center rounded-full bg-yellow-600">
-                        <UserX className="h-[14px] w-[14px] scale-x-100" />
-                        Out of office
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Negative" && (
-                      <Badge
-                        variant="destructive"
-                        className="gap-1 items-center rounded-full"
-                      >
-                        <ThumbsDown className="-scale-x-100 h-[14px] w-[14px]" />
-                        Negative
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Forwarded" && (
-                      <Badge className="gap-1 items-center rounded-full bg-blue-600">
-                        <Forward className="h-[14px] w-[14px]" />
-                        Referral
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Later" && (
-                      <Badge className="gap-1 items-center rounded-full bg-orange-600">
-                        <TimerReset className="h-[14px] w-[14px]" />
-                        Maybe Later
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Demo" && (
-                      <Badge className="gap-1 items-center rounded-full bg-purple-600">
-                        <CalendarCheck className="h-[14px] w-[14px]" />
-                        Demo
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Neutral" && (
-                      <Badge className="gap-1 items-center rounded-full bg-yellow-300">
-                        <Bell className="h-[14px] w-[14px]" />
-                        Neutral
-                      </Badge>
-                    )}
-
-                  {/* Adding new Categories */}
-
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Not Interested" && (
-                      <Badge
-                        variant="destructive"
-                        className="gap-1 items-center rounded-full"
-                      >
-                        <ThumbsDown className="-scale-x-100 h-[14px] w-[14px]" />
-                        Not Interested
-                      </Badge>
-                    )}
-                  {email.is_reply &&
-                    email.category &&
-                    email.category.trim() === "Block" && (
-                      <Badge
-                        variant="destructive"
-                        className="gap-1 items-center rounded-full"
-                      >
-                        <ThumbsDown className="-scale-x-100 h-[14px] w-[14px]" />
-                        Block
-                      </Badge>
-                    )}
-
-                  {/* Adding new Categories */}
-                </span>
-              </div>
-
-              <span>
-                {email.is_reply &&
-                  email.category === "Information Required" && (
-                    <Badge className="gap-1 items-center rounded-full bg-green-600">
-                      <MailPlus className="h-[14px] w-[14px] scale-x-100" />
-                      Information requested
-                    </Badge>
-                  )}
-              </span>
-            </div>
-            <CardHeader>
-              <CardTitle className="text-sm flex -mt-8 -ml-3">
-                <Input
-                  value={email.subject}
-                  className="text-xs"
-                  placeholder="Subject"
-                  readOnly
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs -ml-3 -mt-4">
-              <Textarea
-                value={email.body}
-                readOnly
-                className="text-xs h-64"
-                placeholder="Enter email body"
-              />
-            </CardContent>
-          </Card>
-        </div>
-        <Notification email={email} />
-      </div>
-    );
-  };
-
-  const DraftEmailComponent = () => {
-    const [suggestions, setSuggestions] = React.useState("");
-    const [isSuggestionOpen, setIsSuggestionOpen] = React.useState(false);
-    const [editable, setEditable] = React.useState(false);
-    const [title, setTitle] = React.useState("");
-    const [body, setBody] = React.useState("");
-    const [isLoadingButton, SetIsLoadingButton] = React.useState(false);
-    const [loadingSmartSchedule, setLoadingSmartSchedule] =
-      React.useState(false);
-    // const [currentEmailIndex, setCurrentEmailIndex] = React.useState(0);
-    const [emails, setEmails] = React.useState<
-      {
-        body: string;
-        conversation_id: string;
-        created_at: string;
-        id: number;
-        subject: string;
-        updated_at: string;
-        // suggestions: any;
-      }[]
-    >();
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [error, setError] = React.useState("");
+  const DraftEmailComponent = memo(() => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [title, setTitle] = useState("");
+    const [body, setBody] = useState("");
+    const [isLoadingButton, setIsLoadingButton] = useState(false);
+    const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
+    const [emails, setEmails] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { user } = useUserContext();
-    const internalScrollRef = React.useRef<HTMLDivElement>(null);
-    const [isEditing, setIsEditing] = React.useState(false);
+    const internalScrollRef = useRef<HTMLDivElement>(null);
+    const [platform, setPlatform] = useState("");
 
-    const lastEmail = thread && thread[thread.length - 1];
-
-    // Add this state to store the platform
-    const [platform, setPlatform] = React.useState("");
-
-    React.useEffect(() => {
-      setError("");
+    useEffect(() => {
       axiosInstance
         .get(`/v2/mailbox/draft/${conversationId}`)
         .then((response) => {
-          console.log("Initial Draft", response.data);
           if (response.data && response.data.length > 0) {
             setTitle(response.data[0].subject);
             setBody(response.data[0].body);
             setEmails(response.data);
             if (response.data[0].suggestions) {
-              setSuggestions(response.data[0].suggestions);
+              // setSuggestions(response.data[0].suggestions);
             }
             setPlatform(response.data[0].platform.toLowerCase());
           } else {
-            // If response.data is empty array, set emails to null or empty
             setEmails([]);
             setTitle("");
             setBody("");
-            setSuggestions("");
             setPlatform("");
           }
           setIsLoading(false);
         })
         .catch((err) => {
-          setError("Failed to load draft emails");
           setIsLoading(false);
           console.error(err);
         });
     }, [conversationId]);
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (internalScrollRef.current) {
         internalScrollRef.current.scrollIntoView({
           behavior: "smooth",
@@ -758,7 +545,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       }
     }, [emails]);
 
-    const handleApproveEmail = () => {
+    const handleApproveEmail = useCallback(() => {
       setLoadingSmartSchedule(true);
       const payload = {
         conversation_id: conversationId,
@@ -773,21 +560,29 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         .then((response) => {
           toast.success("Draft Approved!");
           setThread(response.data);
-          // console.log("Approve Data", response.data);
-          updateMailStatus(conversationId, "scheduled"); // Update mail status
+          updateMailStatus(conversationId, "scheduled");
           setLoadingSmartSchedule(false);
-          setEditable(false);
+          setIsEditing(false);
           setSelectedMailId(conversationId);
         })
         .catch((error) => {
           console.error("Failed to approve email:", error);
           toast.error("Failed to approve the email. Please try again.");
+          setLoadingSmartSchedule(false);
         });
-    };
+    }, [
+      body,
+      conversationId,
+      recipientEmail,
+      senderEmail,
+      setSelectedMailId,
+      setThread,
+      title,
+      updateMailStatus,
+    ]);
 
-    const handleSendNow = () => {
-      SetIsLoadingButton(true);
-
+    const handleSendNow = useCallback(() => {
+      setIsLoadingButton(true);
 
       let payload;
       let endpoint;
@@ -812,25 +607,35 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         endpoint = "/v2/mailbox/send/immediately";
       }
 
-
       axiosInstance
         .post(endpoint, payload)
         .then((response) => {
           toast.success("Your message has been sent successfully!");
           setThread(response.data);
           updateMailStatus(conversationId, "sent");
-          SetIsLoadingButton(false);
-          setEditable(false);
+          setIsLoadingButton(false);
+          setIsEditing(false);
           setSelectedMailId(conversationId);
         })
         .catch((error) => {
           console.error("Failed to send message:", error);
           toast.error("Failed to send the message. Please try again.");
-          SetIsLoadingButton(false);
+          setIsLoadingButton(false);
         });
-    };
+    }, [
+      body,
+      conversationId,
+      platform,
+      recipientEmail,
+      senderEmail,
+      setSelectedMailId,
+      setThread,
+      title,
+      updateMailStatus,
+      user.id,
+    ]);
 
-    const handleRegenrateDraft = () => {
+    const handleRegenerateDraft = useCallback(() => {
       const payload = {
         user_id: user.id,
         conversation_id: conversationId,
@@ -842,63 +647,54 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           toast.success("Your draft has been regenerated successfully!");
           setTitle(response.data.subject);
           setBody(response.data.body);
-          console.log(response.data);
-          setEditable(false);
+          setIsEditing(false);
         })
         .catch((error) => {
           console.error("Failed to regenerate draft:", error);
           toast.error("Failed to regenerate the draft. Please try again.");
         });
-    };
+    }, [conversationId, leads, user.id]);
 
-    const handleDeleteDraft = (draft_id: any) => {
-      axiosInstance
-        .delete(`/v2/mailbox/draft/${draft_id}`)
-        .then((response) => {
-          toast.success("Your draft has been deleted successfully!");
-          console.log(response.data);
-          // Clear the title and body
-          setTitle("");
-          setBody("");
-          setEditable(false);
-        })
-        .catch((error) => {
-          console.error("Failed to delete draft:", error);
-          toast.error("Failed to delete the draft. Please try again.");
-        });
-    };
+    const handleDeleteDraft = useCallback(
+      (draft_id: any) => {
+        axiosInstance
+          .delete(`/v2/mailbox/draft/${draft_id}`)
+          .then(() => {
+            toast.success("Your draft has been deleted successfully!");
+            setTitle("");
+            setBody("");
+            setIsEditing(false);
+          })
+          .catch((error) => {
+            console.error("Failed to delete draft:", error);
+            toast.error("Failed to delete the draft. Please try again.");
+          });
+      },
+      []
+    );
 
-    const handleEditClick = () => {
-      setIsEditing(true);
-      setEditable(true);
-    };
-
-    const handleSaveClick = () => {
+    const handleSaveClick = useCallback(() => {
       setIsEditing(false);
-      setEditable(false);
 
-      // Make the PATCH API call
       const payload = {
         subject: title,
-        body: body
+        body: body,
       };
 
       axiosInstance
         .patch(`/v2/mailbox/draft/update?_id=${emails && emails[0]?.id}`, payload)
-        .then((response) => {
+        .then(() => {
           toast.success("Draft updated successfully!");
-          console.log("Updated draft:", response.data);
         })
         .catch((error) => {
           console.error("Failed to update draft:", error);
           toast.error("Failed to update the draft. Please try again.");
         });
-    };
+    }, [body, emails, title]);
 
     if (isLoading) {
       return (
         <div className="m-4 flex flex-row ">
-          {/* <LoadingCircle /> */}
           <Skeleton className="h-7 w-7 rounded-full" />
           <div className="flex flex-col space-y-3 ml-5">
             <Skeleton className="h-[25px] w-[30rem] rounded-lg" />
@@ -912,106 +708,6 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       return null;
     }
 
-    if (thread.length > 0 && !lastEmail?.is_reply) {
-      return (
-        <div className="flex gap-4 flex-col m-4 h-full">
-          <div className="flex gap-2 flex-col h-full">
-            <div className="flex w-full">
-              <Avatar
-                className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-                onClick={handleAvatarClick}
-              >
-                <AvatarImage
-                  src={leads[0]?.photo_url ? leads[0].photo_url : ""}
-                  alt="avatar"
-                />
-
-                <AvatarFallback className="bg-yellow-400 text-black text-xs">
-                  {name ? initials(name) : ""}
-                </AvatarFallback>
-              </Avatar>
-              <Card className="w-full mr-5 ">
-                <div className="flex gap-5 p-4 items-center">
-                  <span className="text-sm font-semibold">
-                    {"You to " + name}
-                  </span>
-                  <div className="flex gap-3">
-                    <span className="text-green-500 text-sm ">
-                      Draft
-                    </span>
-                  </div>
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-sm flex -mt-8 -ml-3">
-                    <Input
-                      value={title}
-                      disabled={!editable}
-                      className="text-xs"
-                      placeholder="Subject"
-                      onChange={(e) => setTitle(e.target.value)}
-                    />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs -ml-3 -mt-4">
-                  <Textarea
-                    value={body}
-                    disabled={!editable}
-                    className="text-xs h-64"
-                    placeholder="Enter email body"
-                    onChange={(e) => setBody(e.target.value)}
-                  />
-                </CardContent>
-                <CardFooter className="flex justify-between text-xs items-center">
-                  <div>
-                    <Button disabled={editable} onClick={handleApproveEmail}>
-                      {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
-                    </Button>
-                    <Button variant={"secondary"} className="ml-2" onClick={handleSendNow}>
-                      {isLoadingButton ? <LoadingCircle /> : "Send Now"}
-                    </Button>
-                  </div>
-                  <div>
-                    {!isEditing ? (
-                      <Button variant={"ghost"} onClick={handleEditClick}>
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button variant={"ghost"} onClick={handleSaveClick}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button variant={"ghost"} onClick={handleRegenrateDraft}>
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
-                    <Button variant={"ghost"} onClick={() => handleDeleteDraft(emails && emails[0]?.conversation_id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">
-          <Image
-            src="/error.svg"
-            alt="empty-inbox"
-            width="200"
-            height="200"
-            className="dark:filter dark:invert"
-          />
-          <p className="flex justify-center items-center mt-10 ml-6  text-gray-500">
-            Oops!! Something Went Wrong
-          </p>
-        </div>
-      );
-    }
-
     return (
       <div className="flex gap-2 flex-col m-4 h-full">
         {platform === "linkedin" && (
@@ -1019,14 +715,22 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Linkedin className="h-4 w-4 text-gray-400" />
             </div>
-            {leads[0]?.connected_on_linkedin === 'SENT' ? (
-              <p className="ml-1 text-xs">{leads[0]?.name} has been sent a connection request</p>
-            ) : leads[0]?.connected_on_linkedin === 'FAILED' ? (
-              <p className="ml-1 text-xs">{leads[0]?.name} has rejected your connection request</p>
-            ) : leads[0]?.connected_on_linkedin === 'CONNECTED' ? (
-              <p className="ml-1 text-xs">{leads[0]?.name} has accepted your connection request</p>
+            {leads[0]?.connected_on_linkedin === "SENT" ? (
+              <p className="ml-1 text-xs">
+                {leads[0]?.name} has been sent a connection request
+              </p>
+            ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
+              <p className="ml-1 text-xs">
+                {leads[0]?.name} has rejected your connection request
+              </p>
+            ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
+              <p className="ml-1 text-xs">
+                {leads[0]?.name} has accepted your connection request
+              </p>
             ) : (
-              <p className="ml-1 text-xs">Connection request scheduled for {name}</p>
+              <p className="ml-1 text-xs">
+                Connection request scheduled for {name}
+              </p>
             )}
           </div>
         )}
@@ -1034,7 +738,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         <div className="flex w-full">
           <Avatar
             className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-            onClick={handleAvatarClick}
+            onClick={() => toggleSidebar(true)}
           >
             <AvatarImage
               src={leads[0]?.photo_url ? leads[0].photo_url : ""}
@@ -1047,14 +751,19 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           </Avatar>
           <Card className="w-full mr-5 ">
             <div className="flex gap-5 p-4 items-center">
-              <span className="text-sm font-semibold">
-                {"You to " + name}
-              </span>
+              <span className="text-sm font-semibold">{"You to " + name}</span>
               <div className="flex gap-3">
-                <span className={`${platform === "linkedin" ? "text-blue-500" : "text-green-500"} text-sm flex items-center space-x-2`}>
+                <span
+                  className={`${platform === "linkedin"
+                    ? "text-blue-500"
+                    : "text-green-500"
+                    } text-sm flex items-center space-x-2`}
+                >
                   {platform === "linkedin" ? "LinkedIn Message" : "Email Draft"}
                   <div className="h-4 w-4 pl-2">
-                    {platform === "linkedin" && <Linkedin className="h-4 w-4" />}
+                    {platform === "linkedin" && (
+                      <Linkedin className="h-4 w-4" />
+                    )}
                   </div>
                 </span>
               </div>
@@ -1064,7 +773,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <CardTitle className="text-sm flex -mt-8 -ml-3">
                   <Input
                     value={title}
-                    disabled={!editable}
+                    disabled={!isEditing}
                     className="text-xs"
                     placeholder="Subject"
                     onChange={(e) => setTitle(e.target.value)}
@@ -1075,7 +784,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <CardContent className="text-xs -ml-3 -mt-4">
               <Textarea
                 value={body}
-                disabled={!editable}
+                disabled={!isEditing}
                 className="text-xs h-64"
                 placeholder="Enter message body"
                 onChange={(e) => setBody(e.target.value)}
@@ -1084,8 +793,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <CardFooter className="flex justify-between text-xs items-center">
               <div>
                 {platform !== "linkedin" && (
-                  <Button disabled={editable} onClick={handleApproveEmail}>
-                    {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
+                  <Button disabled={isEditing} onClick={handleApproveEmail}>
+                    {loadingSmartSchedule ? (
+                      <LoadingCircle />
+                    ) : (
+                      "Smart Schedule"
+                    )}
                   </Button>
                 )}
                 <Button
@@ -1098,7 +811,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </div>
               <div>
                 {!isEditing ? (
-                  <Button variant={"ghost"} onClick={handleEditClick}>
+                  <Button variant={"ghost"} onClick={() => setIsEditing(true)}>
                     <Edit3 className="h-4 w-4" />
                   </Button>
                 ) : (
@@ -1106,14 +819,14 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                     <Check className="h-4 w-4" />
                   </Button>
                 )}
-                <Button variant={"ghost"} onClick={handleRegenrateDraft}>
+                <Button variant={"ghost"} onClick={handleRegenerateDraft}>
                   <RefreshCw className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={"ghost"}
-                  onClick={() => {
-                    handleDeleteDraft(emails && emails[0]?.conversation_id);
-                  }}
+                  onClick={() =>
+                    handleDeleteDraft(emails && emails[0]?.conversation_id)
+                  }
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -1122,64 +835,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <div ref={internalScrollRef} />
           </Card>
         </div>
-        {platform !== "linkedin" && <SuggestionDisplay suggestions={suggestions} />}
+        {platform !== "linkedin" && (
+          <SuggestionDisplay suggestions={emails[0]?.suggestions} />
+        )}
       </div>
     );
-  };
-
-  const DropdownComponent = () => {
-    const [open, setOpen] = React.useState(false);
-    const [value, setValue] = React.useState("manualmode");
-
-    return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-[200px] justify-between"
-          >
-            {value
-              ? frameworks.find((f) => f.value === value)?.label
-              : "Manual mode"}
-
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
-          <Command>
-            <CommandInput placeholder="Search framework..." />
-            <CommandEmpty>No framework found.</CommandEmpty>
-            <CommandGroup>
-              {frameworks.map((framework) => (
-                <CommandItem
-                  key={framework.value}
-                  value={framework.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === framework.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {framework.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    );
-  };
-
-  const matchingCampaign = campaigns.find((campaign) => campaign.id === leadId);
-  const lastEmail = thread && thread[thread.length - 1];
-
+  });
 
   return (
     <div className="relative">
@@ -1189,10 +850,6 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           ""
         ) : (
           <>
-            {/* LinkedIn Connection Status */}
-
-
-            {/* Campaign Info */}
             {true && (
               <div className="m-4">
                 <div className="flex items-center gap-3">
@@ -1205,22 +862,32 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </div>
               </div>
             )}
-            {thread?.[0]?.channel === 'Linkedin' && <div className="m-4">
-              <div className="flex items-center gap-3">
-                <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-                  <Linkedin className="h-4 w-4 text-gray-400" />
+            {thread?.[0]?.channel === "Linkedin" && (
+              <div className="m-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+                    <Linkedin className="h-4 w-4 text-gray-400" />
+                  </div>
+                  {leads[0]?.connected_on_linkedin === "SENT" ? (
+                    <p className="ml-1 text-xs">
+                      {name} has been sent a connection request
+                    </p>
+                  ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
+                    <p className="ml-1 text-xs">
+                      {name} has rejected your connection request
+                    </p>
+                  ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
+                    <p className="ml-1 text-xs">
+                      {name} has accepted your connection request
+                    </p>
+                  ) : (
+                    <p className="ml-1 text-xs">
+                      Connection request scheduled for {name}
+                    </p>
+                  )}
                 </div>
-                {leads[0]?.connected_on_linkedin === 'SENT' ? (
-                  <p className="ml-1 text-xs">{name} has been sent a connection request</p>
-                ) : leads[0]?.connected_on_linkedin === 'FAILED' ? (
-                  <p className="ml-1 text-xs">{name} has rejected your connection request</p>
-                ) : leads[0]?.connected_on_linkedin === 'CONNECTED' ? (
-                  <p className="ml-1 text-xs">{name} has accepted your connection request</p>
-                ) : (
-                  <p className="ml-1 text-xs">Connection request scheduled for {name}</p>
-                )}
               </div>
-            </div>}
+            )}
           </>
         )}
         {thread?.length > 0 && (
@@ -1231,27 +898,23 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           </div>
         )}
 
-
-        {/* Only show draft if drafts exist and either there are no messages or last message is not a reply */}
-        {true && (
-          thread?.length === 0 ? (
-            <DraftEmailComponent />
-          ) : (
-            lastEmail?.is_reply === false && (
-              <>
-                <DraftEmailComponent />
-                {mailStatus === "LOST" && (
-                  <div className="flex items-center gap-3 ml-4">
-                    <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-                      <BadgeX className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="text-xs ml-1">
-                      This lead has been marked as lost.
-                    </div>
+        {thread?.length === 0 ? (
+          <DraftEmailComponent />
+        ) : (
+          thread?.[thread?.length - 1]?.is_reply === false && (
+            <>
+              <DraftEmailComponent />
+              {mailStatus === "LOST" && (
+                <div className="flex items-center gap-3 ml-4">
+                  <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+                    <BadgeX className="h-4 w-4 text-gray-400" />
                   </div>
-                )}
-              </>
-            )
+                  <div className="text-xs ml-1">
+                    This lead has been marked as lost.
+                  </div>
+                </div>
+              )}
+            </>
           )
         )}
       </div>

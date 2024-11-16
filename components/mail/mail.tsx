@@ -78,6 +78,7 @@ export interface Conversations {
   category: string;
   channel?: string;
   campaign_name: string | null;
+  contact_id: string | null;
 }
 
 const CampaignDropdown = React.memo(
@@ -325,9 +326,10 @@ export function Mail({
           return {
             ...mail,
             channel: campaignChannelMap[mail.campaign_id] || null,
-            campaign_name: campaignInfo?.campaign_name,
+            // campaign_name: campaignInfo?.campaign_name,
             name: mail.name || mail.recipient_name,
-            company_name: mail.company_name
+            company_name: mail.company_name,
+            contact_id: mail.contact_id
           };
         });
 
@@ -395,32 +397,32 @@ export function Mail({
     }
   }, []);
 
-  React.useEffect(() => {
-    if (mails.length > 0 && !initialMailIdSet) {
-      const initialMail = mails[0];
-      setSelectedMailId(initialMail.id);
-      setSenderEmail(initialMail.sender);
-      setConversationId(initialMail.id);
-      setRecipientEmail(initialMail.recipient);
-      setInitialMailIdSet(true);
+  // React.useEffect(() => {
+  //   if (mails.length > 0 && !initialMailIdSet) {
+  //     const initialMail = mails[0];
+  //     setSelectedMailId(initialMail.id);
+  //     setSenderEmail(initialMail.sender);
+  //     setConversationId(initialMail.id);
+  //     setRecipientEmail(initialMail.recipient);
+  //     setInitialMailIdSet(true);
 
-      axiosInstance
-        .get(`v2/lead/info/${initialMail.recipient}`)
-        .then((response) => {
-          setLeads([response.data]);
-        })
-        .catch((error) => {
-          console.error('Error fetching lead data:', error);
-        });
-    }
-  }, [
-    mails,
-    initialMailIdSet,
-    setSenderEmail,
-    setConversationId,
-    setRecipientEmail,
-    setLeads,
-  ]);
+  //     axiosInstance
+  //       .get(`v2/lead/info/${initialMail.recipient}`)
+  //       .then((response) => {
+  //         setLeads([response.data]);
+  //       })
+  //       .catch((error) => {
+  //         console.error('Error fetching lead data:', error);
+  //       });
+  //   }
+  // }, [
+  //   mails,
+  //   initialMailIdSet,
+  //   setSenderEmail,
+  //   setConversationId,
+  //   setRecipientEmail,
+  //   setLeads,
+  // ]);
 
   const updateMailStatus = React.useCallback(
     (mailId: string, status: string) => {
@@ -662,6 +664,8 @@ export function Mail({
                 mailStatus={currentMail.status}
                 name={currentMail.name}
                 campaign_name={currentMail?.campaign_name || ''}
+                campaign_id={currentMail?.campaign_id || ''}
+                contact_id={currentMail?.contact_id || ''}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

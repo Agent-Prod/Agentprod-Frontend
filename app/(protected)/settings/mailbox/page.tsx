@@ -664,6 +664,8 @@ export default function Page() {
                           Setup Warmup
                         </Button>
                       )
+                    ) : mailbox.platform === "Linkedin" ? (
+                      <></>
                     ) : (
                       <Switch
                         checked={mailbox.warmup}
@@ -694,6 +696,8 @@ export default function Page() {
                           backgroundColor: "#3e98c7",
                         })}
                       />
+                    ) : mailbox.platform === "Linkedin" ? (
+                      <></>
                     ) : (
                       <CircularProgressbar
                         value={mailbox.health}
@@ -729,6 +733,28 @@ export default function Page() {
                           </div>
                         </PopoverContent>
                       </Popover>
+                    ) 
+                    : mailbox.platform === "Linkedin" ? (
+                      <Popover>
+                      <PopoverTrigger>
+                        <Badge className="gap-1 flex text-[10px] items-center w-32 justify-center hover:cursor-pointer rounded-full hover:bg-green-400 hover:text-green-800 bg-green-300 text-green-700">
+                          <CheckCircle className="h-[14px] w-[14px]" />
+                          Connected
+                        </Badge>
+                      </PopoverTrigger>
+                      <PopoverContent className="sm:max-w-[425px]">
+                        <div className="text-left flex flex-col gap-1">
+                          <CheckCircle
+                            size={"30"}
+                            color="green"
+                            className="mb-4"
+                          />
+                          <div>
+                            This Linkedin account is connected successfully.
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     ) : mailbox?.issues?.length > 2 ? (
                       <Popover>
                         <PopoverTrigger>
@@ -894,6 +920,8 @@ export default function Page() {
                   <TableCell>
                     {mailbox.platform === "Google" ? (
                       <span className="text-gray-500 italic">No DNS</span>
+                    ) : mailbox.platform === "Linkedin" ? (
+                      <></>
                     ) : (
                       <Dialog>
                         <DialogTrigger

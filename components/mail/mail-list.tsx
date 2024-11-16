@@ -110,6 +110,7 @@ const MailList: React.FC<MailListProps> = ({
       setSelectedMailId(item.id);
       setConversationId(item.id);
       setRecipientEmail(item.recipient);
+      setSenderEmail(item.sender);
     },
     [setMail, setSelectedMailId, setConversationId, setRecipientEmail]
   );

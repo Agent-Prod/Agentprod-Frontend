@@ -149,6 +149,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       });
   }, [conversationId]);
 
+  console.log('contact_id:', contact_id);
+
   React.useEffect(() => {
     const fetchLeadInfo = async () => {
       try {
@@ -163,7 +165,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     };
 
     fetchLeadInfo();
-  }, [recipientEmail]);
+  }, [recipientEmail, contact_id]);
 
   const EmailComponent = memo(
     ({ email }: { email: EmailMessage }) => {
@@ -365,7 +367,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <div className="flex gap-5 p-4 items-center">
                   <span className="text-sm font-semibold">
                     {leads[0]?.email
-                      ? email.sender !== leads[0].email
+                      ? !email.is_reply
                         ? "You to " + name
                         : name + " to you"
                       : ""}
@@ -460,7 +462,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               <div className="flex gap-5 p-4 items-center">
                 <span className="text-sm font-semibold">
                   {leads[0]?.email
-                    ? email.sender !== leads[0].email
+                    ? !email.is_reply
                       ? "You to " + name
                       : name + " to you"
                     : ""}

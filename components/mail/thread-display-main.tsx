@@ -55,6 +55,7 @@ interface ThreadDisplayMainProps {
   name: string;
   campaign_name: string;
   campaign_id: string;
+  contact_id: string;
 }
 
 const initials = (name: string) => {
@@ -120,6 +121,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   mailStatus,
   name,
   campaign_name,
+  contact_id,
 }) => {
   const {
     conversationId,
@@ -150,21 +152,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   React.useEffect(() => {
     const fetchLeadInfo = async () => {
       try {
-        const isLinkedIn = isLinkedInUrl(recipientEmail);
-
-        if (isLinkedIn) {
-          console.log('Using LinkedIn URL endpoint:', recipientEmail);
-          const response = await axiosInstance.get<Lead>(
-            `v2/lead/linkedin/info?linkedin_url=${encodeURIComponent(recipientEmail)}`
-          );
-          setItemId(response.data.id);
-          setLeads([response.data]);
-        } else {
-          console.log('Using email endpoint for:', recipientEmail);
-          const response = await axiosInstance.get<Lead>(`v2/lead/info/${recipientEmail}`);
-          setItemId(response.data.id);
-          setLeads([response.data]);
-        }
+        console.log('Using email endpoint for:', contact_id);
+        const response = await axiosInstance.get<Lead>(`v2/lead/info/${contact_id}`);
+        setItemId(response.data.id);
+        setLeads([response.data]);
       } catch (error) {
         console.error("Error fetching lead info:", error);
         toast.error("Failed to load lead information");

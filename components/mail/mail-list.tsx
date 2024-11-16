@@ -246,7 +246,7 @@ const MailList: React.FC<MailListProps> = ({
                     : "text-muted-foreground"
                 )}
               >
-                {item.channel === "Linkedin" ? (
+                {item.subject === "" ? (
                   <LinkedinIcon className="w-3 h-3 text-white" />
                 ) : (
                   <Mail className="w-3 h-3 text-white" />

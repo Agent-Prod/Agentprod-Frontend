@@ -77,6 +77,7 @@ interface ThreadDisplayMainProps {
   mailStatus: string;
   name: string;
   campaign_name: string;
+  campaign_id: string;
 }
 
 const frameworks = [
@@ -119,7 +120,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   // const { campaigns } = useCampaignContext();
 
   const [drafts, setDrafts] = React.useState<any[]>([]);
-
+  console.log("Campaign ID", campaign_name);
   const initials = (name: string) => {
     const names = name.split(" ");
     if (names) {
@@ -188,7 +189,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     return recipient.toLowerCase().includes('linkedin.com');
   };
 
-  const handleAvatarClick = async () => {
+  React.useEffect(() => {
+    const fetchLeadInfo = async () => {
     try {
       const isLinkedIn = isLinkedInUrl(recipientEmail);
 
@@ -205,12 +207,14 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         setItemId(response.data.id);
         setLeads([response.data]);
       }
-      toggleSidebar(true);
     } catch (error) {
       console.error("Error fetching lead info:", error);
       toast.error("Failed to load lead information");
-    }
-  };
+      }
+    };
+
+    fetchLeadInfo();
+  }, [recipientEmail]);
 
   const EmailComponent = ({ email }: { email: EmailMessage }) => {
     // const isEmailFromOwner = email.sender === ownerEmail;
@@ -426,7 +430,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           <div className="flex w-full ">
             <Avatar
               className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-              onClick={handleAvatarClick}
+              onClick={() => toggleSidebar(true)}
             >
               <AvatarImage
                 src={leads[0]?.photo_url ? leads[0].photo_url : ""}
@@ -536,7 +540,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         <div className="flex w-full ">
           <Avatar
             className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-            onClick={handleAvatarClick}
+            onClick={() => toggleSidebar(true)}
           >
             <AvatarImage
               src={leads[0]?.photo_url ? leads[0].photo_url : ""}
@@ -919,7 +923,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             <div className="flex w-full">
               <Avatar
                 className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-                onClick={handleAvatarClick}
+                onClick={() => toggleSidebar(true)}
               >
                 <AvatarImage
                   src={leads[0]?.photo_url ? leads[0].photo_url : ""}
@@ -1034,7 +1038,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         <div className="flex w-full">
           <Avatar
             className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-            onClick={handleAvatarClick}
+            onClick={() => toggleSidebar(true)}
           >
             <AvatarImage
               src={leads[0]?.photo_url ? leads[0].photo_url : ""}

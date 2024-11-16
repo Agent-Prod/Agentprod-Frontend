@@ -113,11 +113,12 @@ export function GoalForm() {
   const [goalData, setGoalData] = useState<GoalDataWithId>();
   const { user } = useUserContext();
   const [mailboxes, setMailboxes] =
-    useState<{ mailbox: string; sender_name: string }[]>();
+    useState<{ mailbox: string; sender_name: string; id: number }[]>();
   const [originalData, setOriginalData] = useState<GoalFormData>();
   const [displayEmail, setDisplayEmail] = useState("Select Email"); // Select Email
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignChannel, setCampaignChannel] = useState<string>("");
+  const [selectedLinkedInId, setSelectedLinkedInId] = useState<string[]>([]);
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
@@ -159,22 +160,27 @@ export function GoalForm() {
     fetchCampaign();
   }, [params.campaignId]);
 
-  const onEmailAppend = (email: string) => {
-    // Check if the email is not already present to avoid duplicates
+  const onEmailAppend = (email: string, mailbox: { id: number, platform: string | null }) => {
+    console.log('onEmailAppend:', { email, mailbox });
     if (!emailFields.some((emailField) => emailField.value === email)) {
       appendEmail({ value: email });
-      setDisplayEmail(email); // Set display email when a new email is added
+      setDisplayEmail(email);
+      if (campaignChannel === 'Linkedin') {
+        setSelectedLinkedInId(prev => [...prev, mailbox.id.toString()]);
+      }
     }
   };
 
   const onEmailRemove = (email: string) => {
-    // Find the index of the email object to remove
     const indexToRemove = emailFields.findIndex(
       (emailField) => emailField.value === email
     );
     if (indexToRemove !== -1) {
       removeEmail(indexToRemove);
-      setDisplayEmail("Select Email"); // Reset to default text if email is removed
+      setDisplayEmail("Select Email");
+      if (campaignChannel === 'Linkedin') {
+        setSelectedLinkedInId(prev => prev.filter((_, index) => index !== indexToRemove));
+      }
     }
   };
 
@@ -182,26 +188,32 @@ export function GoalForm() {
 
   const onSubmit: SubmitHandler<GoalFormValues> = async (data) => {
     if (type === "create") {
-      console.log("Link " + data.scheduling_link);
-      createGoal(data as GoalFormData, params.campaignId);
+      const payload = {
+        ...data,
+        linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
+          ? selectedLinkedInId
+          : null
+      };
+      
+      createGoal(payload as GoalFormData, params.campaignId);
     }
     if (type === "edit") {
-      console.log(watchAllFields);
-
-      const changes = Object.keys(data).reduce((acc, key) => {
-        // Ensure the correct key type is used
-        const propertyKey = key as keyof GoalFormValues;
-
-        // Compare the stringified versions of the current and previous values
-        if (
-          JSON.stringify(data[propertyKey]) !==
-          JSON.stringify(originalData?.[propertyKey])
-        ) {
-          // Assign only if types are compatible
-          acc = { ...acc, [propertyKey]: data[propertyKey] };
-        }
-        return acc;
-      }, {} as GoalFormValues);
+      const changes = {
+        ...Object.keys(data).reduce((acc, key) => {
+          const propertyKey = key as keyof GoalFormValues;
+          if (
+            JSON.stringify(data[propertyKey]) !==
+            JSON.stringify(originalData?.[propertyKey])
+          ) {
+            acc = { ...acc, [propertyKey]: data[propertyKey] };
+          }
+          return acc;
+        }, {} as GoalFormValues),
+        linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
+          ? selectedLinkedInId
+          : null
+      };
+      
       if (Object.keys(changes).length > 0 && goalData) {
         editGoal(changes as GoalFormData, goalData.id, params.campaignId);
       }
@@ -249,8 +261,15 @@ export function GoalForm() {
         follow_up_times: goalData.follow_up_times,
         mark_as_lost: goalData.mark_as_lost,
         emails: goalData.emails.map((email) => ({ value: email })),
+        linkedin_accounts: goalData.linkedin_accounts,
       });
-      // Also update the form values to reflect the initial state
+      
+      // Set LinkedIn IDs if they exist
+      if (goalData.linkedin_accounts && Array.isArray(goalData.linkedin_accounts)) {
+        setSelectedLinkedInId(goalData.linkedin_accounts);
+      }
+
+      // Update form values
       form.reset({
         ...goalData,
         emails: goalData.emails.map((email) => ({ value: email })),
@@ -265,10 +284,11 @@ export function GoalForm() {
           .get(`v2/settings/mailboxes/${user.id}`)
           .then((response) => {
             const userMailboxes = response.data.map(
-              (mailbox: { mailbox: string; sender_name: string }) => {
+              (mailbox: { mailbox: string; sender_name: string; id: number }) => {
                 return {
                   mailbox: mailbox.mailbox,
                   sender_name: mailbox.sender_name,
+                  id: mailbox.id,
                 };
               }
             );
@@ -412,32 +432,45 @@ export function GoalForm() {
                         {mailboxes &&
                           mailboxes.length > 0 &&
                           mailboxes[0].mailbox !== null ? (
-                          mailboxes.map((mailbox, index) => (
-                            <DropdownMenuItem key={index}>
-                              <div
-                                className="flex items-center space-x-2"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                <Checkbox
-                                  checked={emailFields.some(
-                                    (emailField) =>
-                                      emailField.value === mailbox.mailbox
-                                  )}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      onEmailAppend(mailbox.mailbox);
-                                    } else {
-                                      onEmailRemove(mailbox.mailbox);
-                                    }
-                                  }}
-                                />
-                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-
-                                  {mailbox.sender_name} - {mailbox.mailbox}
-                                </label>
-                              </div>
-                            </DropdownMenuItem>
-                          ))
+                          mailboxes
+                            .filter(mailbox => {
+                              // Only show LinkedIn mailboxes if campaign channel is LinkedIn
+                              if (campaignChannel === 'Linkedin') {
+                                return mailbox.mailbox.toLowerCase().includes('linkedin');
+                              }
+                              return true; // Show all mailboxes for other channels
+                            })
+                            .map((mailbox, index) => (
+                              <DropdownMenuItem key={index}>
+                                <div
+                                  className="flex items-center space-x-2"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <Checkbox
+                                    checked={emailFields.some(
+                                      (emailField) =>
+                                        emailField.value === mailbox.mailbox
+                                    )}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        onEmailAppend(mailbox.mailbox, { 
+                                          id: mailbox.id, 
+                                          platform: campaignChannel 
+                                        });
+                                      } else {
+                                        onEmailRemove(mailbox.mailbox);
+                                        if (campaignChannel === 'Linkedin') {
+                                          setSelectedLinkedInId([]);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {mailbox.sender_name} - {mailbox.mailbox}
+                                  </label>
+                                </div>
+                              </DropdownMenuItem>
+                            ))
                         ) : (
                           <div className="text-sm m-2 text-center">
                             <p> No mailboxes connected.</p>

@@ -325,7 +325,7 @@ export function Mail({
           return {
             ...mail,
             channel: campaignChannelMap[mail.campaign_id] || null,
-            campaign_name: campaignInfo?.campaign_name,
+            // campaign_name: campaignInfo?.campaign_name,
             name: mail.name || mail.recipient_name,
             company_name: mail.company_name
           };
@@ -662,6 +662,7 @@ export function Mail({
                 mailStatus={currentMail.status}
                 name={currentMail.name}
                 campaign_name={currentMail?.campaign_name || ''}
+                campaign_id={currentMail?.campaign_id || ''}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

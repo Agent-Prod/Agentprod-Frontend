@@ -281,7 +281,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let payload;
       let endpoint;
 
-      if (email.channel === "linkedin") {
+      if (email.channel?.toLowerCase() === "linkedin") {
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
@@ -295,8 +295,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           conversation_id: conversationId,
           sender: senderEmail,
           recipient: recipientEmail,
-          subject: title,
-          body: body,
+          subject: email.subject,
+          body: email.body,
         };
         endpoint = "/v2/mailbox/send/immediately";
       }
@@ -1230,7 +1230,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             ))}
           </div>
         )}
-        
+
 
         {/* Only show draft if drafts exist and either there are no messages or last message is not a reply */}
         {true && (

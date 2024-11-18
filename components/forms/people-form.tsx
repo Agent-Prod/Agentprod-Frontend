@@ -431,24 +431,22 @@ export default function PeopleForm(): JSX.Element {
     setLocationDropdownIsOpen(isOpen);
   };
 
-  const handleLocationDropdownSelect = (location: string) => {
-    const newTag: Tag = {
+  function handleLocationDropdownSelect(location: string) {
+    const locationTag = {
+      id: uuid(),
       text: location,
-      id: location,
     };
 
-    if (
-      !organizationLocationsTags.some(
-        (tag) => tag.text.toLowerCase() === location.toLowerCase()
-      )
-    ) {
-      const updatedTags = [...organizationLocationsTags, newTag];
-      setOrganizationLocationsTags(updatedTags);
-      setValue("organization_locations", updatedTags as [Tag, ...Tag[]]);
+    if (!organizationLocationsTags.some((tag) => tag.text === location)) {
+      setOrganizationLocationsTags((prevState) => [...prevState, locationTag]);
+      setValue("organization_locations", [
+        ...organizationLocationsTags,
+        locationTag,
+      ] as any);
     }
     setLocationSearchTerm("");
     setLocationDropdownIsOpen(false);
-  };
+  }
 
   useEffect(() => {
     const filtered = orgLocations.filter((location) =>
@@ -1835,7 +1833,7 @@ export default function PeopleForm(): JSX.Element {
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
         contact_email_status_v2: ["likely_to_engage", "verified"],
-        organization_ids:formData.q_organization_domains?.map((tag: any) => tag.id),
+        organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
       };
 
       // Remove undefined or empty array properties

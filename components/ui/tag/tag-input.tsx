@@ -38,7 +38,7 @@ export type Tag = {
 
 export interface TagInputProps
   extends OmittedInputProps,
-    VariantProps<typeof tagVariants> {
+  VariantProps<typeof tagVariants> {
   placeholder?: string;
   tags: Tag[];
   setTags: React.Dispatch<React.SetStateAction<Tag[]>>;
@@ -237,23 +237,28 @@ const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
 
     const truncatedTags = truncate
       ? tags.map((tag) => ({
-          id: tag.id,
-          text:
-            tag.text?.length > truncate
-              ? `${tag.text.substring(0, truncate)}...`
-              : tag.text,
-        }))
+        id: tag.id,
+        text:
+          tag.text?.length > truncate
+            ? `${tag.text.substring(0, truncate)}...`
+            : tag.text,
+      }))
       : displayedTags;
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    React.useEffect(() => {
+      // Reset input value when tags change
+      setInputValue("");
+    }, [tags]);
 
     return (
       <div
-        className={`w-full flex gap-3 ${
-          inputFieldPostion === "bottom"
-            ? "flex-col"
-            : inputFieldPostion === "top"
+        className={`w-full flex gap-3 ${inputFieldPostion === "bottom"
+          ? "flex-col"
+          : inputFieldPostion === "top"
             ? "flex-col-reverse"
             : "flex-row"
-        }`}
+          }`}
       >
         {!usePopoverForTags ? (
           <TagList

@@ -14,6 +14,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import Notification from "./Notification";
+
+
+
 import { useLeadSheetSidebar } from "@/context/lead-sheet-sidebar";
 import {
   BadgeX,
@@ -495,6 +499,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </CardContent>
             </Card>
           </div>
+          <Notification email={email} />
         </div>
       );
     }

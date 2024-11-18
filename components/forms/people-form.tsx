@@ -170,6 +170,8 @@ const FormSchema = z.object({
       })
     )
     .optional(),
+  contact_email_status_v2: z
+    .array(z.string()).optional(),
 });
 
 export default function PeopleForm(): JSX.Element {
@@ -253,7 +255,7 @@ export default function PeopleForm(): JSX.Element {
   const technologyDropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [likelyToEngage, setLikelyToEngage] = useState(true)
   const [error, setError] = React.useState<string | null>(null);
   const [apolloUrl, setApolloUrl] = useState("");
   const [organizationCompanyTags, setOrganizationCompanyTags] = React.useState<
@@ -560,7 +562,12 @@ export default function PeopleForm(): JSX.Element {
 
   const constructApolloUrl = (formData: any) => {
     let url =
-      "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&contactEmailStatusV2[]=likely_to_engage&contactEmailStatusV2[]=verified&sortByField=account_owner_id&sortAscending=true";
+      "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&contactEmailStatusV2[]=verified&sortByField=account_owner_id&sortAscending=true";
+
+    // Add likely_to_engage only when checkbox is checked
+    if (likelyToEngage) {
+      url += "&contactEmailStatusV2[]=likely_to_engage";
+    }
 
     if (
       formData.organization_locations &&
@@ -717,7 +724,7 @@ export default function PeopleForm(): JSX.Element {
         .join("");
     }
 
-    // console.log(url)
+    console.log(url)
 
     return url;
   };
@@ -745,6 +752,7 @@ export default function PeopleForm(): JSX.Element {
     form.watch("job_posting_locations"),
     form.watch("job_posting_titles"),
     form.watch("currently_using_technologies"),
+    form.watch("contact_email_status_v2")
   ]);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
@@ -768,6 +776,7 @@ export default function PeopleForm(): JSX.Element {
       q_organization_job_titles: data.q_organization_job_titles,
       buying_intent_topics: checkedIntentTopics || [],
       buying_intent_scores: checkedIntentScores || [],
+      contact_email_status_v2: likelyToEngage ? ["likely_to_engage"] : [],
     };
     setIsSubmitting(true);
     setPageCompletion("audience", true);
@@ -1229,6 +1238,7 @@ export default function PeopleForm(): JSX.Element {
             q_organization_job_titles: formData.q_organization_job_titles,
             buying_intent_topics: checkedIntentTopics,
             buying_intent_scores: checkedIntentScores,
+            contact_email_status_v2: formData.contact_email_status_v2
           },
         };
 
@@ -1261,7 +1271,7 @@ export default function PeopleForm(): JSX.Element {
 
         // Start polling for leads
         let attempts = 0;
-        const maxAttempts = 10;
+        const maxAttempts = 15;
         const pollInterval = 6000; // 7 seconds
 
         const checkLeads = async () => {
@@ -1834,8 +1844,8 @@ export default function PeopleForm(): JSX.Element {
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
-        contact_email_status_v2: ["likely_to_engage", "verified"],
-        organization_ids:formData.q_organization_domains?.map((tag: any) => tag.id),
+        contact_email_status_v2: ["verified", ...(likelyToEngage ? ["likely_to_engage"] : [])],
+        organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
       };
 
       // Remove undefined or empty array properties
@@ -2132,7 +2142,7 @@ export default function PeopleForm(): JSX.Element {
                               placeholder="Enter a location"
                               variant="base"
                               onFocus={() => toggleLocationDropdown(true)}
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                              className="sm:min-w-[400px] bg-white/90 text-black placeholder:text-black/[70]"
                               setTags={(newTags) => {
                                 setOrganizationLocationsTags(newTags);
                                 setValue(
@@ -2205,6 +2215,46 @@ export default function PeopleForm(): JSX.Element {
                     )}
                   />
                 </div>
+
+                <div className="flex items-center space-x-2 mt-4">
+                  <Checkbox
+                    id="likely-to-engage"
+                    checked={likelyToEngage}
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked as boolean;
+                      setLikelyToEngage(isChecked);
+                      
+                      // Update form data
+                      const formData = form.getValues();
+                      formData.contact_email_status_v2 = isChecked ? ["likely_to_engage"] : [];
+                      form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
+                      
+                      // Log the change
+                      console.log("Likely to engage changed:", isChecked);
+                      console.log("Updated form data:", formData);
+                    }}
+                  />
+                  <Label 
+                    htmlFor="likely-to-engage" 
+                    className="text-sm text-muted-foreground cursor-pointer"
+                    onClick={() => {
+                      const newValue = !likelyToEngage;
+                      setLikelyToEngage(newValue);
+                      
+                      // Update form data
+                      const formData = form.getValues();
+                      formData.contact_email_status_v2 = newValue ? ["likely_to_engage"] : [];
+                      form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
+                      
+                      // Log the change
+                      console.log("Likely to engage changed:", newValue);
+                      console.log("Updated form data:", formData);
+                    }}
+                  >
+                    Likely to engage (Always enabled for better response rates)
+                  </Label>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="per_page"
@@ -2222,7 +2272,7 @@ export default function PeopleForm(): JSX.Element {
                             className="sm:min-w-[450px] outline-none"
                             value={field.value || leadsNum}
                             min={25}
-                            max={500}
+                            max={200}
                             step={25}
                             onChange={(e) => {
                               const value = e.target.value;
@@ -2257,6 +2307,8 @@ export default function PeopleForm(): JSX.Element {
                     </FormItem>
                   )}
                 />
+
+
                 <div className="flex flex-col space-y-2 mt-4">
                   <div className="flex items-center space-x-3">
                     <Button
@@ -2339,6 +2391,12 @@ export default function PeopleForm(): JSX.Element {
                                   tags={qOrganizationDomainsTags}
                                   placeholder="Enter Company Domains"
                                   variant="base"
+                                  onBlur={() => {
+                                    // Add timeout to allow click events to fire on dropdown items
+                                    setTimeout(() => {
+                                      setCompanyDomainDropdownIsOpen(false);
+                                    }, 200);
+                                  }}
                                   onFocus={() => setCompanyDomainDropdownIsOpen(true)}
                                   className="sm:min-w-[150px] bg-white/90 text-black placeholder:text-black/[70]"
                                   setTags={(newTags) => {
@@ -2381,7 +2439,7 @@ export default function PeopleForm(): JSX.Element {
                                 role="menu"
                                 aria-orientation="vertical"
                                 aria-labelledby="options-menu"
-                                ref={companyDomainDropdownRef}
+                                onClick={() => setCompanyDomainDropdownIsOpen(false)}
                               >
                                 {filteredCompanyDomains.length > 0 ? (
                                   filteredCompanyDomains.map((company) => (
@@ -2389,7 +2447,7 @@ export default function PeopleForm(): JSX.Element {
                                       key={company.companyName}
                                       onClick={(e) => {
                                         e.preventDefault();
-                                        handleCompanyDomainDropdownSelect(company)
+                                        handleCompanyDomainDropdownSelect(company);
                                         setCompanyDomainSearchTerm("");
                                       }}
                                       className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"

@@ -433,24 +433,22 @@ export default function PeopleForm(): JSX.Element {
     setLocationDropdownIsOpen(isOpen);
   };
 
-  const handleLocationDropdownSelect = (location: string) => {
-    const newTag: Tag = {
+  function handleLocationDropdownSelect(location: string) {
+    const locationTag = {
+      id: uuid(),
       text: location,
-      id: location,
     };
 
-    if (
-      !organizationLocationsTags.some(
-        (tag) => tag.text.toLowerCase() === location.toLowerCase()
-      )
-    ) {
-      const updatedTags = [...organizationLocationsTags, newTag];
-      setOrganizationLocationsTags(updatedTags);
-      setValue("organization_locations", updatedTags as [Tag, ...Tag[]]);
+    if (!organizationLocationsTags.some((tag) => tag.text === location)) {
+      setOrganizationLocationsTags((prevState) => [...prevState, locationTag]);
+      setValue("organization_locations", [
+        ...organizationLocationsTags,
+        locationTag,
+      ] as any);
     }
     setLocationSearchTerm("");
     setLocationDropdownIsOpen(false);
-  };
+  }
 
   useEffect(() => {
     const filtered = orgLocations.filter((location) =>

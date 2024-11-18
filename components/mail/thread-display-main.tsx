@@ -113,10 +113,6 @@ const formatDate = (dateString: string) => {
   }
 };
 
-const isLinkedInUrl = (recipient: string): boolean => {
-  return recipient.toLowerCase().includes("linkedin.com");
-};
-
 const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   ownerEmail,
   updateMailStatus,
@@ -476,7 +472,6 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                     {email?.created_at &&
                       formatDate(email?.created_at.toString())}
                   </span>
-                  {/* Add badges based on email properties */}
                 </div>
               </div>
               <CardHeader>
@@ -504,6 +499,37 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       );
     }
   );
+
+  const renderLinkedInStatus = () => {
+    if (thread?.[0]?.channel !== "Linkedin") return null;
+
+    return (
+      <div className="m-4">
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <Linkedin className="h-4 w-4 text-gray-400" />
+          </div>
+          {leads[0]?.connected_on_linkedin === "SENT" ? (
+            <p className="ml-1 text-xs">
+              {name} has been sent a connection request
+            </p>
+          ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
+            <p className="ml-1 text-xs">
+              {name} has rejected your connection request
+            </p>
+          ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
+            <p className="ml-1 text-xs">
+              {name} has accepted your connection request
+            </p>
+          ) : (
+            <p className="ml-1 text-xs">
+              Connection request scheduled for {name}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const DraftEmailComponent = memo(() => {
     const [isEditing, setIsEditing] = useState(false);
@@ -717,31 +743,6 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
     return (
       <div className="flex gap-2 flex-col m-4 h-full">
-        {platform === "linkedin" && (
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-              <Linkedin className="h-4 w-4 text-gray-400" />
-            </div>
-            {leads[0]?.connected_on_linkedin === "SENT" ? (
-              <p className="ml-1 text-xs">
-                {leads[0]?.name} has been sent a connection request
-              </p>
-            ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
-              <p className="ml-1 text-xs">
-                {leads[0]?.name} has rejected your connection request
-              </p>
-            ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
-              <p className="ml-1 text-xs">
-                {leads[0]?.name} has accepted your connection request
-              </p>
-            ) : (
-              <p className="ml-1 text-xs">
-                Connection request scheduled for {name}
-              </p>
-            )}
-          </div>
-        )}
-
         <div className="flex w-full">
           <Avatar
             className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
@@ -857,72 +858,45 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           ""
         ) : (
           <>
-            {true && (
-              <div className="m-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-                    <User className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <div className="text-xs ml-1">
-                    {name} was added in {campaign_name} campaign
-                  </div>
+            <div className="m-4">
+              <div className="flex items-center gap-3">
+                <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+                  <User className="h-4 w-4 text-gray-400" />
+                </div>
+                <div className="text-xs ml-1">
+                  {name} was added in {campaign_name} campaign
                 </div>
               </div>
-            )}
-            {thread?.[0]?.channel === "Linkedin" && (
-              <div className="m-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-                    <Linkedin className="h-4 w-4 text-gray-400" />
-                  </div>
-                  {leads[0]?.connected_on_linkedin === "SENT" ? (
-                    <p className="ml-1 text-xs">
-                      {name} has been sent a connection request
-                    </p>
-                  ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
-                    <p className="ml-1 text-xs">
-                      {name} has rejected your connection request
-                    </p>
-                  ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
-                    <p className="ml-1 text-xs">
-                      {name} has accepted your connection request
-                    </p>
-                  ) : (
-                    <p className="ml-1 text-xs">
-                      Connection request scheduled for {name}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        {thread?.length > 0 && (
-          <div>
-            {thread.map((email, index) => (
-              <EmailComponent key={index} email={email} />
-            ))}
-          </div>
-        )}
+            </div>
 
-        {thread?.length === 0 ? (
-          <DraftEmailComponent />
-        ) : (
-          thread?.[thread?.length - 1]?.is_reply === false && (
-            <>
-              <DraftEmailComponent />
-              {mailStatus === "LOST" && (
-                <div className="flex items-center gap-3 ml-4">
-                  <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-                    <BadgeX className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <div className="text-xs ml-1">
-                    This lead has been marked as lost.
-                  </div>
-                </div>
+            {renderLinkedInStatus()}
+
+            {thread?.length > 0 && (
+              <div>
+                {thread.map((email, index) => (
+                  <EmailComponent key={index} email={email} />
+                ))}
+              </div>
+            )}
+
+            {(thread?.length === 0 ||
+              (thread?.[thread?.length - 1]?.is_reply === false &&
+                thread?.[0]?.channel !== "Linkedin")) && (
+                <>
+                  <DraftEmailComponent />
+                  {mailStatus === "LOST" && (
+                    <div className="flex items-center gap-3 ml-4">
+                      <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+                        <BadgeX className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <div className="text-xs ml-1">
+                        This lead has been marked as lost.
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )
+          </>
         )}
       </div>
     </div>

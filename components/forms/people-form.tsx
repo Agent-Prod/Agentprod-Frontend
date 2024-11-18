@@ -1834,7 +1834,8 @@ export default function PeopleForm(): JSX.Element {
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
-        contact_email_status_v2: ["likely_to_engage", "verified"]
+        contact_email_status_v2: ["likely_to_engage", "verified"],
+        organization_ids:formData.q_organization_domains?.map((tag: any) => tag.id),
       };
 
       // Remove undefined or empty array properties

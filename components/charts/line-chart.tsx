@@ -107,15 +107,15 @@ export function LineChartComponent({
           ticks={yAxisTicks}
         />
         <Tooltip />
-        <Line
+        {/* <Line
           name="Emails sent"
           type="monotone"
           dataKey="emails"
           stroke="#8884d8"
           activeDot={{ r: 8 }}
-        />
+        /> */}
         <Line
-          name="No. of leads reached out everyday"
+          name="Emails Sent EveryDay"
           type="monotone"
           dataKey="new_emails"
           stroke="#82ca9d"

@@ -94,7 +94,7 @@ export default function Page() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            {/* <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
                 <CardTitle className="text-sm font-medium">
                   Cost Per Click
@@ -110,8 +110,8 @@ export default function Page() {
                     : "0.00"}
                 </div>
               </CardContent>
-            </Card>
-            <Card>
+            </Card> */}
+            {/* <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
                 <CardTitle className="text-sm font-medium">
                   Cost Per Goal
@@ -127,7 +127,7 @@ export default function Page() {
                     : "0.00"}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           <Card className="col-span-2">
@@ -345,12 +345,12 @@ export default function Page() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center">
+              {/* <div className="flex flex-col items-center">
                 <p>{ctaClickToGoalRate}</p>
                 <Icons.arrowRight size={20} />
-              </div>
+              </div> */}
 
-              <div className="flex items-center flex-col gap-24">
+              {/* <div className="flex items-center flex-col gap-24">
                 <div className="transform rotate-[-90deg] mt-20 w-full">
                   <Progress
                     value={
@@ -369,7 +369,7 @@ export default function Page() {
                   </p>
                   <p className="text-xs text-gray-500">Demo scenario</p>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 
@@ -416,7 +416,7 @@ export default function Page() {
                             {Math.round(dashboardData.email_stats.reply_rate)}%
                           </TableCell>
                         </TableRow>
-                        <TableRow>
+                        {/* <TableRow>
                           <TableCell>Positive Reply Rate</TableCell>
                           <TableCell className="text-right">
                             {Math.round(
@@ -424,8 +424,8 @@ export default function Page() {
                             )}
                             %
                           </TableCell>
-                        </TableRow>
-                        <TableRow>
+                        </TableRow> */}
+                        {/* <TableRow>
                           <TableCell>Negative Reply Rate</TableCell>
                           <TableCell className="text-right">
                             {Math.round(
@@ -451,7 +451,7 @@ export default function Page() {
                             )}
                             %
                           </TableCell>
-                        </TableRow>
+                        </TableRow> */}
                       </>
                     ) : (
                       <TableRow>

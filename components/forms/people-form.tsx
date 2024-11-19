@@ -560,11 +560,13 @@ export default function PeopleForm(): JSX.Element {
 
   const constructApolloUrl = (formData: any) => {
     let url =
-      "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&contactEmailStatusV2[]=verified&sortByField=account_owner_id&sortAscending=true";
+      "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&sortByField=account_owner_id&sortAscending=true";
 
     // Add likely_to_engage only when checkbox is checked
     if (likelyToEngage) {
       url += "&contactEmailStatusV2[]=likely_to_engage";
+    }else{
+      url += "&contactEmailStatusV2[]=verified"
     }
 
     if (
@@ -803,7 +805,7 @@ export default function PeopleForm(): JSX.Element {
     const newApolloUrl = constructApolloUrl(data);
     setApolloUrl(newApolloUrl);
 
-    setCalculatedPages(pages);
+    setCalculatedPages((pages - 1) * 2 + 1,);
 
     const getRandomEmail = () => {
       const premiumAcc = ["info@agentprod.com", "muskaan@agentprodapp.com", "demo@agentprod.com"];
@@ -1842,7 +1844,7 @@ export default function PeopleForm(): JSX.Element {
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
-        contact_email_status_v2: ["verified", ...(likelyToEngage ? ["likely_to_engage"] : [])],
+        contact_email_status_v2: [ ...(likelyToEngage ? ["likely_to_engage"] : ["verified"])],
         organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
       };
 

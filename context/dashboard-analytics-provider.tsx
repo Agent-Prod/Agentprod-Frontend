@@ -73,6 +73,14 @@ const defaultDashboardState: DashboardContextType = {
       negative_email_rate: 0,
       positive_email_rate: 0,
     },
+    linkedin_data: [
+      {
+        campaigns: [],
+        connections_sent: 0,
+        connections_withdrawn: 0,
+        connections_accepted: 0,
+      },
+    ],
   },
   isLoading: true,
   setDashboardData: () => { },

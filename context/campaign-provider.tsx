@@ -37,6 +37,8 @@ export interface GoalFormData {
   follow_up_times: number;
   mark_as_lost: number;
   linkedin_accounts?: string[];
+  like_post?: number;
+  withdraw_invite?: number;
 }
 
 export interface GoalData {
@@ -47,6 +49,8 @@ export interface GoalData {
   follow_up_times: number;
   mark_as_lost: number;
   linkedin_accounts?: string[];
+  like_post?: number;
+  withdraw_invite?: number;
 }
 
 export interface CampaignEntry {
@@ -117,6 +121,8 @@ export const defaultGoalEntry: GoalFormData = {
   follow_up_times: 0,
   mark_as_lost: 0,
   linkedin_accounts: [],
+  like_post: 0,
+  withdraw_invite: 0,
 };
 
 export const defaultOfferingEntry: OfferingFormData = {
@@ -317,6 +323,8 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       follow_up_times: data.follow_up_times,
       mark_as_lost: data.mark_as_lost,
       linkedin_accounts: data.linkedin_accounts,
+      like_post: data.like_post,
+      withdraw_invite: data.withdraw_invite,
     };
 
     axiosInstance

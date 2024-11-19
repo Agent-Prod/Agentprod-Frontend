@@ -28,10 +28,70 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
 import type { Campaign, DashboardData } from "@/types/dashboard";
 
+
 interface TopPerformingCampaignsTableProps {
   campaigns: Campaign[];
   isLoading: boolean;
 }
+
+const LinkedinCampaignsTable = memo(({ campaigns, isLoading }: any) => {
+  const renderCampaignRow = useCallback((campaign: any) => (
+    <TableRow key={campaign.campaign_name[0]}>
+      <TableCell>{campaign.campaign_name[0]}</TableCell>
+      <TableCell className="hidden sm:table-cell text-center">
+        {campaign.connections_sent}
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-center">
+        {campaign.connections_accepted}
+      </TableCell>
+      <TableCell className="text-center">
+        {campaign.connections_withdrawn}
+      </TableCell>
+      <TableCell className="text-center">
+        {campaign.message_sent}
+      </TableCell>
+      <TableCell className="text-center">
+        {campaign.message_received}
+      </TableCell>
+    </TableRow>
+  ), []);
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">Connection Sent</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">Connection Accepted</TableHead>
+          <TableHead className="text-center">Connection Withdrawn</TableHead>
+          <TableHead className="text-center">Messages Sent</TableHead>
+          <TableHead className="text-center">Message Received</TableHead>
+
+
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableRow>
+            <TableCell colSpan={4} className="text-center">
+              <LoadingCircle />
+            </TableCell>
+          </TableRow>
+        ) : !campaigns?.length ? (
+          <TableRow>
+            <TableCell colSpan={4} className="text-center">
+              No LinkedIn campaigns available.
+            </TableCell>
+          </TableRow>
+        ) : (
+          campaigns.map(renderCampaignRow)
+        )}
+      </TableBody>
+    </Table>
+  );
+});
+
+LinkedinCampaignsTable.displayName = 'LinkedinCampaignsTable';
 
 const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformingCampaignsTableProps) => {
   const renderCampaignRow = useCallback((campaign: Campaign) => (
@@ -144,15 +204,15 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-4">
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-4 h-full">
       {metrics.map((metric) => (
-        <Card key={metric.title}>
+        <Card key={metric.title} className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
             <CardTitle className="text-sm font-medium">
               {metric.title}
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-1/2 md:mt-2">
+          <CardContent className="h-1/2">
             <div className="text-2xl font-bold">
               {isLoading ? <LoadingCircle /> : metric.value}
             </div>
@@ -166,7 +226,7 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const { dashboardData, isLoading } = useDashboardContext();
+  const {  dashboardData,isLoading } = useDashboardContext();
   const { mailGraphData } = useMailGraphContext();
 
   const recentActivities: any[] = [];
@@ -204,10 +264,10 @@ export default function Page() {
       <ScrollArea className="h-full scroll-my-36">
         <div className="flex-1 space-y-4">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <div className="flex flex-col col-span-4">
-              <Card>
-                <CardContent className="flex items-center gap-5 pt-6">
-                  <div className="flex items-center gap-2">
+            <div className="flex flex-col col-span-3">
+              <Card className="">
+                <CardContent className="flex items-center gap-5 pt-6 ">
+                  <div className="flex items-center gap-2 ">
                     <Icons.mail />
                     <p className="font-medium">Emails Pending Approval</p>
                   </div>
@@ -220,41 +280,18 @@ export default function Page() {
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
-            <Card className="col-span-2">
-              <ScrollArea className="lg:h-56 md:h-[26rem]">
+            <Card className="col-span-3">
+              <ScrollArea className="lg:h-72 md:h-[28rem]">
                 <CardHeader>
-                  <CardTitle>Recent Sales</CardTitle>
+                  <CardTitle>Top Performing Campaigns</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {recentActivities.length > 0 ? (
-                    recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-center">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage
-                            src="/path/to/default/avatar.png"
-                            alt="Avatar"
-                          />
-                          <AvatarFallback>
-                            {activity.client.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="ml-4 space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {activity.client}
-                            <span className="text-muted-foreground">
-                              {" "}
-                              {activity.body}
-                            </span>
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(), "PPpp")}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No recent activities</p>
-                  )}
+                  <div className="relative">
+                    <TopPerformingCampaignsTable
+                      campaigns={dashboardData?.top_performing_campaigns}
+                      isLoading={isLoading}
+                    />
+                  </div>
                 </CardContent>
               </ScrollArea>
             </Card>
@@ -271,14 +308,14 @@ export default function Page() {
             </Card>
 
             <Card className="col-span-3">
-              <ScrollArea className="h-[26rem]">
-                <CardHeader className="px-7">
-                  <CardTitle>Top Performing Campaigns</CardTitle>
+              <ScrollArea className="md:h-[26rem]">
+                <CardHeader>
+                  <CardTitle>Linkedin Campaign</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
-                    <TopPerformingCampaignsTable
-                      campaigns={dashboardData?.top_performing_campaigns}
+                    <LinkedinCampaignsTable
+                      campaigns={dashboardData?.linkedin_data || []}
                       isLoading={isLoading}
                     />
                   </div>
@@ -298,7 +335,7 @@ export default function Page() {
                         <LoadingCircle />
                       </div>
                     ) : dashboardData?.hot_leads.length > 0 ? (
-                      dashboardData.hot_leads.map((lead) => (
+                      dashboardData.hot_leads.map((lead: any) => (
                         <div key={lead.name} className="flex items-center">
                           <Avatar className="h-9 w-9">
                             <AvatarImage src={lead.photo_url} alt="Avatar" />

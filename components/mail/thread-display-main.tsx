@@ -379,7 +379,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                     </span>
                   </div>
                 </div>
-                <CardHeader>
+                {email.subject === "" || email.subject==="No subject" ? (<></>) : (<CardHeader>
                   <CardTitle className="text-sm flex -mt-8 -ml-3">
                     <Input
                       value={editableSubject}
@@ -389,8 +389,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                       onChange={(e) => setEditableSubject(e.target.value)}
                     />
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs -ml-3 -mt-4">
+                </CardHeader>)}
+                <CardContent className="text-xs -ml-3 -mt-2">
                   <Textarea
                     value={editableBody}
                     className="text-xs h-64"
@@ -401,7 +401,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </CardContent>
                 <CardFooter className="flex justify-between text-xs items-center">
                   <div>
-                    {email.channel !== "linkedin" && (
+                    {email.channel !== "Linkedin" && (
                       <Button disabled={isEditing} onClick={handleApproveEmail}>
                         {loadingSmartSchedule ? (
                           <LoadingCircle />
@@ -417,6 +417,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                       onClick={handleSendNow}
                     >
                       {isLoadingButton ? <LoadingCircle /> : "Send Now"}
+
                     </Button>
                   </div>
                   <div>
@@ -475,16 +476,16 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </div>
               </div>
               <CardHeader>
-                <CardTitle className="text-sm flex -mt-8 -ml-3">
+                {email.subject === "" ? (<></>) : (<CardTitle className="text-sm flex -mt-8 -ml-3">
                   <Input
                     value={email.subject}
                     className="text-xs"
                     placeholder="Subject"
                     readOnly
                   />
-                </CardTitle>
+                </CardTitle>)}
               </CardHeader>
-              <CardContent className="text-xs -ml-3 -mt-4">
+              <CardContent className={`text-xs -ml-3 ${email.subject === "" ? "-mt-12" : "-mt-3"} `}>
                 <Textarea
                   value={email.body}
                   readOnly

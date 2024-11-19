@@ -72,6 +72,8 @@ const goalFormSchema = z.object({
       })
     )
     .optional(),
+  like_post: z.number().optional(),
+  withdraw_invite: z.number().optional(),
   follow_up_days: z
     .number()
     .min(0, { message: "Follow-up days must be a non-negative number" }),
@@ -115,11 +117,12 @@ export function GoalForm() {
   const [mailboxes, setMailboxes] =
     useState<{ mailbox: string; sender_name: string; id: number }[]>();
   const [originalData, setOriginalData] = useState<GoalFormData>();
-  const [displayEmail, setDisplayEmail] = useState("Select Email"); // Select Email
+  const [displayEmail, setDisplayEmail] = useState("Select Sender Account"); // Select Email
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignChannel, setCampaignChannel] = useState<string>("");
   const [selectedLinkedInId, setSelectedLinkedInId] = useState<string[]>([]);
-
+  const [likePost, setLikePost] = useState<number>(0);
+  const [withdrawInvite, setWithdrawInvite] = useState<number>(0);
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
     defaultValues,
@@ -262,6 +265,8 @@ export function GoalForm() {
         mark_as_lost: goalData.mark_as_lost,
         emails: goalData.emails.map((email) => ({ value: email })),
         linkedin_accounts: goalData.linkedin_accounts,
+        like_post: goalData.like_post,
+        withdraw_invite: goalData.withdraw_invite,
       });
       
       // Set LinkedIn IDs if they exist
@@ -410,7 +415,7 @@ export function GoalForm() {
           render={({ field }) => (
             <FormItem className="space-y-3">
               <div>
-                <FormLabel>Sender Email</FormLabel>
+                <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
                 <FormDescription>
                   Where prospects can schedule a meeting with you
                 </FormDescription>
@@ -496,6 +501,59 @@ export function GoalForm() {
           )}
         />
 
+        {campaignChannel === 'Linkedin' && (<div>
+          <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
+
+          <div className="flex gap-4 items-center mt-3">
+            <FormField
+              control={form.control}
+              name="like_post"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <p className="text-sm mb-3">Like last posts (count)</p>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numberValue =
+                          value === "" ? undefined : Number(value);
+                        field.onChange(numberValue);
+                      }}
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="withdraw_invite"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <p className="text-sm mb-3">Withdraw invite after (days)</p>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numberValue =
+                          value === "" ? undefined : Number(value);
+                        field.onChange(numberValue);
+                      }}
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>)}
 
         <div>
           <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
@@ -517,7 +575,7 @@ export function GoalForm() {
                           value === "" ? undefined : Number(value);
                         field.onChange(numberValue);
                       }}
-                      min="0" // Ensures the minimum value is 0
+                      min="0"
                     />
                   </FormControl>
                   <FormMessage />
@@ -541,7 +599,7 @@ export function GoalForm() {
                           value === "" ? undefined : Number(value);
                         field.onChange(numberValue);
                       }}
-                      min="0" // Ensures the minimum value is 0
+                      min="0"
                     />
                   </FormControl>
                   <FormMessage />

@@ -200,12 +200,10 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
 
   React.useEffect(() => {
     if (email.action_draft) {
-      const { subject, body } = parseActionDraft(email.action_draft);
-      // console.log(subject, body);
-      const newSubject = subject.startsWith("Re:") ? subject : `Re: ${subject}`;
+      const lastSubject = thread[thread.length - 1].subject;
+      const newSubject = lastSubject.startsWith("Re:") ? lastSubject : `Re: ${lastSubject}`;
       setTitle(newSubject);
-      // setTitle(subject);
-      setBody(body);
+      setBody(email.action_draft);
     }
   }, [email.action_draft]);
 
@@ -277,13 +275,12 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
 
   const handleSendNow = () => {
     SetIsLoadingButton(true);
-    const parsedDraft = parseActionDraft(email.action_draft);
     const payload = {
       conversation_id: conversationId,
       sender: senderEmail,
       recipient: recipientEmail,
-      subject: parsedDraft?.subject || "",
-      body: parsedDraft?.body || "",
+      subject: title,
+      body: body
     };
     console.log("Payload of sending", payload);
 
@@ -340,9 +337,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
     SetIsLoadingButton(true);
     const payload = {
       conversation_id: conversationId,
-      subject: title,
-      body: body,
-      // Add other necessary fields from the email object
+      action_draft: body,
     };
 
     axiosInstance.patch(`/v2/mailbox/action_draft/update?_id=${email.id}`, payload)
@@ -520,10 +515,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
                   <CardTitle className="text-sm flex flex-col ">
                     <Input
                       className="text-xs"
-                      disabled={!editable}
+                      disabled={true}
                       placeholder="Subject"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
                     />
                   </CardTitle>
                 </CardHeader>

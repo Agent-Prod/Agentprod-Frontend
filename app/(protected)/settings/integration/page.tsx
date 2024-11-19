@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -95,7 +96,7 @@ export default function Page() {
   const [showCaptchaButton, setShowCaptchaButton] = React.useState(true);
   const [captchaLoaded, setCaptchaLoaded] = React.useState(false);
   const [otpValue, setOtpValue] = React.useState('');
-
+  const [connectedAccounts, setConnectedAccounts] = React.useState('');
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
@@ -139,6 +140,14 @@ export default function Page() {
   const handleCloseHubspotMailbox = () => setIsHubspotMailboxOpen(false);
   const handleCloseSalesforceMailbox = () => setIsSalesforceMailboxOpen(false);
   // closing dialogbox
+
+  useEffect(() => {
+    const fetchConnectedAccounts = async () => {
+      const response = await axiosInstance.get(`v2/linkedin/active-account/${user.id}`);
+      setConnectedAccounts(response.data.total_count);
+    };
+    fetchConnectedAccounts();
+  }, []);
 
   React.useEffect(() => {
     const fetchHubSpotStatus = async (): Promise<any> => {
@@ -487,6 +496,7 @@ export default function Page() {
           <CardDescription>
             Used to interact with the AgentProd and receive notifications.
           </CardDescription>
+          
         </CardContent>
       </Card>
       {/*------------------ Slack Card Ended Here------------------- */}
@@ -806,6 +816,7 @@ export default function Page() {
           <CardTitle>LinkedIn</CardTitle>
           <CardDescription>
             Used to interact with the AgentProd and receive notifications.
+            <div className="font-semibold mt-2 dark:text-white text-black">Accounts Connected: {connectedAccounts}</div>
           </CardDescription>
         </CardContent>
       </Card>

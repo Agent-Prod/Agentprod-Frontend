@@ -517,7 +517,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
                   </div>
                 </div>
                 <CardHeader className="-mt-8 -ml-3">
-                  <CardTitle className="text-sm flex flex-col ">
+                  {email.subject === "" ? (<></>) : (<CardTitle className="text-sm flex flex-col ">
                     <Input
                       className="text-xs"
                       disabled={!editable}
@@ -525,9 +525,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
-                  </CardTitle>
+                  </CardTitle>)}
                 </CardHeader>
-                <CardContent className="text-xs -ml-3 -mt-4">
+                <CardContent className="text-xs -ml-3 -mt-2">
                   <Textarea
                     className="text-xs h-40"
                     disabled={!editable}

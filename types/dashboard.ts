@@ -33,6 +33,13 @@ export interface Campaign {
   open_rate: number | null;
 }
 
+export interface LinkedinData {
+  campaigns: Campaign[];
+  connections_sent: number;
+  connections_withdrawn: number;
+  connections_accepted: number;
+}
+
 export interface DashboardData {
   id: number;
   user_id: string;
@@ -46,4 +53,5 @@ export interface DashboardData {
   conversion_funnel: ConversionFunnel;
   top_performing_campaigns: Campaign[];
   email_stats: EmailStats;
+  linkedin_data: LinkedinData[];
 }

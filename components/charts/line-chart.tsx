@@ -9,26 +9,102 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface DataPoint {
+interface MailGraphItem {
   date: string;
   emails: number;
-  new_emails: number;
+}
+
+interface ContactItem {
+  date: string;
+  leads_count: number;
+}
+
+interface DataPoint {
+  date: string;
+  emails?: number;
+  leads_count?: number;
 }
 
 export function LineChartComponent({
   mailGraphData,
+  contactsData,
 }: {
-  mailGraphData: DataPoint[];
+  mailGraphData: MailGraphItem[];
+  contactsData: ContactItem[];
 }) {
-  // Add null check at the start of the component
-  if (!mailGraphData || !Array.isArray(mailGraphData)) {
-    return null; // or return a loading state/error message component
+  // Add null check for both arrays
+  if (!mailGraphData || !contactsData || !Array.isArray(mailGraphData) || !Array.isArray(contactsData)) {
+    return null;
   }
 
   // Function to aggregate data by day
-  const aggregateDataByDay = (data: DataPoint[]): DataPoint[] => {
+  const aggregateDataByDay = (
+    mailData: MailGraphItem[],
+    contactData: ContactItem[]
+  ): DataPoint[] => {
     const aggregatedData: { [key: string]: DataPoint } = {};
-    data.forEach((item) => {
+    const dailyEmails: { [key: string]: number } = {};
+
+    // First, sort mail data by date
+    const sortedMailData = [...mailData].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    // Process mailgraph data to get daily increments
+    sortedMailData.forEach((item) => {
+      const date = new Date(item.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year:
+          new Date(item.date).getFullYear() !== new Date().getFullYear()
+            ? "numeric"
+            : undefined,
+      });
+
+      if (!dailyEmails[date]) {
+        // For first entry of the day
+        const previousDay = new Date(item.date);
+        previousDay.setDate(previousDay.getDate() - 1);
+        const prevDate = previousDay.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year:
+            previousDay.getFullYear() !== new Date().getFullYear()
+              ? "numeric"
+              : undefined,
+        });
+        
+        const prevDayLastEmail = sortedMailData.filter(mail => 
+          new Date(mail.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: new Date(mail.date).getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+          }) === prevDate
+        ).pop()?.emails || 0;
+
+        dailyEmails[date] = item.emails - prevDayLastEmail;
+      } else {
+        // Update with the highest increment for the day
+        const prevDayLastEmail = sortedMailData.filter(mail => 
+          new Date(mail.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: new Date(mail.date).getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+          }) === date
+        )[0]?.emails || 0;
+
+        dailyEmails[date] = item.emails - prevDayLastEmail;
+      }
+
+      if (!aggregatedData[date]) {
+        aggregatedData[date] = { date, emails: dailyEmails[date], leads_count: 0 };
+      } else {
+        aggregatedData[date].emails = dailyEmails[date];
+      }
+    });
+
+    // Process contacts data (leads count is already daily, no need to calculate increment)
+    contactData.forEach((item) => {
       const date = new Date(item.date).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -38,28 +114,35 @@ export function LineChartComponent({
             : undefined,
       });
       if (!aggregatedData[date]) {
-        aggregatedData[date] = { date, emails: 0, new_emails: 0 };
+        aggregatedData[date] = { date, emails: 0, leads_count: item.leads_count };
+      } else {
+        aggregatedData[date].leads_count = item.leads_count;
       }
-      aggregatedData[date].emails += item.emails;
-      aggregatedData[date].new_emails += item.new_emails;
     });
+
     return Object.values(aggregatedData);
   };
 
   // Sort the data by date in ascending order
-  const sortedData = [...mailGraphData].sort(
+  const sortedMailData = [...mailGraphData].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  const sortedContactData = [...contactsData].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
   // Aggregate and format the data
-  const aggregatedData = aggregateDataByDay(sortedData);
+  const aggregatedData = aggregateDataByDay(sortedMailData, sortedContactData);
 
   // Get the last 20 days of data
   const last20Days = aggregatedData.slice(-20);
 
-  // Calculate the maximum value from the data
+  // Calculate the maximum value from both metrics
   const dataMax = Math.max(
-    ...last20Days.flatMap((item) => [item.emails, item.new_emails])
+    ...last20Days.flatMap((item) => [
+      item.emails || 0,
+      item.leads_count || 0,
+    ])
   );
 
   // Round up to the nearest multiple of 10
@@ -108,16 +191,16 @@ export function LineChartComponent({
         />
         <Tooltip />
         <Line
-          name="Leads Added Everyday"
+          name="Email Sent Everyday"
           type="monotone"
           dataKey="emails"
           stroke="#8884d8"
           activeDot={{ r: 8 }}
         />
         <Line
-          name="Emails Sent Everyday"
+          name="Leads Added Everyday"
           type="monotone"
-          dataKey="new_emails"
+          dataKey="leads_count"
           stroke="#82ca9d"
         />
       </LineChart>

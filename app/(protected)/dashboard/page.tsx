@@ -240,23 +240,23 @@ export default function Page() {
 
   const allWeekDays = getWeekDays();
 
-  // const activeDaysSet = new Set(
-  //   (mailGraphData || []).map((data) => {
-  //     if (!data.date) return null;
-  //     try {
-  //       const parsedDate = parseISO(data.date);
-  //       if (isNaN(parsedDate.getTime())) {
-  //         console.warn(`Invalid date: ${data.date}`);
-  //         return null;
-  //       }
-  //       return format(parsedDate, "yyyy-MM-dd");
-  //     } catch (error) {
-  //       console.error(`Error parsing date: ${data.date}`, error);
-  //       return null;
-  //     }
-  //   })
-  //     .filter(Boolean)
-  // );
+  const activeDaysSet = new Set(
+    (mailGraphData || []).map((data) => {
+      if (!data.date) return null;
+      try {
+        const parsedDate = parseISO(data.date);
+        if (isNaN(parsedDate.getTime())) {
+          console.warn(`Invalid date: ${data.date}`);
+          return null;
+        }
+        return format(parsedDate, "yyyy-MM-dd");
+      } catch (error) {
+        console.error(`Error parsing date: ${data.date}`, error);
+        return null;
+      }
+    })
+      .filter(Boolean)
+  );
 
   return (
     <>
@@ -383,7 +383,7 @@ export default function Page() {
                 />
               </div>
 
-              {/* <div className="flex items-end justify-between">
+              <div className="flex items-end justify-between">
                 {allWeekDays.map((day, index) => {
                   const dayOfWeek = format(parseISO(day), "EEE");
                   const isActive = activeDaysSet.has(day);
@@ -403,7 +403,7 @@ export default function Page() {
                     </div>
                   );
                 })}
-              </div> */}
+              </div>
             </Card>
           </div>
         </div>

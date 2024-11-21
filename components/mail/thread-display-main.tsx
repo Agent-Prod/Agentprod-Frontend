@@ -855,10 +855,44 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     );
   });
 
+  const refreshThread = useCallback(() => {
+    setIsLoading(true);
+    Promise.all([
+      // Fetch thread data
+      axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`),
+      // Fetch lead info
+      axiosInstance.get<Lead>(`v2/lead/info/${contact_id}`)
+    ])
+      .then(([threadResponse, leadResponse]) => {
+        setThread(threadResponse.data);
+        setItemId(leadResponse.data.id);
+        setLeads([leadResponse.data]);
+        toast.success("Thread refreshed successfully");
+      })
+      .catch((error) => {
+        console.error("Error refreshing data:", error);
+        toast.error("Failed to refresh thread");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [conversationId, contact_id, setThread, setItemId, setLeads]);
+
   return (
     <div className="relative">
       <div className="bg-accent w-[3px] h-full absolute left-7 -z-10"></div>
-      <div className="h-full ">
+      <div className="h-full">
+        <div className="absolute right-8 top-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshThread}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+
         {isLoading ? (
           ""
         ) : (

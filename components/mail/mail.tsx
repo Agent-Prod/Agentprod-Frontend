@@ -560,17 +560,48 @@ export function Mail({
                   To Approve
                 </TabsTrigger>
                 <TabsTrigger
-                  value="sent"
-                  className="text-zinc-800 dark:text-zinc-200"
-                >
-                  Sent
-                </TabsTrigger>
-                <TabsTrigger
                   value="replied"
                   className="text-zinc-800 dark:text-zinc-200"
                 >
                   Replied
                 </TabsTrigger>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-center space-x-2"
+                    >
+                      <span>
+                        {activeTab.toLocaleUpperCase() || "More"}
+                      </span>
+                      <ChevronDown size={20} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onSelect={() => handleTabChange("OPENED")}
+                    >
+                      Opened
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleTabChange("SENT")}
+                    >
+                      Sent
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("CLICKED")}>
+                      Clicked
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("BOUNCED")}>
+                      Bounced
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("SPAMMED")}>
+                      Spammed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
+                      Delivered
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <CampaignDropdown
                   campaigns={campaigns}
                   handleCampaignChange={handleCampaignChange}

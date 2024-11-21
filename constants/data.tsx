@@ -162,13 +162,13 @@ export const navItems: NavInterface[] = [
         label: "leads",
         isCollapsible: false,
       },
-      {
-        title: "Analytics",
-        href: "/analytics",
-        icon: "analytics",
-        label: "analytics",
-        isCollapsible: false,
-      },
+      // {
+      //   title: "Analytics",
+      //   href: "/analytics",
+      //   icon: "analytics",
+      //   label: "analytics",
+      //   isCollapsible: false,
+      // },
       {
         title: "Settings",
         href: "/settings/account-info",

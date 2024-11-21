@@ -3,7 +3,7 @@ export const pageTitleConfig = [
   { pathname: "/dashboard", title: "Dashboard", hidden: false },
   { pathname: "/mail", title: "Mail", hidden: true },
   { pathname: "/chat", title: "Chat with Prod", hidden: true },
-  { pathname: "/analytics", title: "Analytics", hidden: false },
+  { pathname: "/analytics", title: "Analytics", hidden: true },
   { pathname: "/campaign", title: "Campaign", hidden: false },
   { pathname: "/leads", title: "Leads", hidden: false },
   { pathname: "/campaign/create", title: "Create Campaign", hidden: false },

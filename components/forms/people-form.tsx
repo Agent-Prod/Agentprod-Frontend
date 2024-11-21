@@ -328,8 +328,16 @@ export default function PeopleForm(): JSX.Element {
   const companyDomainDropdownRef = useRef<HTMLDivElement>(null);
   const companyDomainInputRef = useRef<HTMLInputElement>(null);
   const [selectionType, setSelectionType] = useState('list');
+  const [linkedinSelectionType, setLinkedinSelectionType] = useState('');
 
 
+  useEffect(() => {
+    const callApi = async () => {
+      const response = await axiosInstance.get(`v2/campaigns/${params.campaignId}`);
+      setLinkedinSelectionType(response.data.channel);
+    };
+    callApi();
+  }, []);
 
   const handleSelectionTypeChange = (value: any) => {
     setSelectionType(value);
@@ -563,11 +571,13 @@ export default function PeopleForm(): JSX.Element {
       "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&sortByField=account_owner_id&sortAscending=true";
 
     // Add likely_to_engage only when checkbox is checked
+    if(linkedinSelectionType !== "Linkedin"){
     if (likelyToEngage) {
       url += "&contactEmailStatusV2[]=likely_to_engage";
     }else{
       url += "&contactEmailStatusV2[]=verified"
     }
+  }
 
     if (
       formData.organization_locations &&
@@ -1211,7 +1221,9 @@ export default function PeopleForm(): JSX.Element {
       toast.success("Audience created successfully");
 
       if (type === "create") {
+        
         const formData = form.getValues();
+        const linkedinCheck =  linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
         const postBody = {
           campaign_id: params.campaignId,
           audience_type: "prospective",
@@ -1238,7 +1250,7 @@ export default function PeopleForm(): JSX.Element {
             q_organization_job_titles: formData.q_organization_job_titles,
             buying_intent_topics: checkedIntentTopics,
             buying_intent_scores: checkedIntentScores,
-            contact_email_status_v2: formData.contact_email_status_v2
+            contact_email_status_v2: linkedinCheck
           },
         };
 
@@ -1821,6 +1833,8 @@ export default function PeopleForm(): JSX.Element {
     setIsLoadingTotalLeads(true);
     try {
       const formData = form.getValues();
+      const linkedinCheck =  linkedinSelectionType === "Linkedin" ? [] : [ ...(likelyToEngage ? ["likely_to_engage"] : ["verified"])];
+
       const requestBody = {
         page: 1,
         per_page: 1,
@@ -1844,7 +1858,7 @@ export default function PeopleForm(): JSX.Element {
         },
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
-        contact_email_status_v2: [ ...(likelyToEngage ? ["likely_to_engage"] : ["verified"])],
+        contact_email_status_v2: linkedinCheck,
         organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
       };
 
@@ -2216,7 +2230,7 @@ export default function PeopleForm(): JSX.Element {
                   />
                 </div>
 
-                <div className="flex items-center space-x-2 mt-4">
+                {linkedinSelectionType !== "Linkedin" && <div className="flex items-center space-x-2 mt-4">
                   <Checkbox
                     id="likely-to-engage"
                     checked={likelyToEngage}
@@ -2253,7 +2267,7 @@ export default function PeopleForm(): JSX.Element {
                   >
                     Likely to engage (Always enabled for better response rates)
                   </Label>
-                </div>
+                </div>}
 
                 <FormField
                   control={form.control}

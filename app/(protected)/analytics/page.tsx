@@ -21,7 +21,7 @@ import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { LoadingCircle } from "@/app/icons";
 
 export default function Page() {
-  const { mailGraphData } = useMailGraphContext();
+  const { mailGraphData, contactsData } = useMailGraphContext();
   const { dashboardData, isLoading } = useDashboardContext();
 
   const getPercentage = (current: any, previous: any) => {
@@ -199,7 +199,7 @@ export default function Page() {
               <CardTitle>Sending Volume Per Day</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <LineChartComponent mailGraphData={mailGraphData} />
+              <LineChartComponent mailGraphData={mailGraphData} contactsData={contactsData} />
             </CardContent>
           </Card>
 

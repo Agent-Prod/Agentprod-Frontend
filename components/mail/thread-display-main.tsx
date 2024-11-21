@@ -504,7 +504,6 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    if (thread?.[0]?.channel !== "Linkedin") return null;
 
     return (
       <div className="m-4">
@@ -818,6 +817,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
                   onClick={handleSendNow}
+                  disabled={
+                    isLoadingButton || 
+                    (platform === "linkedin" && 
+                     (!leads[0]?.connected_on_linkedin || 
+                      leads[0]?.connected_on_linkedin === "Not Connected"))
+                  }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}
                 </Button>

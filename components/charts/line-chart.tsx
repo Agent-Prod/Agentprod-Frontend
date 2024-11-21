@@ -11,24 +11,28 @@ import {
 
 interface DataPoint {
   date: string;
-  emails: number;
-  new_emails: number;
+  email_count?: number;
+  leads_count?: number;
 }
 
 export function LineChartComponent({
   mailGraphData,
+  contactsData,
 }: {
   mailGraphData: DataPoint[];
+  contactsData: DataPoint[];
 }) {
-  // Add null check at the start of the component
   if (!mailGraphData || !Array.isArray(mailGraphData)) {
-    return null; // or return a loading state/error message component
+    return null;
   }
 
-  // Function to aggregate data by day
-  const aggregateDataByDay = (data: DataPoint[]): DataPoint[] => {
-    const aggregatedData: { [key: string]: DataPoint } = {};
-    data.forEach((item) => {
+  const mergeDataByDate = (
+    emailData: DataPoint[],
+    leadsData: DataPoint[]
+  ): DataPoint[] => {
+    const mergedData: { [key: string]: DataPoint } = {};
+
+    emailData.forEach((item) => {
       const date = new Date(item.date).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -37,37 +41,53 @@ export function LineChartComponent({
             ? "numeric"
             : undefined,
       });
-      if (!aggregatedData[date]) {
-        aggregatedData[date] = { date, emails: 0, new_emails: 0 };
-      }
-      aggregatedData[date].emails += item.emails;
-      aggregatedData[date].new_emails += item.new_emails;
+      mergedData[date] = {
+        date,
+        email_count: item.email_count,
+        leads_count: 0,
+      };
     });
-    return Object.values(aggregatedData);
+
+    leadsData.forEach((item) => {
+      const date = new Date(item.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year:
+          new Date(item.date).getFullYear() !== new Date().getFullYear()
+            ? "numeric"
+            : undefined,
+      });
+      if (mergedData[date]) {
+        mergedData[date].leads_count = item.leads_count;
+      } else {
+        mergedData[date] = {
+          date,
+          email_count: 0,
+          leads_count: item.leads_count,
+        };
+      }
+    });
+
+    return Object.values(mergedData);
   };
 
-  // Sort the data by date in ascending order
-  const sortedData = [...mailGraphData].sort(
+  const sortedData = mergeDataByDate(mailGraphData, contactsData).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Aggregate and format the data
-  const aggregatedData = aggregateDataByDay(sortedData);
+  const last20Days = sortedData.slice(-20);
 
-  // Get the last 20 days of data
-  const last20Days = aggregatedData.slice(-20);
-
-  // Calculate the maximum value from the data
   const dataMax = Math.max(
-    ...last20Days.flatMap((item) => [item.emails, item.new_emails])
+    ...last20Days.flatMap((item) => [
+      item.email_count || 0,
+      item.leads_count || 0,
+    ])
   );
 
-  // Round up to the nearest multiple of 10
   const maxValue = Math.ceil(dataMax / 10) * 10;
 
-  // Generate ticks
   const generateTicks = (max: number): number[] => {
-    const tickCount = 6; // Adjust this for more or fewer ticks
+    const tickCount = 6;
     const ticks = [];
     for (let i = 0; i < tickCount; i++) {
       ticks.push((max / (tickCount - 1)) * i);
@@ -108,16 +128,16 @@ export function LineChartComponent({
         />
         <Tooltip />
         <Line
-          name="Leads Added Everyday"
+          name="Emails Sent"
           type="monotone"
-          dataKey="emails"
+          dataKey="email_count"
           stroke="#8884d8"
           activeDot={{ r: 8 }}
         />
         <Line
-          name="Emails Sent Everyday"
+          name="Leads Added"
           type="monotone"
-          dataKey="new_emails"
+          dataKey="leads_count"
           stroke="#82ca9d"
         />
       </LineChart>

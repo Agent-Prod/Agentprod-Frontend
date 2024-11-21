@@ -37,7 +37,9 @@ interface TopPerformingCampaignsTableProps {
 const LinkedinCampaignsTable = memo(({ campaigns, isLoading }: any) => {
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign?.campaign_name}>
+
       <TableCell>{campaign?.campaign_name}</TableCell>
+
       <TableCell className="hidden sm:table-cell text-center">
         {campaign?.connections_sent}
       </TableCell>
@@ -226,8 +228,8 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const {  dashboardData,isLoading } = useDashboardContext();
-  const { mailGraphData } = useMailGraphContext();
+  const { dashboardData, isLoading } = useDashboardContext();
+  const { mailGraphData, contactsData } = useMailGraphContext();
 
   const recentActivities: any[] = [];
 
@@ -303,7 +305,10 @@ export default function Page() {
                 <CardTitle>Sending Volume Per Day</CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
-                <LineChartComponent mailGraphData={mailGraphData} />
+                <LineChartComponent
+                  mailGraphData={mailGraphData}
+                  contactsData={contactsData}
+                />
               </CardContent>
             </Card>
 

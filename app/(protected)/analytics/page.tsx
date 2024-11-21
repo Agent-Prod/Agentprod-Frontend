@@ -20,8 +20,9 @@ import { useMailGraphContext } from "@/context/chart-data-provider";
 import { useDashboardContext } from "@/context/dashboard-analytics-provider";
 import { LoadingCircle } from "@/app/icons";
 
+
 export default function Page() {
-  const { mailGraphData } = useMailGraphContext();
+  const { mailGraphData, contactsData } = useMailGraphContext();
   const { dashboardData, isLoading } = useDashboardContext();
 
   const getPercentage = (current: any, previous: any) => {
@@ -171,8 +172,8 @@ export default function Page() {
                   <div className="flex justify-center items-center">
                     <LoadingCircle />
                   </div>
-                ) : dashboardData?.mailbox_health && 
-                   Object.keys(dashboardData.mailbox_health).length > 0 ? (
+                ) : dashboardData?.mailbox_health &&
+                  Object.keys(dashboardData.mailbox_health).length > 0 ? (
                   Object.entries(dashboardData.mailbox_health || {}).map(
                     ([email, health], index) => (
                       <div key={index}>
@@ -199,7 +200,7 @@ export default function Page() {
               <CardTitle>Sending Volume Per Day</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <LineChartComponent mailGraphData={mailGraphData} />
+              <LineChartComponent mailGraphData={mailGraphData} contactsData={contactsData} />
             </CardContent>
           </Card>
 
@@ -279,8 +280,8 @@ export default function Page() {
                       dashboardData.conversion_funnel?.sent < 100
                         ? dashboardData.conversion_funnel?.sent
                         : dashboardData.conversion_funnel?.sent > 100
-                        ? 100
-                        : 0
+                          ? 100
+                          : 0
                     }
                     className="h-2 w-40"
                   />
@@ -305,8 +306,8 @@ export default function Page() {
                       dashboardData.conversion_funnel?.opened < 100
                         ? dashboardData.conversion_funnel?.opened
                         : dashboardData.conversion_funnel?.opened > 100
-                        ? 100
-                        : 0
+                          ? 100
+                          : 0
                     }
                     className="h-2 w-40"
                   />
@@ -331,8 +332,8 @@ export default function Page() {
                       dashboardData.conversion_funnel?.cta_clicked < 100
                         ? dashboardData.conversion_funnel?.cta_clicked
                         : dashboardData.conversion_funnel?.cta_clicked > 100
-                        ? 100
-                        : 0
+                          ? 100
+                          : 0
                     }
                     className="h-2 w-40"
                   />

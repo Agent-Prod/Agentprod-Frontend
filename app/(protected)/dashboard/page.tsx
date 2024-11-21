@@ -37,7 +37,9 @@ interface TopPerformingCampaignsTableProps {
 const LinkedinCampaignsTable = memo(({ campaigns, isLoading }: any) => {
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign?.campaign_name}>
-      <TableCell>{campaign?.campaign_name[0]}</TableCell>
+
+      <TableCell>{campaign?.campaign_name}</TableCell>
+
       <TableCell className="hidden sm:table-cell text-center">
         {campaign?.connections_sent}
       </TableCell>

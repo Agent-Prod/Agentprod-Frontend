@@ -504,6 +504,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
+    if (thread?.[0]?.channel !== "LinkedIn") return null;
 
     return (
       <div className="m-4">

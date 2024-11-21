@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import axios, { CancelTokenSource } from 'axios';
 import MailList from "./mail-list";
 import ThreadDisplayMain from "./thread-display-main";
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -169,20 +170,32 @@ export function Mail({
   defaultCollapsed = false,
   navCollapsedSize,
 }: MailProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Get query parameters
+  const campaignIdFromUrl = searchParams.get('campaign_id');
+  const filterFromUrl = searchParams.get('_filter')?.toLowerCase() || 'all';
+
+  // Modify initial states to use URL parameters
+  const [filter, setFilter] = React.useState(filterFromUrl);
+  const [activeTab, setActiveTab] = React.useState(filterFromUrl);
+  
   const [mails, setMails] = React.useState<Conversations[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [showLoadingOverlay, setShowLoadingOverlay] = React.useState(false);
-  const [filter, setFilter] = React.useState('all');
   const [campaigns, setCampaigns] = React.useState<any[]>([]);
   const [campaign, setCampaign] = React.useState<{
     campaignName: string;
     campaignId: string;
-  } | null>(null);
+  } | null>(campaignIdFromUrl ? {
+    campaignName: '', 
+    campaignId: campaignIdFromUrl
+  } : null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedMailId, setSelectedMailId] = React.useState<string | null>(
     null
   );
-  const [activeTab, setActiveTab] = React.useState('all');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [initialMailIdSet, setInitialMailIdSet] = React.useState(false);
@@ -212,7 +225,6 @@ export function Mail({
       const response = await axiosInstance.get(`v2/campaigns/names/${user?.id}`);
       const campaignData = response.data.campaigns || response.data;
       if (Array.isArray(campaignData)) {
-        // Ensure the data is in the correct format
         const formattedCampaigns = campaignData.map(campaign => ({
           id: campaign.id,
           campaign_name: campaign.campaign_name,
@@ -220,6 +232,17 @@ export function Mail({
           additional_details: campaign.additional_details
         }));
         setCampaigns(formattedCampaigns);
+
+        // If there's a campaign ID in URL, set the campaign name
+        if (campaignIdFromUrl) {
+          const matchingCampaign = formattedCampaigns.find(c => c.id === campaignIdFromUrl);
+          if (matchingCampaign) {
+            setCampaign({
+              campaignName: matchingCampaign.campaign_name,
+              campaignId: campaignIdFromUrl
+            });
+          }
+        }
       } else {
         console.error('Campaigns data is not in expected format:', campaignData);
         setCampaigns([]);
@@ -230,7 +253,7 @@ export function Mail({
     } finally {
       setIsCampaignsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, campaignIdFromUrl]);
 
   React.useEffect(() => {
     if (user?.id) {
@@ -393,36 +416,32 @@ export function Mail({
 
   React.useEffect(() => {
     if (user?.id) {
-      fetchConversations(campaign?.campaignId, 1, searchTerm, filter);
+      fetchConversations(campaignIdFromUrl || undefined, 1, searchTerm, filterFromUrl);
     }
-  }, []);
+  }, [user?.id, campaignIdFromUrl, filterFromUrl]);
 
-  // React.useEffect(() => {
-  //   if (mails.length > 0 && !initialMailIdSet) {
-  //     const initialMail = mails[0];
-  //     setSelectedMailId(initialMail.id);
-  //     setSenderEmail(initialMail.sender);
-  //     setConversationId(initialMail.id);
-  //     setRecipientEmail(initialMail.recipient);
-  //     setInitialMailIdSet(true);
+  React.useEffect(() => {
+    if (mails.length > 0 && !initialMailIdSet) {
+      const initialMail = mails[0];
+      setSelectedMailId(initialMail.id);
+      setSenderEmail(initialMail.sender);
+      setConversationId(initialMail.id);
+      setRecipientEmail(initialMail.recipient);
+      setInitialMailIdSet(true);
 
-  //     axiosInstance
-  //       .get(`v2/lead/info/${initialMail.recipient}`)
-  //       .then((response) => {
-  //         setLeads([response.data]);
-  //       })
-  //       .catch((error) => {
-  //         console.error('Error fetching lead data:', error);
-  //       });
-  //   }
-  // }, [
-  //   mails,
-  //   initialMailIdSet,
-  //   setSenderEmail,
-  //   setConversationId,
-  //   setRecipientEmail,
-  //   setLeads,
-  // ]);
+      // Fetch lead info for the first mail
+      if (initialMail.recipient) {
+        axiosInstance
+          .get(`v2/lead/info/${initialMail.recipient}`)
+          .then((response) => {
+            setLeads([response.data]);
+          })
+          .catch((error) => {
+            console.error('Error fetching lead data:', error);
+          });
+      }
+    }
+  }, [mails, initialMailIdSet, setSenderEmail, setConversationId, setRecipientEmail, setLeads]);
 
   const updateMailStatus = React.useCallback(
     (mailId: string, status: string) => {
@@ -449,9 +468,19 @@ export function Mail({
       setCampaign(newCampaign);
       setPage(1);
       setMails([]);
+
+      // Update URL with new campaign ID
+      const params = new URLSearchParams(searchParams.toString());
+      if (newCampaign) {
+        params.set('campaign_id', newCampaign.campaignId);
+      } else {
+        params.delete('campaign_id');
+      }
+      router.push(`/mail?${params.toString()}`);
+
       fetchConversations(newCampaign?.campaignId, 1, searchTerm, filter);
     },
-    [searchTerm, filter, fetchConversations]
+    [searchTerm, filter, fetchConversations, router, searchParams]
   );
 
   const handleFilterChange = React.useCallback(
@@ -486,6 +515,11 @@ export function Mail({
     handleFilterChange(value);
     setPage(1);
     setMails([]);
+
+    // Update URL with new filter
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('_filter', value.toUpperCase());
+    router.push(`/mail?${params.toString()}`);
   };
 
   const handleDeleteMail = React.useCallback(

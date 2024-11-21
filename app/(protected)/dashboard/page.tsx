@@ -27,6 +27,7 @@ import { useMailGraphContext } from "@/context/chart-data-provider";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
 import type { Campaign, DashboardData } from "@/types/dashboard";
+import { useRouter } from "next/navigation";
 
 
 interface TopPerformingCampaignsTableProps {
@@ -96,39 +97,103 @@ const LinkedinCampaignsTable = memo(({ campaigns, isLoading }: any) => {
 LinkedinCampaignsTable.displayName = 'LinkedinCampaignsTable';
 
 const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformingCampaignsTableProps) => {
-  const renderCampaignRow = useCallback((campaign: Campaign) => (
-    <TableRow key={campaign.campaign_name}>
-      <TableCell>{campaign.campaign_name}</TableCell>
-      <TableCell className="hidden sm:table-cell text-center">
-        {Math.round(campaign.engaged_leads)}
+  const router = useRouter();
+
+  const handleRowClick = useCallback((campaign: any, columnName: string) => {
+    const filterMap: { [key: string]: string } = {
+      'campaign_name': 'ALL',
+      'sent_count': 'SENT',
+      'delivered_count': 'DELIVERED',
+      'open_count': 'OPENED',
+      'clicked_count': 'CLICKED',
+      'responded': 'REPLIED',
+      'spam_count': 'SPAMMED',
+      'bounced_count': 'BOUNCED'
+    };
+
+    const filter = filterMap[columnName];
+    if (!filter) return;
+
+    const queryParams = new URLSearchParams({
+      campaign_id: campaign.campaign_id,
+      _filter: filter
+    });
+
+    // Navigate to the mail page with the filters
+    router.push(`/mail?${queryParams.toString()}`);
+  }, [router]);
+
+  const renderCampaignRow = useCallback((campaign: any) => (
+    <TableRow key={campaign.campaign_id}>
+      <TableCell 
+        className="cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'campaign_name')}
+      >
+        {campaign.campaign_name}
       </TableCell>
-      <TableCell className="hidden sm:table-cell text-center">
-        {Math.round(campaign.response_rate)}
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'sent_count')}
+      >
+        {campaign.sent_count}
       </TableCell>
-      <TableCell className="text-center">
-        {campaign.bounce_rate === null ? "0%" : `${Math.round(campaign.bounce_rate)}%`}
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'delivered_count')}
+      >
+        {campaign.delivered_count}
       </TableCell>
-      <TableCell className="text-center">
-        {campaign.open_rate === null ? "0%" : `${Math.round(campaign.open_rate)}%`}
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'open_count')}
+      >
+        {campaign.open_count}
+      </TableCell>
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'clicked_count')}
+      >
+        {campaign.clicked_count}
+      </TableCell>
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'responded')}
+      >
+        {campaign.responded}
+      </TableCell>
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'spam_count')}
+      >
+        {campaign.spam_count}
+      </TableCell>
+      <TableCell 
+        className="text-center cursor-pointer "
+        onClick={() => handleRowClick(campaign, 'bounced_count')}
+      >
+        {campaign.bounced_count}
       </TableCell>
     </TableRow>
-  ), []);
+  ), [handleRowClick]);
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Campaign Name</TableHead>
-          <TableHead className="hidden sm:table-cell text-center">Engaged Leads</TableHead>
-          <TableHead className="hidden sm:table-cell text-center">Response Rate</TableHead>
-          <TableHead className="text-center">Bounce Rate</TableHead>
-          <TableHead className="text-center">Open Rate</TableHead>
+          <TableHead className="text-center">Sent</TableHead>
+          <TableHead className="text-center">Delivered</TableHead>
+          <TableHead className="text-center">Opened</TableHead>
+          <TableHead className="text-center">Clicked</TableHead>
+          <TableHead className="text-center">Responded</TableHead>
+          <TableHead className="text-center">Spam</TableHead>
+          <TableHead className="text-center">Bounced</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {isLoading ? (
           <TableRow>
-            <TableCell colSpan={5} className="text-center">
+            <TableCell colSpan={8} className="text-center">
               <LoadingCircle />
             </TableCell>
           </TableRow>
@@ -206,7 +271,7 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mt-4 h-full">
+    <div className="grid gap-4 grid-cols-2 mt-4 h-full">
       {metrics.map((metric) => (
         <Card key={metric.title} className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
@@ -228,7 +293,7 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const { dashboardData, isLoading } = useDashboardContext();
+  const { dashboardData, isLoading, analyticsData } = useDashboardContext();
   const { mailGraphData, contactsData } = useMailGraphContext();
 
   const recentActivities: any[] = [];
@@ -266,7 +331,7 @@ export default function Page() {
       <ScrollArea className="h-full scroll-my-36">
         <div className="flex-1 space-y-4">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <div className="flex flex-col col-span-3">
+            <div className="flex flex-col col-span-2">
               <Card className="">
                 <CardContent className="flex items-center gap-5 pt-6 ">
                   <div className="flex items-center gap-2 ">
@@ -282,7 +347,7 @@ export default function Page() {
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
-            <Card className="col-span-3">
+            <Card className="col-span-4">
               <ScrollArea className="lg:h-72 md:h-[28rem]">
                 <CardHeader>
                   <CardTitle>Top Performing Campaigns</CardTitle>
@@ -290,7 +355,22 @@ export default function Page() {
                 <CardContent>
                   <div className="relative">
                     <TopPerformingCampaignsTable
-                      campaigns={dashboardData?.top_performing_campaigns}
+                      campaigns={analyticsData?.map(campaign => ({
+                        campaign_id: campaign.campaign_id,
+                        sent_count: campaign.sent_count,
+                        delivered_count: campaign.delivered_count,
+                        clicked_count: campaign.clicked_count,
+                        spam_count: campaign.spam_count,
+                        bounced_count: campaign.bounced_count,
+                        user_id: campaign.user_id,
+                        open_count: campaign.open_count,
+                        campaign_name: campaign.campaign_name,
+                        responded: campaign.responded,
+                        engaged_leads: 0,
+                        response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                        bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                        open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100
+                      }))}
                       isLoading={isLoading}
                     />
                   </div>

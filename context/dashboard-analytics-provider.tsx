@@ -38,8 +38,22 @@ type EmailStats = {
   positive_email_rate: number;
 };
 
+type AnalyticsData = {
+  campaign_id: string;
+  delivered_count: number;
+  clicked_count: number;
+  spam_count: number;
+  bounced_count: number;
+  user_id: string;
+  open_count: number;
+  campaign_name: string;
+  responded: number;
+  sent_count: number;
+}[];
+
 interface DashboardContextType {
   dashboardData: DashboardData;
+  analyticsData: AnalyticsData;
   isLoading: boolean;
   setDashboardData: (dashboardData: DashboardData) => void;
 }
@@ -82,6 +96,7 @@ const defaultDashboardState: DashboardContextType = {
       },
     ],
   },
+  analyticsData: [],
   isLoading: true,
   setDashboardData: () => { },
 };
@@ -103,7 +118,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   );
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState("");
-
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>([]);
   const fetchDashboardData = async (userId: string, retryCount = 0): Promise<void> => {
     try {
       const response = await axiosInstance.get<DashboardData>(`v2/dashboard/${userId}`);
@@ -137,10 +152,30 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     }
   };
 
+  const fetchAnalyticsData = async (userId: string, retryCount = 0): Promise<void> => {
+    try {
+      const response = await axiosInstance.get<AnalyticsData>(`v2/campaign/analytics/${userId}`);
+      if (response.data) {
+        setAnalyticsData(response.data);
+        console.log("Analytics Data:", response.data);
+      }
+    } catch (error: any) {
+      if (error.response?.status === 404 || error.response?.status === 500 && retryCount < 3) {
+        console.log(`Retry attempt ${retryCount + 1} for analytics data`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchAnalyticsData(userId, retryCount + 1);
+      }
+      console.error("Error fetching analytics data:", error);
+    }
+  };
+
   React.useEffect(() => {
     if (user?.id) {
       setIsLoading(true);
-      fetchDashboardData(user.id);
+      Promise.all([
+        fetchDashboardData(user.id),
+        fetchAnalyticsData(user.id)
+      ]).finally(() => setIsLoading(false));
     } else {
       console.warn("No user ID found");
       setIsLoading(false);
@@ -150,10 +185,11 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const contextValue = useMemo(
     () => ({
       dashboardData,
+      analyticsData,
       isLoading,
       setDashboardData,
     }),
-    [dashboardData, isLoading]
+    [dashboardData, analyticsData, isLoading]
   );
 
   return (

@@ -125,53 +125,69 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
 
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign.campaign_id}>
-      <TableCell 
-        className="cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'campaign_name')}
-      >
-        {campaign.campaign_name}
+      <TableCell>
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'campaign_name')}
+        >
+          {campaign.campaign_name}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'sent_count')}
-      >
-        {campaign.sent_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'sent_count')}
+        >
+          {campaign.sent_count}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'delivered_count')}
-      >
-        {campaign.delivered_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'delivered_count')}
+        >
+          {campaign.delivered_count}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'open_count')}
-      >
-        {campaign.open_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'open_count')}
+        >
+          {campaign.open_count}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'clicked_count')}
-      >
-        {campaign.clicked_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'clicked_count')}
+        >
+          {campaign.clicked_count}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'responded')}
-      >
-        {campaign.responded}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'responded')}
+        >
+          {campaign.responded}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'spam_count')}
-      >
-        {campaign.spam_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'spam_count')}
+        >
+          {campaign.spam_count}
+        </span>
       </TableCell>
-      <TableCell 
-        className="text-center cursor-pointer "
-        onClick={() => handleRowClick(campaign, 'bounced_count')}
-      >
-        {campaign.bounced_count}
+      <TableCell className="text-center">
+        <span 
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'bounced_count')}
+        >
+          {campaign.bounced_count}
+        </span>
       </TableCell>
     </TableRow>
   ), [handleRowClick]);

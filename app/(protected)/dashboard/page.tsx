@@ -189,6 +189,11 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
           {campaign.bounced_count}
         </span>
       </TableCell>
+      <TableCell className="text-center">
+        
+          {campaign.total_leads}
+        
+      </TableCell>
     </TableRow>
   ), [handleRowClick]);
 
@@ -204,6 +209,8 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
           <TableHead className="text-center">Responded</TableHead>
           <TableHead className="text-center">Spam</TableHead>
           <TableHead className="text-center">Bounced</TableHead>
+          <TableHead className="text-center">Total Leads</TableHead>
+
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -277,8 +284,8 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
       value: dashboardData?.engaged ?? 0
     },
     {
-      title: "Total Meetings Booked",
-      value: dashboardData?.meetings_booked ?? 0
+      title: "Number of people reached out",
+      value: dashboardData?.total_leads ?? 0
     },
     {
       title: "Response Rate",
@@ -385,7 +392,8 @@ export default function Page() {
                         engaged_leads: 0,
                         response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
                         bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100
+                        open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                        total_leads: campaign.total_leads
                       }))}
                       isLoading={isLoading}
                     />

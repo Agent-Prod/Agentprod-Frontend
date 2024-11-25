@@ -31,6 +31,7 @@ export interface Campaign {
   response_rate: number;
   bounce_rate: number | null;
   open_rate: number | null;
+  total_leads: number;
 }
 
 export interface LinkedinData {
@@ -54,4 +55,5 @@ export interface DashboardData {
   top_performing_campaigns: Campaign[];
   email_stats: EmailStats;
   linkedin_data: LinkedinData[];
+  total_leads: number;
 }

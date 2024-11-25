@@ -49,6 +49,7 @@ type AnalyticsData = {
   campaign_name: string;
   responded: number;
   sent_count: number;
+  total_leads: number;
 }[];
 
 interface DashboardContextType {
@@ -62,6 +63,7 @@ const defaultDashboardState: DashboardContextType = {
   dashboardData: {
     id: 0,
     user_id: "",
+    total_leads: 0,
     pending_approvals: 0,
     emails_sent: null,
     engaged: null,

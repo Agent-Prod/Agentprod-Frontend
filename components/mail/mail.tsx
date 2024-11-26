@@ -219,6 +219,8 @@ export function Mail({
 
   const [isCampaignsLoading, setIsCampaignsLoading] = React.useState(false);
 
+  const [totalCount, setTotalCount] = React.useState(0);
+
   const fetchCampaigns = React.useCallback(async () => {
     setIsCampaignsLoading(true);
     try {
@@ -335,6 +337,7 @@ export function Mail({
         }
 
         const totalCount = response.data.total_count || 0;
+        setTotalCount(totalCount);
 
         const campaignChannelMap = campaigns.reduce(
           (map: { [key: string]: string }, campaign: any) => {
@@ -579,7 +582,7 @@ export function Mail({
             onValueChange={handleTabChange}
           >
             <div className="flex items-center px-4 pt-2 pb-0">
-              <h1 className="text-xl font-bold">Inbox</h1>
+              <h1 className="text-xl font-bold">Inbox ({totalCount})</h1>
               <TabsList className="ml-auto flex relative">
                 <TabsTrigger
                   value="all"

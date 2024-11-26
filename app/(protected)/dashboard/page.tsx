@@ -107,7 +107,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
       'open_count': 'OPENED',
       'clicked_count': 'CLICKED',
       'responded': 'REPLIED',
-      'spam_count': 'SPAMMED',
+      'spam_count': 'SPAM',
       'bounced_count': 'BOUNCED'
     };
 

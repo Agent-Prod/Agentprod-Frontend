@@ -653,7 +653,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           updateMailStatus(conversationId, "sent");
           setIsLoadingButton(false);
           setIsEditing(false);
-          setSelectedMailId(conversationId);
+          setSelectedMailId(conversationId); 
+          refreshThread();
         })
         .catch((error) => {
           console.error("Failed to send message:", error);
@@ -671,6 +672,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       title,
       updateMailStatus,
       user.id,
+      refreshThread, 
     ]);
 
     const handleRegenerateDraft = useCallback(() => {

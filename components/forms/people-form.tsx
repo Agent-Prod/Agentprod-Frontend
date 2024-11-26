@@ -1703,7 +1703,7 @@ export default function PeopleForm(): JSX.Element {
       text: option.name,
     }
 
-    if (!currentlyUsingTechnologiesTags.some((tag: any) => tag.id === option.id)) {
+    if (!currentlyUsingTechnologiesTags.some((tag: any) => tag.id === option.uid)) {
       setCurrentlyUsingTechnologiesTags((prevState) => [...prevState, technologyTag]);
       setValue("currently_using_technologies", [
         ...currentlyUsingTechnologiesTags,
@@ -1851,7 +1851,7 @@ export default function PeopleForm(): JSX.Element {
         person_titles: formData.person_titles?.map((tag: any) => tag.text),
         organization_latest_funding_stage_cd: checkedFields(checkedFundingRounds, false),
         search_signals: checkedFields(checkedSearchSignal, false),
-        currently_using_any_of_technology_uids: formData.currently_using_technologies?.map((tag: any) => tag.text.toLowerCase()),
+        currently_using_any_of_technology_uids: formData.currently_using_technologies?.map((tag: any) => tag.id),
         revenue_range: {
           min: formData.minimum_company_funding?.text?.toString(),
           max: formData.maximum_company_funding?.text?.toString()

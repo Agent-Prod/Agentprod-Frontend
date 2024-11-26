@@ -265,6 +265,17 @@ export default function CampaignPage() {
             </p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`h-3 w-3 rounded-full ${campaignItem?.is_active
+                ? 'bg-green-500  relative before:content-[""] before:absolute before:h-full before:w-full before:rounded-full before:bg-green-500/50 before:animate-ping'
+                : 'bg-red-500'
+              }`}
+          />
+          <span className="text-sm text-muted-foreground">
+            {campaignItem?.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
         <div className="space-y-2">
           <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
             {campaignItem?.schedule_type === "recurring"
@@ -363,11 +374,11 @@ export default function CampaignPage() {
             >
               <Icons.trash2 size={16} />
             </Button>
-            <Button variant={"ghost"}>
-              <Link href={`/campaign/${campaignItem.id}`}>
+            <Link href={`/campaign/${campaignItem.id}`}>
+              <Button variant={"ghost"}>
                 <Icons.pen size={16} />
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>

@@ -628,8 +628,8 @@ export function Mail({
                     <DropdownMenuItem onSelect={() => handleTabChange("BOUNCED")}>
                       Bounced
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("SPAMMED")}>
-                      Spammed
+                    <DropdownMenuItem onSelect={() => handleTabChange("SPAM")}>
+                      Spam
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
                       Delivered

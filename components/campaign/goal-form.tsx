@@ -258,12 +258,10 @@ export function GoalForm() {
         withdraw_invite: goalData.withdraw_invite,
       });
 
-      // Set LinkedIn IDs if they exist
       if (goalData.linkedin_accounts && Array.isArray(goalData.linkedin_accounts)) {
         setSelectedLinkedInId(goalData.linkedin_accounts);
       }
 
-      // Update form values
       form.reset({
         ...goalData,
         emails: goalData.emails.map((email) => ({ value: email })),
@@ -316,7 +314,6 @@ export function GoalForm() {
     }
   }, [params.campaignId]);
 
-  // Add this function to check if form is valid
   const isFormValid = () => {
     const values = form.getValues();
     const hasEmails = values.emails && values.emails.length > 0;
@@ -326,7 +323,6 @@ export function GoalForm() {
       values.follow_up_times !== undefined &&
       values.mark_as_lost !== undefined;
 
-    // Additional check for scheduling link when "Meeting scheduled" is selected
     if (values.success_metric === "Meeting scheduled") {
       return hasEmails && hasRequiredFields && values.scheduling_link;
     }
@@ -334,7 +330,6 @@ export function GoalForm() {
     return hasEmails && hasRequiredFields;
   };
 
-  // Add this function inside the GoalForm component, before the return statement
   const getDisplayText = () => {
     if (!emailFields || emailFields.length === 0) {
       return `Select ${campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}`;

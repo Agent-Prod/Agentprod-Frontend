@@ -223,7 +223,6 @@ export function OfferingForm() {
     form.setValue(fieldName, updatedValue, { shouldValidate: false });
   };
 
-  // Add this function to check form validity
   const isFormValid = () => {
     const values = form.getValues();
 

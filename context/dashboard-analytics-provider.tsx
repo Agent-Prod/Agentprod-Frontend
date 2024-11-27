@@ -57,6 +57,7 @@ interface DashboardContextType {
   analyticsData: AnalyticsData;
   isLoading: boolean;
   setDashboardData: (dashboardData: DashboardData) => void;
+  fetchDashboardDataIfNeeded: () => Promise<void>;
 }
 
 const defaultDashboardState: DashboardContextType = {
@@ -99,8 +100,9 @@ const defaultDashboardState: DashboardContextType = {
     ],
   },
   analyticsData: [],
-  isLoading: true,
+  isLoading: false,
   setDashboardData: () => { },
+  fetchDashboardDataIfNeeded: async () => { },
 };
 
 const DashboardContext = createContext<DashboardContextType>(
@@ -118,71 +120,35 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const [dashboardData, setDashboardData] = useState<DashboardData>(
     defaultDashboardState.dashboardData
   );
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>([]);
-  const fetchDashboardData = async (userId: string, retryCount = 0): Promise<void> => {
+  const [hasLoadedData, setHasLoadedData] = useState(false);
+
+  const fetchDashboardDataIfNeeded = async () => {
+    if (!user?.id || hasLoadedData) return;
+
+    setIsLoading(true);
     try {
-      const response = await axiosInstance.get<DashboardData>(`v2/dashboard/${userId}`);
-      if (response.data === null) {
-        // If response is null, retry up to 3 times with increasing delay
-        if (retryCount < 3) {
-          console.log(`Retry attempt ${retryCount + 1} for null response`);
-          // Exponential backoff delay: 1s, 2s, 4s
-          const delay = Math.pow(2, retryCount) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return fetchDashboardData(userId, retryCount + 1);
-        }
-        // If all retries fail, set default empty data
-        setDashboardData(defaultDashboardState.dashboardData);
-        console.warn("Received null response after retries");
-      } else {
-        setDashboardData(response.data);
-        console.log("Dashboard Data:", response.data);
+      const [dashboardResponse, analyticsResponse] = await Promise.all([
+        axiosInstance.get<DashboardData>(`v2/dashboard/${user.id}`),
+        axiosInstance.get<AnalyticsData>(`v2/campaign/analytics/${user.id}`)
+      ]);
+
+      if (dashboardResponse.data) {
+        setDashboardData(dashboardResponse.data);
       }
-      setIsLoading(false);
+      if (analyticsResponse.data) {
+        setAnalyticsData(analyticsResponse.data);
+      }
+      setHasLoadedData(true);
     } catch (error: any) {
-      if (error.response?.status === 404 || error.response?.status === 500 && retryCount < 3) {
-        console.log(`Retry attempt ${retryCount + 1} for 404 error`);
-        // Wait for 1 second before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return fetchDashboardData(userId, retryCount + 1);
-      }
-      console.error("Error fetching data:", error);
+      console.error("Error fetching dashboard data:", error);
       setError(error.message || "Failed to load data.");
+    } finally {
       setIsLoading(false);
     }
   };
-
-  const fetchAnalyticsData = async (userId: string, retryCount = 0): Promise<void> => {
-    try {
-      const response = await axiosInstance.get<AnalyticsData>(`v2/campaign/analytics/${userId}`);
-      if (response.data) {
-        setAnalyticsData(response.data);
-        console.log("Analytics Data:", response.data);
-      }
-    } catch (error: any) {
-      if (error.response?.status === 404 || error.response?.status === 500 && retryCount < 3) {
-        console.log(`Retry attempt ${retryCount + 1} for analytics data`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return fetchAnalyticsData(userId, retryCount + 1);
-      }
-      console.error("Error fetching analytics data:", error);
-    }
-  };
-
-  React.useEffect(() => {
-    if (user?.id) {
-      setIsLoading(true);
-      Promise.all([
-        fetchDashboardData(user.id),
-        fetchAnalyticsData(user.id)
-      ]).finally(() => setIsLoading(false));
-    } else {
-      console.warn("No user ID found");
-      setIsLoading(false);
-    }
-  }, [user]);
 
   const contextValue = useMemo(
     () => ({
@@ -190,8 +156,9 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
       analyticsData,
       isLoading,
       setDashboardData,
+      fetchDashboardDataIfNeeded,
     }),
-    [dashboardData, analyticsData, isLoading]
+    [dashboardData, analyticsData, isLoading, hasLoadedData]
   );
 
   return (

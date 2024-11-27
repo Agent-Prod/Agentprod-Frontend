@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
@@ -12,25 +13,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tag, TagInput, Tag as type } from "@/components/ui/tag/tag-input";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, SetStateAction } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { toast } from "sonner";
 import { Contact, Lead, useLeads } from "@/context/lead-user";
 import { LoadingCircle } from "@/app/icons";
-import { AudienceTableClient } from "../tables/audience-table/client";
 import { v4 as uuid } from "uuid";
 import { orgLocations, jobTitles, seniorities, InputType, companyDomains, technologies } from "./formUtils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,11 +40,24 @@ import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { headers } from "next/headers";
 import { Loader2 } from "lucide-react"
-import ApifyAccountManager from "@/utils/apify-account-manager";
+import { FormDropdown } from "./utils/dropdown";
 
-
+enum DropdownSection {
+  CurrentEmployment = 'currentEmployment',
+  RevenueFunding = 'revenueFunding',
+  CompanyFunding = 'companyFunding',
+  OrgLocations = 'orgLocations',
+  Funding = 'funding',
+  Headcount = 'headcount',
+  JobPostings = 'jobPostings',
+  CompanyDomains = 'companyDomains',
+  Industry = 'industry',
+  Company = 'company',
+  SearchSignals = 'searchSignals',
+  Technologies = 'technologies',
+  BuyingIntent = 'buyingIntent'
+}
 
 const FormSchema = z.object({
   q_organization_domains: z
@@ -79,7 +86,7 @@ const FormSchema = z.object({
       id: z.string(),
       text: z.string(),
     })
-  ),
+  ).optional(),
   email_status: z
     .array(
       z.object({
@@ -183,22 +190,14 @@ export default function PeopleForm(): JSX.Element {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
-  const [editFilters, setEditFilters] = React.useState<any>(null);
-
   const { leads, setLeads } = useLeads();
   const { isSubscribed } = useSubscription();
-  const [existLead, setExistLead] = useState([]);
   const [tab, setTab] = useState("tab1");
   const [isTableLoading, setIsTableLoading] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  //   const [tags, setTags] = React.useState<Tag[]>([]);
   const [organizationLocationsTags, setOrganizationLocationsTags] =
     React.useState<Tag[]>([]);
-
-  const [personSenioritiesTags, setPersonSenioritiesTags] = React.useState<
-    Tag[]
-  >([]);
 
   const [qOrganizationDomainsTags, setQOrganizationDomainsTags] =
     React.useState<Tag[]>([]);
@@ -237,10 +236,6 @@ export default function PeopleForm(): JSX.Element {
   const [filteredKeywords, setFilteredKeywords] = useState(keywords);
   const [keywordSearchTerm, setKeywordSearchTerm] = useState("");
 
-  const [jobLocationTags, setJobLocationTags] = React.useState<Tag[]>([]);
-
-  const [jobOfferingTags, setJobOfferingTags] = React.useState<Tag[]>([]);
-
   const [organizationKeywordTags, setOrganizationKeywordTags] = React.useState<
     Tag[]
   >([]);
@@ -254,7 +249,6 @@ export default function PeopleForm(): JSX.Element {
   const [technologiesDropdownIsOpen, setTechnologiesDropdownIsOpen] = useState(false);
   const technologyDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [likelyToEngage, setLikelyToEngage] = useState(true)
   const [error, setError] = React.useState<string | null>(null);
   const [apolloUrl, setApolloUrl] = useState("");
@@ -292,12 +286,7 @@ export default function PeopleForm(): JSX.Element {
     text: string;
   }
 
-  // Assuming prevInputValues is a useRef with the initial structure
   const prevInputValues = React.useRef<any>();
-
-  // const email_status = React.useRef<{ text: string }>({
-  //   text: "",
-  // });
 
   const [allFilters, setAllFilters] = React.useState<any>();
 
@@ -330,6 +319,7 @@ export default function PeopleForm(): JSX.Element {
   const [selectionType, setSelectionType] = useState('list');
   const [linkedinSelectionType, setLinkedinSelectionType] = useState('');
 
+  const [openDropdown, setOpenDropdown] = useState<DropdownSection | null>(null);
 
   useEffect(() => {
     const callApi = async () => {
@@ -339,15 +329,10 @@ export default function PeopleForm(): JSX.Element {
     callApi();
   }, []);
 
-  const handleSelectionTypeChange = (value: any) => {
+  const handleSelectionTypeChange = (value: string) => {
     setSelectionType(value);
-    if (value === 'list') {
-      setQOrganizationDomainsTags([]);
-      setValue('q_organization_domains', [])
-    } else {
-      setQOrganizationDomainsTags([]);
-      setValue('q_organization_domains', []);
-    }
+    setQOrganizationDomainsTags([]);
+    setValue("q_organization_domains", []);
   };
 
   const handleCompanyDomainDropdownSelect = (company: any) => {
@@ -393,25 +378,6 @@ export default function PeopleForm(): JSX.Element {
     setJobTitleDropdownIsOpen(isOpen);
   };
 
-  const handleJobTitleDropdownSelect = (title: string) => {
-    const newTag: Tag = {
-      text: title,
-      id: title,
-    };
-
-    if (
-      !personTitlesTags.some(
-        (tag) => tag.text.toLowerCase() === title.toLowerCase()
-      )
-    ) {
-      const updatedTags = [...personTitlesTags, newTag];
-      setPersonTitlesTags(updatedTags);
-      setValue("person_titles", updatedTags as [Tag, ...Tag[]]);
-    }
-    setJobTitleSearchTerm("");
-    setJobTitleDropdownIsOpen(false);
-  };
-
   useEffect(() => {
     const filtered = jobTitles.filter((title) =>
       title.toLowerCase().includes(jobTitleSearchTerm.toLowerCase())
@@ -452,7 +418,9 @@ export default function PeopleForm(): JSX.Element {
       setValue("organization_locations", [
         ...organizationLocationsTags,
         locationTag,
-      ] as any);
+      ] as any, {
+        shouldValidate: true
+      });
     }
     setLocationSearchTerm("");
     setLocationDropdownIsOpen(false);
@@ -495,8 +463,6 @@ export default function PeopleForm(): JSX.Element {
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
-            // setGoalData(data);
-            // setAllFiltersFromDB(data.filters_applied);
             console.log("data ==>", data);
             setType("edit");
             try {
@@ -506,7 +472,6 @@ export default function PeopleForm(): JSX.Element {
                 audienceFilters.filters_applied
               );
               setAllFiltersFromDB(audienceFilters.filters_applied);
-              setEditFilters(audienceFilters.filters_applied);
               setAudienceId(audienceFilters.id);
               populateFormWithExistingFilters(audienceFilters.filters_applied);
             } catch (error) {
@@ -523,15 +488,11 @@ export default function PeopleForm(): JSX.Element {
     fetchCampaign();
   }, [params.campaignId]);
 
-  // React.useEffect(() => {
-  //   console.log("current form values", form.getValues());
-  // }, [form]);
 
   const onTabChange = async (value: any) => {
     if (isSubmitting) {
-      return; // Don't allow tab changes while submitting
+      return;
     }
-    //TODO: only change the value if form is correct
     if (value === "tab1") {
       setTab(value);
     } else {
@@ -571,13 +532,13 @@ export default function PeopleForm(): JSX.Element {
       "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&sortByField=account_owner_id&sortAscending=true";
 
     // Add likely_to_engage only when checkbox is checked
-    if(linkedinSelectionType !== "Linkedin"){
-    if (likelyToEngage) {
-      url += "&contactEmailStatusV2[]=likely_to_engage";
-    }else{
-      url += "&contactEmailStatusV2[]=verified"
+    if (linkedinSelectionType !== "Linkedin") {
+      if (likelyToEngage) {
+        url += "&contactEmailStatusV2[]=likely_to_engage";
+      } else {
+        url += "&contactEmailStatusV2[]=verified"
+      }
     }
-  }
 
     if (
       formData.organization_locations &&
@@ -739,7 +700,6 @@ export default function PeopleForm(): JSX.Element {
     return url;
   };
 
-  // Inside your component or a useEffect hook:
   useEffect(() => {
     const formData = form.getValues();
     const newApolloUrl = constructApolloUrl(formData);
@@ -795,10 +755,6 @@ export default function PeopleForm(): JSX.Element {
     let shouldCallAPI = false;
 
     if (!prevInputValues.current) shouldCallAPI = true;
-
-    // Construct the Apollo.io URL based on the selected filters
-
-    // Add more filter conditions here as needed
 
     let pages = 1;
     if (formData.per_page) {
@@ -892,7 +848,6 @@ export default function PeopleForm(): JSX.Element {
     const existingLeadsResponse = await axiosInstance.get(
       `v2/leads/${user?.id}`
     );
-    setExistLead(existingLeadsResponse.data);
     console.log("Existing leads:", existingLeadsResponse.data);
     if (existingLeadsResponse.data === null) {
       shouldCallAPI = true;
@@ -1051,11 +1006,9 @@ export default function PeopleForm(): JSX.Element {
     technologies: false,
     buyingIntent: false,
   });
-  const toggleDropdown = (id: string) => {
-    setDropdownsOpen((prev) => ({
-      ...prev,
-      [id]: !prev[id as keyof typeof prev],
-    }));
+
+  const toggleDropdown = (section: DropdownSection) => {
+    setOpenDropdown(openDropdown === section ? null : section);
   };
 
   const min = 0;
@@ -1144,11 +1097,6 @@ export default function PeopleForm(): JSX.Element {
     { id: "48b1feaa8b0d1805a23f59f268fc7c91", name: "Shopify", checked: false }
   ];
 
-
-  // const [loading, setLoading] = React.useState(true);
-
-  // console.log("leadsssssss", leads);
-
   function mapLeadsToBodies(leads: Lead[], campaignId: string): Contact[] {
     return leads.map((lead) => ({
       id: lead.id,
@@ -1221,9 +1169,9 @@ export default function PeopleForm(): JSX.Element {
       toast.success("Audience created successfully");
 
       if (type === "create") {
-        
+
         const formData = form.getValues();
-        const linkedinCheck =  linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
+        const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
         const postBody = {
           campaign_id: params.campaignId,
           audience_type: "prospective",
@@ -1564,7 +1512,6 @@ export default function PeopleForm(): JSX.Element {
 
       // Job Titles (if used for technology)
       if (allFiltersFromDB.q_organization_job_titles) {
-        setJobOfferingTags(allFiltersFromDB.q_organization_job_titles);
         setValue(
           "q_organization_job_titles",
           allFiltersFromDB.q_organization_job_titles
@@ -1573,7 +1520,6 @@ export default function PeopleForm(): JSX.Element {
 
       // Job Locations
       if (allFiltersFromDB.organization_job_locations) {
-        setJobLocationTags(allFiltersFromDB.organization_job_locations);
         setValue(
           "organization_job_locations",
           allFiltersFromDB.organization_job_locations
@@ -1600,14 +1546,6 @@ export default function PeopleForm(): JSX.Element {
     setIsTableLoading(true);
 
     try {
-      // Update audience filters
-
-
-
-      // Update audience filters
-      // await axiosInstance.put(`v2/audience/${audienceId}`, filtersPostBody);
-
-      // Update contacts
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
       await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
@@ -1677,8 +1615,7 @@ export default function PeopleForm(): JSX.Element {
     };
 
     if (
-      !organizationKeywordTags.some((tag: any) => tag.value === option.value)
-    ) {
+      !organizationKeywordTags.some((tag: any) => tag.value === option.value)) {
       setOrganizationKeywordTags((prevState) => [...prevState, keywordTag]);
       setValue("organization_industry_tag_ids", [
         ...organizationKeywordTags,
@@ -1833,7 +1770,7 @@ export default function PeopleForm(): JSX.Element {
     setIsLoadingTotalLeads(true);
     try {
       const formData = form.getValues();
-      const linkedinCheck =  linkedinSelectionType === "Linkedin" ? [] : [ ...(likelyToEngage ? ["likely_to_engage"] : ["verified"])];
+      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : [...(likelyToEngage ? ["likely_to_engage"] : ["verified"])];
 
       const requestBody = {
         page: 1,
@@ -1841,7 +1778,6 @@ export default function PeopleForm(): JSX.Element {
         organization_num_employees_ranges: checkedCompanyHeadcount?.length
           ? checkedFields(checkedCompanyHeadcount, true)
           : undefined,
-
         person_locations: formData.organization_locations?.map((tag: any) => tag.text),
         organization_industry_tag_ids: formData.organization_industry_tag_ids?.map((tag: any) => tag.value),
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
@@ -1889,6 +1825,21 @@ export default function PeopleForm(): JSX.Element {
     }
   };
 
+  useEffect(() => {
+    console.log("Form values changed:", form.getValues());
+  }, [form.getValues()]);
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      console.log('Form value changed:', name, value);
+      if (name === "q_organization_domains" || name === "q_organization_keyword_tags") {
+        form.trigger(name); // Trigger validation for the changed field
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   return (
     <Form {...form}>
       <form
@@ -1913,33 +1864,18 @@ export default function PeopleForm(): JSX.Element {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="tab1">
-            <div className="flex align-top w-full gap-x-4 justify-between">
-              <div className="w-1/2 flex flex-col gap-2">
-                <div className="mb-2">Role and personal</div>
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("currentEmployment")}
+          <TabsContent value="tab1" className="space-y-6">
+            <div className="flex align-top w-full gap-x-6 justify-between">
+              <div className="w-1/2 flex flex-col gap-4">
+                <div className="text-lg font-medium mb-2">Role and Personal</div>
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.CurrentEmployment}
+                    title="Current Employment"
+                    isOpen={openDropdown === DropdownSection.CurrentEmployment}
+                    onToggle={toggleDropdown}
                   >
-                    <div className="text-sm">Current Employment</div>
-                    {dropdownsOpen.currentEmployment ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.currentEmployment ? "block" : "hidden"
-                      }`}
-                  >
-                    <div
-                      className={`${dropdownsOpen.currentEmployment ? "block" : "hidden"
-                        } relative`}
-                    >
+                    <div className="relative">
                       <FormField
                         control={form.control}
                         name="person_titles"
@@ -1972,262 +1908,146 @@ export default function PeopleForm(): JSX.Element {
                           </FormItem>
                         )}
                       />
-                      {/* <div className="absolute inline-block text-left -my-4">
-                        {jobTitleDropdownIsOpen && (
-                          <ScrollArea
-                            className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
-                            style={{
-                              height:
-                                filteredJobTitles.length > 0
-                                  ? `${Math.min(
-                                    filteredJobTitles.length * 40,
-                                    200
-                                  )}px`
-                                  : "auto",
-                            }}
-                          >
-                            <div
-                              className="py-1"
-                              role="menu"
-                              aria-orientation="vertical"
-                              aria-labelledby="options-menu"
-                              onClick={() => toggleJobTitleDropdown(false)}
-                              ref={jobTitleDropdownRef}
-                            >
-                              {filteredJobTitles.length > 0 ? (
-                                filteredJobTitles.map((title) => (
-                                  <button
-                                    key={title}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handleJobTitleDropdownSelect(title);
-                                      setJobTitleSearchTerm("");
-                                    }}
-                                    className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
-                                  >
-                                    {title
-                                      .split(" ")
-                                      .map(
-                                        (word) =>
-                                          word.charAt(0).toUpperCase() +
-                                          word.slice(1).toLowerCase()
-                                      )
-                                      .join(" ")}
-                                  </button>
-                                ))
-                              ) : (
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    if (jobTitleSearchTerm.trim()) {
-                                      handleJobTitleDropdownSelect(
-                                        jobTitleSearchTerm.trim()
-                                      );
-                                      setJobTitleSearchTerm("");
-                                    }
-                                  }}
-                                  className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
-                                >
-                                  {jobTitleSearchTerm
-                                    .split(" ")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1).toLowerCase()
-                                    )
-                                    .join(" ")}
-                                </button>
-                              )}
-                            </div>
-                          </ScrollArea>
-                        )}
-                      </div> */}
                     </div>
-                    {/* <FormField
+                  </FormDropdown>
+                </div>
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.Headcount}
+                    title="Company Headcount"
+                    isOpen={openDropdown === DropdownSection.Headcount}
+                    onToggle={toggleDropdown}
+                  >
+                    <FormField
                       control={form.control}
-                      name="person_seniorities"
+                      name="company_headcount"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col items-start py-4 w-8/12">
-                          <FormLabel className="text-left">
-                            Management Positions
-                          </FormLabel>
+                        <FormItem className="flex flex-col items-start">
                           <FormControl>
-                            <TagInput
-                              {...field}
-                              dropdown={true}
-                              dropdownPlaceholder="Add management positions"
-                              dropdownOptions={seniorities}
-                              tags={personSenioritiesTags}
-                              variant={"base"}
-                              className="sm:min-w-[450px] bg-white/90 text-black"
-                              setTags={(newTags) => {
-                                setPersonSenioritiesTags(newTags);
-                                setValue(
-                                  "person_seniorities",
-                                  newTags as [Tag, ...Tag[]]
-                                );
-                              }}
-                            />
+                            <div className={`${openDropdown === DropdownSection.Headcount ? "block" : "hidden"}`}>
+                              {companyHeadcountOptions.map((headcountOption, index) => (
+                                <div className="text-sm flex items-center mb-3" key={index}>
+                                  <Checkbox
+                                    className="mr-2"
+                                    checked={checkedCompanyHeadcount?.includes(headcountOption.value)}
+                                    onCheckedChange={(checked) => {
+                                      const isChecked = checked.valueOf();
+                                      const value = headcountOption.value;
+
+                                      const newCheckedValues = isChecked
+                                        ? [...(checkedCompanyHeadcount || []), value]
+                                        : (checkedCompanyHeadcount || []).filter(item => item !== value);
+
+                                      setCheckedCompanyHeadcount(newCheckedValues);
+                                      field.onChange(newCheckedValues);
+                                    }}
+                                    value={headcountOption.value}
+                                  />
+                                  {headcountOption.name}
+                                </div>
+                              ))}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
-                    /> */}
-                  </div>
+                    />
+                  </FormDropdown>
                 </div>
-                <div className="bg-muted px-2 rounded">
-                  <FormField
-                    control={form.control}
-                    name="company_headcount"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col items-start">
-                        <FormLabel
-                          className="flex justify-between font-normal w-full py-3 cursor-pointer items-center text-left"
-                          onClick={() => toggleDropdown("headcount")}
-                        >
-                          <div>Company Headcount</div>
-                          {dropdownsOpen.headcount ? (
-                            <ChevronUp color="#000000" />
-                          ) : (
-                            <ChevronUp
-                              color="#000000"
-                              className="transition-transform duration-200 transform rotate-180"
-                            />
-                          )}
-                        </FormLabel>
-                        <FormControl>
-                          <div className={`${dropdownsOpen.headcount ? "block" : "hidden"}`}>
-                            {companyHeadcountOptions.map((headcountOption, index) => (
-                              <div className="text-sm flex items-center mb-3" key={index}>
-                                <Checkbox
-                                  className="mr-2"
-                                  checked={checkedCompanyHeadcount?.includes(headcountOption.value)}
-                                  onCheckedChange={(checked) => {
-                                    const isChecked = checked.valueOf();
-                                    const value = headcountOption.value;
-
-                                    const newCheckedValues = isChecked
-                                      ? [...(checkedCompanyHeadcount || []), value]
-                                      : (checkedCompanyHeadcount || []).filter(item => item !== value);
-
-                                    setCheckedCompanyHeadcount(newCheckedValues);
-                                    field.onChange(newCheckedValues);
-                                  }}
-                                  value={headcountOption.value}
-                                />
-                                {headcountOption.name}
-                              </div>
-                            ))}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="bg-muted px-2 rounded">
-                  <FormField
-                    control={form.control}
-                    name="organization_locations"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col items-start">
-                        <FormLabel
-                          className="w-full font-normal flex justify-between cursor-pointer py-3 "
-                          onClick={() => toggleDropdown("orgLocations")}
-                        >
-                          <div>Company Locations</div>
-                          {dropdownsOpen.orgLocations ? (
-                            <ChevronUp color="#000000" />
-                          ) : (
-                            <ChevronUp
-                              color="#000000"
-                              className="transition-transform duration-200 transform rotate-180"
-                            />
-                          )}
-                        </FormLabel>
-                        <FormControl>
-                          <div
-                            className={`${dropdownsOpen.orgLocations ? "block" : "hidden"
-                              } relative`}
-                          >
-                            <TagInput
-                              {...field}
-                              tags={organizationLocationsTags}
-                              placeholder="Enter a location"
-                              variant="base"
-                              onFocus={() => toggleLocationDropdown(true)}
-                              className="sm:min-w-[400px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags) => {
-                                setOrganizationLocationsTags(newTags);
-                                setValue(
-                                  "organization_locations",
-                                  newTags as [Tag, ...Tag[]]
-                                );
-                              }}
-                              onInputChange={(value) => setLocationSearchTerm(value)}
-                            />
-                            <div className="absolute inline-block text-left ">
-                              {locationDropdownIsOpen && (
-                                <ScrollArea
-                                  className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
-                                  style={{
-                                    height:
-                                      filteredLocations.length > 0
-                                        ? `${Math.min(
-                                          filteredLocations.length * 40,
-                                          200
-                                        )}px`
-                                        : "auto",
-                                  }}
-                                >
-                                  <div
-                                    className="py-1"
-                                    role="menu"
-                                    aria-orientation="vertical"
-                                    aria-labelledby="options-menu"
-                                    onClick={() => toggleLocationDropdown(false)}
-                                    ref={locationDropdownRef}
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.OrgLocations}
+                    title="Company Locations"
+                    isOpen={openDropdown === DropdownSection.OrgLocations}
+                    onToggle={toggleDropdown}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="organization_locations"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col items-start">
+                          <FormControl>
+                            <div className={`${openDropdown === DropdownSection.OrgLocations ? "block" : "hidden"} relative`}>
+                              <TagInput
+                                {...field}
+                                tags={organizationLocationsTags}
+                                placeholder="Enter a location"
+                                variant="base"
+                                onFocus={() => toggleLocationDropdown(true)}
+                                className="sm:min-w-[400px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags) => {
+                                  setOrganizationLocationsTags(newTags);
+                                  setValue(
+                                    "organization_locations",
+                                    newTags as [Tag, ...Tag[]],
+                                    { shouldValidate: true }
+                                  );
+                                }}
+                                onInputChange={(value) => setLocationSearchTerm(value)}
+                              />
+                              <div className="absolute inline-block text-left ">
+                                {locationDropdownIsOpen && (
+                                  <ScrollArea
+                                    className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                    style={{
+                                      height:
+                                        filteredLocations.length > 0
+                                          ? `${Math.min(
+                                            filteredLocations.length * 40,
+                                            200
+                                          )}px`
+                                          : "auto",
+                                    }}
                                   >
-                                    {filteredLocations.length > 0 ? (
-                                      filteredLocations.map((location) => (
+                                    <div
+                                      className="py-1"
+                                      role="menu"
+                                      aria-orientation="vertical"
+                                      aria-labelledby="options-menu"
+                                      onClick={() => toggleLocationDropdown(false)}
+                                      ref={locationDropdownRef}
+                                    >
+                                      {filteredLocations.length > 0 ? (
+                                        filteredLocations.map((location) => (
+                                          <button
+                                            key={location}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              handleLocationDropdownSelect(location);
+                                              setLocationSearchTerm("");
+                                            }}
+                                            className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
+                                          >
+                                            {location}
+                                          </button>
+                                        ))
+                                      ) : (
                                         <button
-                                          key={location}
                                           onClick={(e) => {
                                             e.preventDefault();
-                                            handleLocationDropdownSelect(location);
-                                            setLocationSearchTerm("");
+                                            if (locationSearchTerm.trim()) {
+                                              handleLocationDropdownSelect(
+                                                locationSearchTerm.trim()
+                                              );
+                                              setLocationSearchTerm("");
+                                            }
                                           }}
                                           className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
                                         >
-                                          {location}
+                                          {locationSearchTerm}
                                         </button>
-                                      ))
-                                    ) : (
-                                      <button
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          if (locationSearchTerm.trim()) {
-                                            handleLocationDropdownSelect(
-                                              locationSearchTerm.trim()
-                                            );
-                                            setLocationSearchTerm("");
-                                          }
-                                        }}
-                                        className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
-                                      >
-                                        {locationSearchTerm}
-                                      </button>
-                                    )}
-                                  </div>
-                                </ScrollArea>
-                              )}
+                                      )}
+                                    </div>
+                                  </ScrollArea>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </FormDropdown>
                 </div>
 
                 {linkedinSelectionType !== "Linkedin" && <div className="flex items-center space-x-2 mt-4">
@@ -2237,29 +2057,29 @@ export default function PeopleForm(): JSX.Element {
                     onCheckedChange={(checked) => {
                       const isChecked = checked as boolean;
                       setLikelyToEngage(isChecked);
-                      
+
                       // Update form data
                       const formData = form.getValues();
                       formData.contact_email_status_v2 = isChecked ? ["likely_to_engage"] : [];
                       form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
-                      
+
                       // Log the change
                       console.log("Likely to engage changed:", isChecked);
                       console.log("Updated form data:", formData);
                     }}
                   />
-                  <Label 
-                    htmlFor="likely-to-engage" 
+                  <Label
+                    htmlFor="likely-to-engage"
                     className="text-sm text-muted-foreground cursor-pointer"
                     onClick={() => {
                       const newValue = !likelyToEngage;
                       setLikelyToEngage(newValue);
-                      
+
                       // Update form data
                       const formData = form.getValues();
                       formData.contact_email_status_v2 = newValue ? ["likely_to_engage"] : [];
                       form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
-                      
+
                       // Log the change
                       console.log("Likely to engage changed:", newValue);
                       console.log("Updated form data:", formData);
@@ -2351,382 +2171,334 @@ export default function PeopleForm(): JSX.Element {
 
                 </div>
               </div>
-              <div className="w-1/2 flex flex-col gap-2">
-                <div className="mb-2">Advanced</div>
-
-                {/* Company Domain */}
-
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("companyDomains")}
+              <div className="w-1/2 flex flex-col gap-4">
+                <div className="text-lg font-medium mb-2">Advanced</div>
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.CompanyDomains}
+                    title="Company Domains"
+                    isOpen={openDropdown === DropdownSection.CompanyDomains}
+                    onToggle={toggleDropdown}
                   >
-                    <div className="text-sm">Company Domains</div>
-                    {dropdownsOpen.companyDomains ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-
-                  <div className={`${dropdownsOpen.companyDomains ? "block" : "hidden"}`}>
-
-                    <RadioGroup className="mb-3" value={selectionType} onValueChange={handleSelectionTypeChange}>
-                      <div className="flex">
-                        <div className="flex items-center space-x-2 mr-3">
-                          <RadioGroupItem value="list" id="list" />
-                          <Label htmlFor="list">Select from list</Label>
+                    <div>
+                      <RadioGroup className="mb-3" value={selectionType} onValueChange={handleSelectionTypeChange}>
+                        <div className="flex">
+                          <div className="flex items-center space-x-2 mr-3">
+                            <RadioGroupItem value="list" id="list" />
+                            <Label htmlFor="list">Select from list</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id="custom" />
+                            <Label htmlFor="custom">Enter custom company</Label>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="custom" id="custom" />
-                          <Label htmlFor="custom">Enter custom company</Label>
-                        </div>
-                      </div>
-                    </RadioGroup>
-                    {selectionType === 'list' && (
+                      </RadioGroup>
+                      {selectionType === 'list' && (
 
-                      <div>
-                        <div className="flex flex-row items-center gap-1 mb-2">
-                          <p className="text-xs">Contact our team to add your taget company's into the list</p>
+                        <div>
+                          <div className="flex flex-row items-center gap-1 mb-2">
+                            <p className="text-xs">Contact our team to add your taget company's into the list</p>
 
-                        </div>
+                          </div>
 
-                        <FormField
-                          control={form.control}
-                          name="q_organization_domains"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                              <FormControl>
-                                <TagInput
-                                  {...field}
-                                  tags={qOrganizationDomainsTags}
-                                  placeholder="Enter Company Domains"
-                                  variant="base"
-                                  onBlur={() => {
-                                    // Add timeout to allow click events to fire on dropdown items
-                                    setTimeout(() => {
-                                      setCompanyDomainDropdownIsOpen(false);
-                                    }, 200);
-                                  }}
-                                  onFocus={() => setCompanyDomainDropdownIsOpen(true)}
-                                  className="sm:min-w-[150px] bg-white/90 text-black placeholder:text-black/[70]"
-                                  setTags={(newTags) => {
-                                    if (Array.isArray(newTags)) {
-                                      if (newTags.length < qOrganizationDomainsTags.length) {
-                                        setQOrganizationDomainsTags(newTags);
-                                        setValue("q_organization_domains", newTags as [Tag, ...Tag[]]);
-                                        return;
+                          <FormField
+                            control={form.control}
+                            name="q_organization_domains"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                                <FormControl>
+                                  <TagInput
+                                    {...field}
+                                    tags={qOrganizationDomainsTags}
+                                    placeholder="Enter Company Domains"
+                                    variant="base"
+                                    onBlur={() => {
+                                      // Add timeout to allow click events to fire on dropdown items
+                                      setTimeout(() => {
+                                        setCompanyDomainDropdownIsOpen(false);
+                                      }, 200);
+                                    }}
+                                    onFocus={() => setCompanyDomainDropdownIsOpen(true)}
+                                    className="sm:min-w-[150px] bg-white/90 text-black placeholder:text-black/[70]"
+                                    setTags={(newTags) => {
+                                      if (Array.isArray(newTags)) {
+                                        if (newTags.length < qOrganizationDomainsTags.length) {
+                                          setQOrganizationDomainsTags(newTags);
+                                          setValue("q_organization_domains", newTags as [Tag, ...Tag[]]);
+                                          return;
+                                        }
+
+                                        const lastTag = newTags[newTags.length - 1];
+                                        const updatedTags = lastTag?.id.includes('-')
+                                          ? newTags.slice(0, -1)
+                                          : newTags;
+
+                                        setQOrganizationDomainsTags(updatedTags);
+                                        setValue("q_organization_domains", updatedTags as [Tag, ...Tag[]]);
                                       }
+                                    }}
+                                    onInputChange={(value) => setCompanyDomainSearchTerm(value)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                                      const lastTag = newTags[newTags.length - 1];
-                                      const updatedTags = lastTag?.id.includes('-')
-                                        ? newTags.slice(0, -1)
-                                        : newTags;
-
-                                      setQOrganizationDomainsTags(updatedTags);
-                                      setValue("q_organization_domains", updatedTags as [Tag, ...Tag[]]);
-                                    }
-                                  }}
-                                  onInputChange={(value) => setCompanyDomainSearchTerm(value)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="absolute inline-block text-left -my-4">
-                          {companyDomainDropdownIsOpen && (
-                            <ScrollArea
-                              className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
-                              style={{
-                                height: filteredCompanyDomains.length > 0
-                                  ? `${Math.min(filteredCompanyDomains.length * 40, 200)}px`
-                                  : "auto",
-                              }}
-                            >
-                              <div
-                                className="py-1"
-                                role="menu"
-                                aria-orientation="vertical"
-                                aria-labelledby="options-menu"
-                                onClick={() => setCompanyDomainDropdownIsOpen(false)}
+                          <div className="absolute inline-block text-left -my-4">
+                            {companyDomainDropdownIsOpen && (
+                              <ScrollArea
+                                className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                style={{
+                                  height: filteredCompanyDomains.length > 0
+                                    ? `${Math.min(filteredCompanyDomains.length * 40, 200)}px`
+                                    : "auto",
+                                }}
                               >
-                                {filteredCompanyDomains.length > 0 ? (
-                                  filteredCompanyDomains.map((company) => (
-                                    <button
-                                      key={company.companyName}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        handleCompanyDomainDropdownSelect(company);
-                                        setCompanyDomainSearchTerm("");
-                                      }}
-                                      className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
-                                    >
-                                      {company.companyName
-                                        .split(" ")
-                                        .map(
-                                          (word) =>
-                                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                                        )
-                                        .join(" ")}
-                                    </button>
-                                  ))
-                                ) : (
-                                  <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                    No items found
-                                  </div>
-                                )}
-                              </div>
-                            </ScrollArea>
-                          )}
-                        </div>
-                      </div>
-
-                    )}
-
-                    {selectionType === 'custom' && (
-                      <div className={`${dropdownsOpen.companyDomains ? "block" : "hidden"}`}>
-                        <FormField
-                          control={form.control}
-                          name="q_organization_domains"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                              <FormControl>
-                                <TagInput
-                                  {...field}
-                                  tags={qOrganizationDomainsTags}
-                                  placeholder="Enter Custom Company"
-                                  variant="base"
-                                  className="sm:min-w-[150px] bg-white/90 text-black placeholder:text-black/[70]"
-                                  setTags={(newTags) => {
-                                    setQOrganizationDomainsTags(newTags);
-                                    setValue('q_organization_domains', newTags as [Tag, ...Tag[]]);
-                                  }}
-                                  maxTags={1}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-
-                {/* Industry */}
-
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("industry")}
-                  >
-                    <div className="text-sm">Industry</div>
-                    {dropdownsOpen.industry ? (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-0"
-                      />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.industry ? "block" : "hidden"
-                      } relative`}
-                  >
-                    <FormField
-                      control={form.control}
-                      name="organization_industry_tag_ids"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                          <FormControl>
-                            <TagInput
-                              {...field}
-                              tags={organizationKeywordTags}
-                              placeholder="Enter industry"
-                              variant="base"
-                              onFocus={() => setKeywordDropdownIsOpen(true)}
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags: any) => {
-                                if (Array.isArray(newTags)) {
-                                  if (newTags.length < organizationKeywordTags.length) {
-                                    setOrganizationKeywordTags(newTags);
-                                    setValue("organization_industry_tag_ids", newTags as any);
-                                    return;
-                                  }
-
-                                  const lastTag = newTags[newTags.length - 1];
-
-                                  const updatedTags = lastTag?.id.includes('-')
-                                    ? newTags.slice(0, -1)
-                                    : newTags;
-
-                                  setOrganizationKeywordTags(updatedTags);
-                                  setValue("organization_industry_tag_ids", updatedTags as any);
-                                }
-                              }}
-                              onInputChange={(value) =>
-                                setKeywordSearchTerm(value)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="absolute inline-block text-left -my-4">
-                      {keywordDropdownIsOpen && (
-                        <ScrollArea
-                          className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
-                          style={{
-                            height:
-                              filteredKeywords.length > 0
-                                ? `${Math.min(filteredKeywords.length * 40, 200)}px`
-                                : "auto",
-                          }}
-                        >
-                          <div
-                            className="py-1"
-                            role="menu"
-                            aria-orientation="vertical"
-                            aria-labelledby="options-menu"
-                            ref={keywordDropdownRef}
-                          >
-                            {filteredKeywords.length > 0 ? (
-                              filteredKeywords.map((option) => (
-                                <button
-                                  key={option.value}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleDropdownSelect(option);
-                                    setKeywordSearchTerm("");
-                                  }}
-                                  className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
+                                <div
+                                  className="py-1"
+                                  role="menu"
+                                  aria-orientation="vertical"
+                                  aria-labelledby="options-menu"
+                                  onClick={() => setCompanyDomainDropdownIsOpen(false)}
                                 >
-                                  {option.name
-                                    .split(" ")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1).toLowerCase()
-                                    )
-                                    .join(" ")}
-                                </button>
-                              ))
-                            ) : (
-                              <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                No items found
-                              </div>
+                                  {filteredCompanyDomains.length > 0 ? (
+                                    filteredCompanyDomains.map((company) => (
+                                      <button
+                                        key={company.companyName}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleCompanyDomainDropdownSelect(company);
+                                          setCompanyDomainSearchTerm("");
+                                        }}
+                                        className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
+                                      >
+                                        {company.companyName
+                                          .split(" ")
+                                          .map(
+                                            (word) =>
+                                              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                                          )
+                                          .join(" ")}
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                      No items found
+                                    </div>
+                                  )}
+                                </div>
+                              </ScrollArea>
                             )}
                           </div>
-                        </ScrollArea>
+                        </div>
 
                       )}
+
+                      {selectionType === 'custom' && (
+                        <div className={`${openDropdown === DropdownSection.CompanyDomains ? "block" : "hidden"}`}>
+                          <FormField
+                            control={form.control}
+                            name="q_organization_domains"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                                <FormControl>
+                                  <TagInput
+                                    {...field}
+                                    tags={qOrganizationDomainsTags}
+                                    placeholder="Enter Custom Company"
+                                    variant="base"
+                                    className="sm:min-w-[150px] bg-white/90 text-black placeholder:text-black/[70]"
+                                    setTags={(value: SetStateAction<Tag[]>) => {
+                                      // Ensure we're setting both the local state and form value
+                                      const newTags = typeof value === 'function' ? value(qOrganizationDomainsTags) : value;
+                                      setQOrganizationDomainsTags(newTags);
+                                      const formattedTags = newTags.map((tag: { id: any; text: any; }) => ({
+                                        id: tag.id || uuid(),
+                                        text: tag.text
+                                      }));
+                                      setValue('q_organization_domains', formattedTags, {
+                                        shouldValidate: true,
+                                        shouldDirty: true
+                                      });
+                                    }}
+                                    maxTags={1}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+
                     </div>
-                  </div>
+                  </FormDropdown>
                 </div>
 
-                {/* Company keyword section */}
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("company")}
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.Industry}
+                    title="Industry"
+                    isOpen={openDropdown === DropdownSection.Industry}
+                    onToggle={toggleDropdown}
                   >
-                    <div className="text-sm">Company Keyword</div>
-                    {dropdownsOpen.company ? (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-0"
+                    <div className="relative">
+                      <FormField
+                        control={form.control}
+                        name="organization_industry_tag_ids"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                            <FormLabel className="text-left">
+                              Industry
+                            </FormLabel>
+                            <FormControl>
+                              <TagInput
+                                {...field}
+                                tags={organizationKeywordTags}
+                                placeholder="Enter industry"
+                                variant="base"
+                                onFocus={() => setKeywordDropdownIsOpen(true)}
+                                className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags: any) => {
+                                  if (Array.isArray(newTags)) {
+                                    if (newTags.length < organizationKeywordTags.length) {
+                                      setOrganizationKeywordTags(newTags);
+                                      setValue("organization_industry_tag_ids", newTags as any);
+                                      return;
+                                    }
+
+                                    const lastTag = newTags[newTags.length - 1];
+
+                                    const updatedTags = lastTag?.id.includes('-')
+                                      ? newTags.slice(0, -1)
+                                      : newTags;
+
+                                    setOrganizationKeywordTags(updatedTags);
+                                    setValue("organization_industry_tag_ids", updatedTags as any);
+                                  }
+                                }}
+                                onInputChange={(value) =>
+                                  setKeywordSearchTerm(value)
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.company ? "block" : "hidden"
-                      } relative`}
-                  >
-                    <FormField
-                      control={form.control}
-                      name="q_organization_keyword_tags"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                          <FormControl>
-                            <TagInput
-                              {...field}
-                              tags={organizationCompanyTags}
-                              placeholder="Enter company keywords"
-                              variant="base"
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags) => {
-                                setOrganizationCompanyTags(newTags);
-                                setValue(
-                                  "q_organization_keyword_tags",
-                                  newTags as [Tag, ...Tag[]]
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                      <div className="absolute inline-block text-left -my-4">
+                        {keywordDropdownIsOpen && (
+                          <ScrollArea
+                            className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
+                            style={{
+                              height:
+                                filteredKeywords.length > 0
+                                  ? `${Math.min(filteredKeywords.length * 40, 200)}px`
+                                  : "auto",
+                            }}
+                          >
+                            <div
+                              className="py-1"
+                              role="menu"
+                              aria-orientation="vertical"
+                              aria-labelledby="options-menu"
+                              ref={keywordDropdownRef}
+                            >
+                              {filteredKeywords.length > 0 ? (
+                                filteredKeywords.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleDropdownSelect(option);
+                                      setKeywordSearchTerm("");
+                                    }}
+                                    className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
+                                  >
+                                    {option.name
+                                      .split(" ")
+                                      .map(
+                                        (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1).toLowerCase()
+                                      )
+                                      .join(" ")}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                  No items found
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+
+                        )}
+                      </div>
+                    </div>
+                  </FormDropdown>
                 </div>
 
-                {/* // Revenue and funding */}
-                <div className="bg-muted px-2 rounded ">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("revenueFunding")}
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.Company}
+                    title="Company Keyword"
+                    isOpen={openDropdown === DropdownSection.Company}
+                    onToggle={toggleDropdown}
                   >
-                    <div className="text-sm">Funding Rounds</div>
-                    {dropdownsOpen.revenueFunding ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
+                    <div className="relative">
+                      <FormField
+                        control={form.control}
+                        name="q_organization_keyword_tags"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                            <FormLabel className="text-left">
+                              Company Keyword
+                            </FormLabel>
+                            <FormControl>
+                              <TagInput
+                                {...field}
+                                tags={organizationCompanyTags}
+                                placeholder="Enter company keywords"
+                                variant="base"
+                                className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags: SetStateAction<Tag[]>) => {
+                                  // Ensure we're setting both the local state and form value
+                                  setOrganizationCompanyTags(newTags);
+                                  const formattedTags = (newTags as Tag[]).map((tag: { id: any; text: any; }) => ({
+                                    id: tag.id || uuid(),
+                                    text: tag.text
+                                  }));
+                                  setValue("q_organization_keyword_tags", formattedTags, {
+                                    shouldValidate: true,
+                                    shouldDirty: true
+                                  });
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.revenueFunding ? "block" : "hidden"
-                      }`}
+                    </div>
+                  </FormDropdown>
+                </div>
+
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.Funding}
+                    title="Funding Rounds"
+                    isOpen={openDropdown === DropdownSection.Funding}
+                    onToggle={toggleDropdown}
                   >
                     <FormField
                       control={form.control}
                       name="organization_latest_funding_stage_cd"
                       render={({ field }) => (
                         <FormItem className="flex flex-col items-start">
-                          <FormLabel
-                            className="flex justify-between font-normal w-full py-3 cursor-pointer items-center text-left"
-                            onClick={() => toggleDropdown("funding")}
-                          >
-                            <div>Funding Rounds</div>
-                            {dropdownsOpen.funding ? (
-                              <ChevronUp color="#000000" />
-                            ) : (
-                              <ChevronUp
-                                color="#000000"
-                                className="transition-transform duration-200 transform rotate-180"
-                              />
-                            )}
-                          </FormLabel>
                           <FormControl>
-                            <div className={`${dropdownsOpen.funding ? "block" : "hidden"}`}>
+                            <div className="pb-4">
                               {fundingRounds.map((round) => (
                                 <div className="text-sm flex items-center mb-3" key={round.id}>
                                   <Checkbox
@@ -2754,31 +2526,17 @@ export default function PeopleForm(): JSX.Element {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </FormDropdown>
                 </div>
-                <div className="bg-muted px-2 rounded ">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("companyFunding")}
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.CompanyFunding}
+                    title="Revenue"
+                    isOpen={openDropdown === DropdownSection.CompanyFunding}
+                    onToggle={toggleDropdown}
                   >
-                    <div className="text-sm">Revenue</div>
-                    {dropdownsOpen.companyFunding ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.companyFunding ? "block" : "hidden"
-                      }`}
-                  >
-                    <div className="">
-                      <div className="text-sm font-medium">
-                        Total Company Revenue Range
-                      </div>
+                    <div className="text-sm font-medium">
+                      Total Company Revenue Range
                       <div className="flex items-center gap-2 mb-4">
                         <FormField
                           control={form.control}
@@ -2848,479 +2606,398 @@ export default function PeopleForm(): JSX.Element {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </FormDropdown>
                 </div>
 
-                {/* Technologies Section */}
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.Technologies}
+                    title="Technologies"
+                    isOpen={openDropdown === DropdownSection.Technologies}
+                    onToggle={toggleDropdown}
+                  >
+                    <div className="relative">
+                      <FormField
+                        control={form.control}
+                        name="currently_using_technologies"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                            <FormLabel className="text-left">
+                              Technologies
+                            </FormLabel>
+                            <FormControl>
+                              <TagInput
+                                {...field}
+                                tags={currentlyUsingTechnologiesTags}
+                                placeholder="Enter Technology"
+                                variant="base"
+                                onFocus={() => setTechnologiesDropdownIsOpen(true)}
+                                className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags: any) => {
+                                  if (Array.isArray(newTags)) {
+                                    if (newTags.length < currentlyUsingTechnologiesTags.length) {
+                                      setCurrentlyUsingTechnologiesTags(newTags);
+                                      setValue("currently_using_technologies", newTags as any);
+                                      return;
+                                    }
 
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("technologies")}
-                  >
-                    <div className="text-sm">Technologies</div>
-                    {dropdownsOpen.technologies ? (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-0"
-                      />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.technologies ? "block" : "hidden"
-                      } relative`}
-                  >
-                    <FormField
-                      control={form.control}
-                      name="currently_using_technologies"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                          <FormControl>
-                            <TagInput
-                              {...field}
-                              tags={currentlyUsingTechnologiesTags}
-                              placeholder="Enter Technology"
-                              variant="base"
-                              onFocus={() => setTechnologiesDropdownIsOpen(true)}
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags: any) => {
-                                if (Array.isArray(newTags)) {
-                                  if (newTags.length < currentlyUsingTechnologiesTags.length) {
-                                    setCurrentlyUsingTechnologiesTags(newTags);
-                                    setValue("currently_using_technologies", newTags as any);
-                                    return;
+                                    const lastTag = newTags[newTags.length - 1];
+
+                                    const updatedTags = lastTag?.id.includes('-')
+                                      ? newTags.slice(0, -1)
+                                      : newTags;
+
+                                    setCurrentlyUsingTechnologiesTags(updatedTags);
+                                    setValue("currently_using_technologies", updatedTags as any);
                                   }
-
-                                  const lastTag = newTags[newTags.length - 1];
-
-                                  const updatedTags = lastTag?.id.includes('-')
-                                    ? newTags.slice(0, -1)
-                                    : newTags;
-
-                                  setCurrentlyUsingTechnologiesTags(updatedTags);
-                                  setValue("currently_using_technologies", updatedTags as any);
+                                }}
+                                onInputChange={(value) =>
+                                  setTechnologiesSearchTerm(value)
                                 }
-                              }}
-                              onInputChange={(value) =>
-                                setTechnologiesSearchTerm(value)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="absolute inline-block text-left -my-4">
-                      {technologiesDropdownIsOpen && (
-                        <ScrollArea
-                          className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
-                          style={{
-                            height:
-                              filteredTechnologies.length > 0
-                                ? `${Math.min(filteredTechnologies.length * 40, 200)}px`
-                                : "auto",
-                          }}
-                        >
-                          <div
-                            className="py-1"
-                            role="menu"
-                            aria-orientation="vertical"
-                            aria-labelledby="options-menu"
-                            ref={technologyDropdownRef}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="absolute inline-block text-left -my-4">
+                        {technologiesDropdownIsOpen && (
+                          <ScrollArea
+                            className="w-56 z-50 rounded-md shadow-lg bg-white dark:bg-black ring-1 ring-black ring-opacity-5 focus:outline-none"
+                            style={{
+                              height:
+                                filteredTechnologies.length > 0
+                                  ? `${Math.min(filteredTechnologies.length * 40, 200)}px`
+                                  : "auto",
+                            }}
                           >
-                            {filteredTechnologies.length > 0 ? (
-                              filteredTechnologies.map((option) => (
-                                <button
-                                  key={option.uid}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleTechnologiesDropdownSelect(option);
-                                    setTechnologiesSearchTerm("");
-                                  }}
-                                  className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
-                                >
-                                  {option.name
-                                    .split(" ")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1).toLowerCase()
-                                    )
-                                    .join(" ")}
-                                </button>
-                              ))
-                            ) : (
-                              <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                No items found
-                              </div>
-                            )}
-                          </div>
-                        </ScrollArea>
-
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Signals */}
-
-                <div className="bg-muted px-2 rounded">
-                  <FormField
-                    control={form.control}
-                    name="search_signals"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col items-start">
-                        <FormLabel
-                          className="flex justify-between font-normal w-full py-3 cursor-pointer items-center text-left"
-                          onClick={() => toggleDropdown("searchSignals")}
-                        >
-                          <div>Signals</div>
-                          {dropdownsOpen.searchSignals ? (
-                            <ChevronUp color="#000000" />
-                          ) : (
-                            <ChevronUp
-                              color="#000000"
-                              className="transition-transform duration-200 transform rotate-180"
-                            />
-                          )}
-                        </FormLabel>
-                        <FormControl>
-                          <div
-                            className={`${dropdownsOpen.searchSignals ? "block" : "hidden"
-                              }`}
-                          >
-                            {signals.map(
-                              (signal, index) => (
-                                <div
-                                  className="text-sm flex items-center mb-3"
-                                  key={index}
-                                >
-                                  <Checkbox
-                                    {...field}
-                                    className="mr-2"
-                                    checked={checkedSearchSignal?.includes(
-                                      signal.id
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      const isChecked = checked.valueOf();
-                                      const value = signal.id;
-
-
-                                      const newCheckedValues = isChecked
-                                        ? [...(checkedSearchSignal || []), value]
-                                        : (checkedSearchSignal || []).filter(item => item !== value);
-
-                                      setCheckedSearchSignal(newCheckedValues);
-                                      field.onChange(newCheckedValues)
+                            <div
+                              className="py-1"
+                              role="menu"
+                              aria-orientation="vertical"
+                              aria-labelledby="options-menu"
+                              ref={technologyDropdownRef}
+                            >
+                              {filteredTechnologies.length > 0 ? (
+                                filteredTechnologies.map((option) => (
+                                  <button
+                                    key={option.uid}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleTechnologiesDropdownSelect(option);
+                                      setTechnologiesSearchTerm("");
                                     }}
-                                    value={signal.id}
-                                  />
-                                  {signal.name}
+                                    className="dark:text-white block px-4 py-2 text-sm w-full text-left hover:bg-accent"
+                                  >
+                                    {option.name
+                                      .split(" ")
+                                      .map(
+                                        (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1).toLowerCase()
+                                      )
+                                      .join(" ")}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                  No items found
                                 </div>
-                              )
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Job Postings */}
-
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("jobPostings")}
-                  >
-                    <div className="text-sm">Job Posting</div>
-                    {dropdownsOpen.jobPostings ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.jobPostings ? "block" : "hidden"
-                      }`}
-                  >
-                    <FormField
-                      control={form.control}
-                      name="job_posting_titles"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start pb-4 w-8/12 mt-3">
-                          <FormLabel className="text-left">
-                            Job Titles
-                          </FormLabel>
-                          <FormControl>
-                            <TagInput
-                              {...field}
-                              tags={jobPostingTitles}
-                              placeholder="Enter Job Title"
-                              variant="base"
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags) => {
-                                setJobPostingTitles(newTags);
-                                setValue(
-                                  "job_posting_titles",
-                                  newTags as [Tag, ...Tag[]]
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="job_posting_locations"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start pb-4 w-8/12">
-                          <FormLabel className="text-left">
-                            Job Locations
-                          </FormLabel>
-                          <FormControl>
-                            <TagInput
-                              {...field}
-                              tags={jobPostingLocations}
-                              placeholder="Enter Job Location"
-                              variant="base"
-                              className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
-                              setTags={(newTags) => {
-                                setJobPostingLocations(newTags);
-                                setValue(
-                                  "job_posting_locations",
-                                  newTags as [Tag, ...Tag[]]
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-
-                {/* Buying Intent */}
-
-                <div className="bg-muted px-2 rounded">
-                  <div
-                    className="flex justify-between w-full py-3 cursor-pointer"
-                    onClick={() => toggleDropdown("buyingIntent")}
-                  >
-                    <div className="text-sm">Buying Intent</div>
-                    {dropdownsOpen.buyingIntent ? (
-                      <ChevronUp color="#000000" />
-                    ) : (
-                      <ChevronUp
-                        color="#000000"
-                        className="transition-transform duration-200 transform rotate-180"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`${dropdownsOpen.buyingIntent ? "block" : "hidden"
-                      }`}
-                  >
-                    <FormField
-                      control={form.control}
-                      name="buying_intent_scores"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start">
-                          <FormLabel
-                            className="text-left"
-                          >
-                            Intent Scores
-                          </FormLabel>
-                          <FormControl>
-                            <div>
-                              {buyingIntentScores.map(
-                                (intent, index) => (
-                                  <div
-                                    className="text-sm flex items-center mb-3"
-                                    key={index}
-                                  >
-                                    <Checkbox
-                                      {...field}
-                                      className="mr-2"
-                                      checked={checkedIntentScores?.includes(
-                                        intent.id
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        const isChecked = checked.valueOf();
-                                        const value = intent.id;
-
-                                        const newCheckedValues = isChecked
-                                          ? [...(checkedIntentScores || []), value]
-                                          : (checkedIntentScores || []).filter(item => item !== value);
-
-                                        setCheckedIntentScores(newCheckedValues);
-                                        field.onChange(newCheckedValues);
-                                      }}
-                                      value={intent.name}
-                                    />
-                                    {intent.name}
-                                  </div>
-                                )
                               )}
                             </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          </ScrollArea>
 
-                    <FormField
-                      control={form.control}
-                      name="buying_intent_topics"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col items-start">
-                          <FormLabel
-                            className="text-left"
-                          >
-                            Intent Topics
-                          </FormLabel>
-                          <FormControl>
-                            <div>
-                              {buyingIntentTopics.map(
-                                (intent, index) => (
-                                  <div
-                                    className="text-sm flex items-center mb-3"
-                                    key={index}
-                                  >
-                                    <Checkbox
-                                      {...field}
-                                      className="mr-2"
-                                      checked={checkedIntentTopics?.includes(
-                                        intent.id
-                                      )}
-
-                                      onCheckedChange={(checked) => {
-                                        const isChecked = checked.valueOf();
-                                        const value = intent.id;
-
-                                        const newCheckedValues = isChecked
-                                          ? [...(checkedIntentTopics || []), value]
-                                          : (checkedIntentTopics || []).filter(item => item !== value);
-
-                                        setCheckedIntentTopics(newCheckedValues);
-                                        field.onChange(newCheckedValues);
-                                      }}
-
-                                      value={intent.name}
-                                    />
-                                    {intent.name}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                  </div>
-                </div>
-
-
-
-                {/* <div className="bg-muted px-2 rounded">
-                  <div
-                    className={`${dropdownsOpen.jobPostings ? "block" : "hidden"
-                      }`}
-                  >
-                    <div className="flex items-center  gap-2">
-                      <div className="mb-3 ">
-                        <FormField
-                          control={form.control}
-                          name="q_organization_job_titles"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col items-start mx-1 my-4">
-                              <FormControl>
-                                <TagInput
-                                  {...field}
-                                  dropdown={true}
-                                  dropdownPlaceholder="Enter Technology"
-                                  dropdownOptions={jobTitles}
-                                  tags={jobOfferingTags}
-                                  className="sm:min-w-[450px]"
-                                  setTags={(newTags) => {
-                                    setJobOfferingTags(newTags);
-                                    setValue(
-                                      "q_organization_job_titles",
-                                      newTags as [Tag, ...Tag[]]
-                                    );
-                                  }}
-                                />
-                              </FormControl>
-
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        )}
                       </div>
                     </div>
-                  </div> */}
+                  </FormDropdown>
+                </div>
+
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.SearchSignals}
+                    title="Signals"
+                    isOpen={openDropdown === DropdownSection.SearchSignals}
+                    onToggle={toggleDropdown}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="search_signals"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col items-start">
+                          <FormLabel
+                            className="flex justify-between font-normal w-full py-3 cursor-pointer items-center text-left"
+                          >
+                            <div>Signals</div>
+                            {openDropdown === DropdownSection.SearchSignals ? (
+                              <ChevronUp color="#000000" />
+                            ) : (
+                              <ChevronUp
+                                color="#000000"
+                                className="transition-transform duration-200 transform rotate-180"
+                              />
+                            )}
+                          </FormLabel>
+                          <FormControl>
+                            <div
+                              className={`${openDropdown === DropdownSection.SearchSignals ? "block" : "hidden"
+                                }`}
+                            >
+                              {signals.map(
+                                (signal, index) => (
+                                  <div
+                                    className="text-sm flex items-center mb-3"
+                                    key={index}
+                                  >
+                                    <Checkbox
+                                      {...field}
+                                      className="mr-2"
+                                      checked={checkedSearchSignal?.includes(
+                                        signal.id
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        const isChecked = checked.valueOf();
+                                        const value = signal.id;
 
 
+                                        const newCheckedValues = isChecked
+                                          ? [...(checkedSearchSignal || []), value]
+                                          : (checkedSearchSignal || []).filter(item => item !== value);
+
+                                        setCheckedSearchSignal(newCheckedValues);
+                                        field.onChange(newCheckedValues)
+                                      }}
+                                      value={signal.id}
+                                    />
+                                    {signal.name}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </FormDropdown>
+                </div>
+
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.JobPostings}
+                    title="Job Posting"
+                    isOpen={openDropdown === DropdownSection.JobPostings}
+                    onToggle={toggleDropdown}
+                  >
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="job_posting_titles"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start pb-4 w-8/12 mt-3">
+                            <FormLabel className="text-left">
+                              Job Titles
+                            </FormLabel>
+                            <FormControl>
+                              <TagInput
+                                {...field}
+                                tags={jobPostingTitles}
+                                placeholder="Enter Job Title"
+                                variant="base"
+                                className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags) => {
+                                  setJobPostingTitles(newTags);
+                                  setValue(
+                                    "job_posting_titles",
+                                    newTags as [Tag, ...Tag[]]
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="job_posting_locations"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start pb-4 w-8/12">
+                            <FormLabel className="text-left">
+                              Job Locations
+                            </FormLabel>
+                            <FormControl>
+                              <TagInput
+                                {...field}
+                                tags={jobPostingLocations}
+                                placeholder="Enter Job Location"
+                                variant="base"
+                                className="sm:min-w-[450px] bg-white/90 text-black placeholder:text-black/[70]"
+                                setTags={(newTags) => {
+                                  setJobPostingLocations(newTags);
+                                  setValue(
+                                    "job_posting_locations",
+                                    newTags as [Tag, ...Tag[]]
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </FormDropdown>
+                </div>
+
+
+                <div className="bg-muted rounded-lg shadow-sm">
+                  <FormDropdown
+                    section={DropdownSection.BuyingIntent}
+                    title="Buying Intent"
+                    isOpen={openDropdown === DropdownSection.BuyingIntent}
+                    onToggle={toggleDropdown}
+                  >
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="buying_intent_scores"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start">
+                            <FormLabel
+                              className="text-left"
+                            >
+                              Intent Scores
+                            </FormLabel>
+                            <FormControl>
+                              <div>
+                                {buyingIntentScores.map(
+                                  (intent, index) => (
+                                    <div
+                                      className="text-sm flex items-center mb-3"
+                                      key={index}
+                                    >
+                                      <Checkbox
+                                        {...field}
+                                        className="mr-2"
+                                        checked={checkedIntentScores?.includes(
+                                          intent.id
+                                        )}
+                                        onCheckedChange={(checked) => {
+                                          const isChecked = checked.valueOf();
+                                          const value = intent.id;
+
+                                          const newCheckedValues = isChecked
+                                            ? [...(checkedIntentScores || []), value]
+                                            : (checkedIntentScores || []).filter(item => item !== value);
+
+                                          setCheckedIntentScores(newCheckedValues);
+                                          field.onChange(newCheckedValues);
+                                        }}
+                                        value={intent.name}
+                                      />
+                                      {intent.name}
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="buying_intent_topics"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col items-start">
+                            <FormLabel
+                              className="text-left"
+                            >
+                              Intent Topics
+                            </FormLabel>
+                            <FormControl>
+                              <div>
+                                {buyingIntentTopics.map(
+                                  (intent, index) => (
+                                    <div
+                                      className="text-sm flex items-center mb-3"
+                                      key={index}
+                                    >
+                                      <Checkbox
+                                        {...field}
+                                        className="mr-2"
+                                        checked={checkedIntentTopics?.includes(
+                                          intent.id
+                                        )}
+
+                                        onCheckedChange={(checked) => {
+                                          const isChecked = checked.valueOf();
+                                          const value = intent.id;
+
+                                          const newCheckedValues = isChecked
+                                            ? [...(checkedIntentTopics || []), value]
+                                            : (checkedIntentTopics || []).filter(item => item !== value);
+
+                                          setCheckedIntentTopics(newCheckedValues);
+                                          field.onChange(newCheckedValues);
+                                        }}
+
+                                        value={intent.name}
+                                      />
+                                      {intent.name}
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                    </div>
+                  </FormDropdown>
+                </div>
               </div>
             </div>
-            {/* {type === "edit" && (
-              <Button
-                onClick={(event) => {
-                  event.preventDefault();
-                  updateAudience();
-                }}
-                disabled={isTableLoading}
-              >
-                {isTableLoading ? <LoadingCircle /> : "Update Audience"}
-              </Button>
-            )} */}
           </TabsContent>
-          <TabsContent value="tab2">
+          <TabsContent value="tab2" className="space-y-6">
             {isTableLoading ? (
-              <LoadingCircle />
-            ) : (
-              <div>
-                {!isCreateBtnLoading ? <AudienceTable /> : <div className="mt-10"></div>}
+              <div className="flex justify-center items-center min-h-[200px]">
+                <LoadingCircle />
               </div>
-            )}
-
-            {type === "create" ? (
-              <Button
-                onClick={(event) => {
-                  event.preventDefault();
-                  createAudience();
-                }}
-                disabled={isSubmitting}
-              >
-                {isCreateBtnLoading ? <LoadingCircle /> : "Create Audience"}
-              </Button>
             ) : (
-              <div className="w-1/4 space-y-4 justify-between">
-                <Button
-                  onClick={(event) => {
-                    event.preventDefault();
-                    updateAudience();
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Update Audience
-                </Button>
+              <div className="space-y-6">
+                {!isCreateBtnLoading && <AudienceTable />}
+
+                <div className="flex justify-end mt-6">
+                  {type === "create" ? (
+                    <Button
+                      onClick={(event) => {
+                        event.preventDefault();
+                        createAudience();
+                      }}
+                      disabled={isSubmitting}
+                      className="min-w-[150px]"
+                    >
+                      {isCreateBtnLoading ? <LoadingCircle /> : "Create Audience"}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={(event) => {
+                        event.preventDefault();
+                        updateAudience();
+                      }}
+                      disabled={isSubmitting}
+                      className="min-w-[150px]"
+                    >
+                      {isSubmitting ? <LoadingCircle /> : "Update Audience"}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </TabsContent>

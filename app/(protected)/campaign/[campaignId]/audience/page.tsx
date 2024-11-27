@@ -1,7 +1,5 @@
 "use client";
 import PeopleFormComponent from "@/components/forms/people-form";
-// import OrgFormComponent from "@/components/forms/org-form";
-
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
@@ -22,11 +20,9 @@ export default function Page() {
   useEffect(() => {
     const fetchCampaign = async () => {
       const id = params.campaignId;
-      console.log("id in form", id);
       if (id) {
         const campaign = await getCampaignById(id);
         setCampaignType(campaign.campaign_type);
-        console.log("campaign in budget form =>", campaign.campaign_type);
 
         // Set initial state based on the campaign type
         if (campaign.campaign_type === "Outbound") {
@@ -65,7 +61,7 @@ export default function Page() {
   }
 
   return (
-    <>
+    <div className="mt-2">
       <RadioGroup
         className="mb-3"
         defaultValue="prospect"
@@ -89,12 +85,12 @@ export default function Page() {
         </div>
       </RadioGroup>
       {isProspectActive && (
-        <div>
+        <div className="space-y-6">
           <PeopleFormComponent />
         </div>
       )}
       {isImportActive && <ImportAudience />}
       {isExisting && <SelectFromExisting />}
-    </>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,10 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useCampaignContext,
-  OfferingFormData,
 } from "@/context/campaign-provider";
 import {
-  getOfferingById,
   getPersonaByUserId,
   createPersona,
   getPersonaByCampaignId,
@@ -47,16 +45,11 @@ const profileFormSchema = z.object({
 type OfferingFormValues = z.infer<typeof profileFormSchema>;
 
 export function OfferingForm() {
-  const router = useRouter();
   const params = useParams<{ campaignId: string }>();
   const { user } = useUserContext();
   const { createOffering, editOffering } = useCampaignContext();
   const [isUploading, setIsUploading] = useState(false);
   const { setPageCompletion } = useButtonStatus();
-
-  const [offeringData, setOfferingData] = useState<OfferingFormData | null>(
-    null
-  );
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignType, setCampaignType] = useState("");
 
@@ -94,7 +87,6 @@ export function OfferingForm() {
             if (offeringData.detail === "Offering not found") {
               setType("create");
             } else {
-              setOfferingData(offeringData as OfferingFormData);
               setType("edit");
             }
 
@@ -229,6 +221,23 @@ export function OfferingForm() {
   ) => {
     const updatedValue = newValue[0].items || [];
     form.setValue(fieldName, updatedValue, { shouldValidate: false });
+  };
+
+  // Add this function to check form validity
+  const isFormValid = () => {
+    const values = form.getValues();
+
+    if (campaignType === "Nurturing") {
+      return values.product_offering && values.company_features.length > 0;
+    }
+
+    return (
+      values.product_offering &&
+      values.detailed_product_description &&
+      values.pain_point.length > 0 &&
+      values.values.length > 0 &&
+      values.customer_success_stories.length > 0
+    );
   };
 
   return (
@@ -400,7 +409,11 @@ export function OfferingForm() {
         )}
 
         <div className="flex flex-col gap-10 ">
-          <Button type="submit" className="cursor-pointer w-32 ">
+          <Button
+            type="submit"
+            className="cursor-pointer w-32"
+            disabled={type === "create" && !isFormValid()}
+          >
             {type === "create" ? "Create Offer" : "Update Offer"}
           </Button>
         </div>

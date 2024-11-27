@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, SubmitHandler } from "react-hook-form";
 import { z } from "zod";
@@ -17,13 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,7 +33,6 @@ import { toast } from "sonner";
 import {
   useCampaignContext,
   GoalFormData,
-  GoalData,
 } from "@/context/campaign-provider";
 import { GoalDataWithId, getGoalById } from "./camapign.api";
 import { useEffect, useState } from "react";
@@ -44,19 +41,6 @@ import { useUserContext } from "@/context/user-context";
 import { useButtonStatus } from "@/context/button-status";
 import Link from "next/link";
 import axios from "axios";
-
-const dummyEmails = [
-  "john.doe@example.com",
-  "jane.smith@placeholder.com",
-  "alex.jones@dummyemail.com",
-  "samantha.brown@fakemail.com",
-  "michael.wilson@test.com",
-  "chris.johnson@norealmail.com",
-  "kimberly.martinez@tempmail.com",
-  "david.anderson@fakebox.com",
-  "emily.thompson@nowhere.com",
-  "jason.roberts@nomail.com",
-];
 
 const goalFormSchema = z.object({
   success_metric: z.string(),
@@ -106,7 +90,6 @@ export function GoalForm() {
     audience: false,
     training: false,
   };
-  const [formsTracker, setFormsTracker] = useState(defaultFormsTracker);
 
   const { setPageCompletion } = useButtonStatus();
   const params = useParams<{ campaignId: string }>();
@@ -117,7 +100,6 @@ export function GoalForm() {
   const [mailboxes, setMailboxes] =
     useState<{ mailbox: string; sender_name: string; id: number }[]>();
   const [originalData, setOriginalData] = useState<GoalFormData>();
-  const [displayEmail, setDisplayEmail] = useState("Select Sender Account"); // Select Email
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignChannel, setCampaignChannel] = useState<string>("");
   const [selectedLinkedInId, setSelectedLinkedInId] = useState<string[]>([]);
@@ -167,7 +149,6 @@ export function GoalForm() {
     console.log('onEmailAppend:', { email, mailbox });
     if (!emailFields.some((emailField) => emailField.value === email)) {
       appendEmail({ value: email });
-      setDisplayEmail(email);
       if (campaignChannel === 'Linkedin') {
         setSelectedLinkedInId(prev => [...prev, mailbox.id.toString()]);
       }
@@ -180,18 +161,15 @@ export function GoalForm() {
     );
     if (indexToRemove !== -1) {
       removeEmail(indexToRemove);
-      setDisplayEmail("Select Email");
       if (campaignChannel === 'Linkedin') {
         setSelectedLinkedInId(prev => prev.filter((_, index) => index !== indexToRemove));
       }
     }
   };
 
-  const watchAllFields = form.watch();
-
   const onSubmit: SubmitHandler<GoalFormValues> = async (data) => {
     console.log("Form submitted with data:", data);
-    
+
     try {
       if (type === "create") {
         const payload = {
@@ -200,7 +178,7 @@ export function GoalForm() {
             ? selectedLinkedInId
             : null
         };
-        
+
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
@@ -219,7 +197,7 @@ export function GoalForm() {
             ? selectedLinkedInId
             : null
         };
-        
+
         if (Object.keys(changes).length > 0 && goalData) {
           await editGoal(changes as GoalFormData, goalData.id, params.campaignId);
         }
@@ -231,10 +209,6 @@ export function GoalForm() {
         audience: true,
       };
       localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
-      setFormsTracker((prevFormsTracker) => ({
-        ...prevFormsTracker,
-        ...updatedFormsTracker,
-      }));
       setPageCompletion("goal", true); // Set the page completion to true
       toast.success("Goal added successfully");
     } catch (error) {
@@ -245,7 +219,7 @@ export function GoalForm() {
   };
 
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => 
+    const subscription = form.watch((value, { name, type }) =>
       console.log('Form values changed:', { name, type, value, errors: form.formState.errors })
     );
     return () => subscription.unsubscribe();
@@ -283,7 +257,7 @@ export function GoalForm() {
         like_post: goalData.like_post,
         withdraw_invite: goalData.withdraw_invite,
       });
-      
+
       // Set LinkedIn IDs if they exist
       if (goalData.linkedin_accounts && Array.isArray(goalData.linkedin_accounts)) {
         setSelectedLinkedInId(goalData.linkedin_accounts);
@@ -341,6 +315,37 @@ export function GoalForm() {
       fetchCampaignDetails();
     }
   }, [params.campaignId]);
+
+  // Add this function to check if form is valid
+  const isFormValid = () => {
+    const values = form.getValues();
+    const hasEmails = values.emails && values.emails.length > 0;
+    const hasRequiredFields =
+      values.success_metric &&
+      values.follow_up_days !== undefined &&
+      values.follow_up_times !== undefined &&
+      values.mark_as_lost !== undefined;
+
+    // Additional check for scheduling link when "Meeting scheduled" is selected
+    if (values.success_metric === "Meeting scheduled") {
+      return hasEmails && hasRequiredFields && values.scheduling_link;
+    }
+
+    return hasEmails && hasRequiredFields;
+  };
+
+  // Add this function inside the GoalForm component, before the return statement
+  const getDisplayText = () => {
+    if (!emailFields || emailFields.length === 0) {
+      return `Select ${campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}`;
+    }
+
+    if (emailFields.length === 1) {
+      return emailFields[0].value;
+    }
+
+    return `${emailFields.length} ${campaignChannel === 'Linkedin' ? 'accounts' : 'emails'} selected`;
+  };
 
   return (
     <Form {...form}>
@@ -442,30 +447,32 @@ export function GoalForm() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="flex items-center justify-center space-x-3"
+                      className="flex items-center justify-between w-1/4"
                     >
-                      <span>{displayEmail}</span>
+                      <span className="truncate">{getDisplayText()}</span>
                       <ChevronDown size={20} />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-max">
-                    <ScrollArea className="h-60">
-                      <DropdownMenuGroup>
+                  <DropdownMenuContent className="w-[400px]" align="start">
+                    <ScrollArea className="h-auto">
+                      <DropdownMenuGroup className="p-2">
                         {mailboxes &&
                           mailboxes.length > 0 &&
                           mailboxes[0].mailbox !== null ? (
                           mailboxes
                             .filter(mailbox => {
-                              // Only show LinkedIn mailboxes if campaign channel is LinkedIn
                               if (campaignChannel === 'Linkedin') {
                                 return mailbox.mailbox.toLowerCase().includes('linkedin');
                               }
-                              return true; // Show all mailboxes for other channels
+                              return true;
                             })
                             .map((mailbox, index) => (
-                              <DropdownMenuItem key={index}>
+                              <DropdownMenuItem
+                                key={index}
+                                className="p-0 focus:bg-transparent"
+                              >
                                 <div
-                                  className="flex items-center space-x-2"
+                                  className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
                                   onClick={(event) => event.stopPropagation()}
                                 >
                                   <Checkbox
@@ -475,9 +482,9 @@ export function GoalForm() {
                                     )}
                                     onCheckedChange={(checked) => {
                                       if (checked) {
-                                        onEmailAppend(mailbox.mailbox, { 
-                                          id: mailbox.id, 
-                                          platform: campaignChannel 
+                                        onEmailAppend(mailbox.mailbox, {
+                                          id: mailbox.id,
+                                          platform: campaignChannel
                                         });
                                       } else {
                                         onEmailRemove(mailbox.mailbox);
@@ -487,7 +494,7 @@ export function GoalForm() {
                                       }
                                     }}
                                   />
-                                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  <label className="text-sm font-medium leading-none cursor-pointer flex-1">
                                     {mailbox.sender_name} - {mailbox.mailbox}
                                   </label>
                                 </div>
@@ -651,7 +658,7 @@ export function GoalForm() {
         {type === "edit" ? (
           <Button type="submit">Update Goal</Button>
         ) : (
-          <Button type="submit">Add Goal</Button>
+          <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
         )}
       </form>
     </Form>

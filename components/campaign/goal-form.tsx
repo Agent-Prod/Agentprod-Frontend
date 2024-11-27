@@ -62,7 +62,7 @@ const goalFormSchema = z.object({
   success_metric: z.string(),
   scheduling_link: z.union([
     z.string().url({ message: "Invalid URL" }),
-    z.string().length(0),  // Allow empty string
+    z.string().length(0),
     z.null()
   ]).optional(),
   emails: z
@@ -72,8 +72,8 @@ const goalFormSchema = z.object({
       })
     )
     .optional(),
-  like_post: z.number().optional(),
-  withdraw_invite: z.number().optional(),
+  like_post: z.number().nullable().optional().default(0),
+  withdraw_invite: z.number().nullable().optional().default(0),
   follow_up_days: z
     .number()
     .min(0, { message: "Follow-up days must be a non-negative number" }),
@@ -190,51 +190,66 @@ export function GoalForm() {
   const watchAllFields = form.watch();
 
   const onSubmit: SubmitHandler<GoalFormValues> = async (data) => {
-    if (type === "create") {
-      const payload = {
-        ...data,
-        linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
-          ? selectedLinkedInId
-          : null
-      };
-      
-      createGoal(payload as GoalFormData, params.campaignId);
-    }
-    if (type === "edit") {
-      const changes = {
-        ...Object.keys(data).reduce((acc, key) => {
-          const propertyKey = key as keyof GoalFormValues;
-          if (
-            JSON.stringify(data[propertyKey]) !==
-            JSON.stringify(originalData?.[propertyKey])
-          ) {
-            acc = { ...acc, [propertyKey]: data[propertyKey] };
-          }
-          return acc;
-        }, {} as GoalFormValues),
-        linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
-          ? selectedLinkedInId
-          : null
-      };
-      
-      if (Object.keys(changes).length > 0 && goalData) {
-        editGoal(changes as GoalFormData, goalData.id, params.campaignId);
+    console.log("Form submitted with data:", data);
+    
+    try {
+      if (type === "create") {
+        const payload = {
+          ...data,
+          linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
+            ? selectedLinkedInId
+            : null
+        };
+        
+        await createGoal(payload as GoalFormData, params.campaignId);
       }
+      if (type === "edit") {
+        const changes = {
+          ...Object.keys(data).reduce((acc, key) => {
+            const propertyKey = key as keyof GoalFormValues;
+            if (
+              JSON.stringify(data[propertyKey]) !==
+              JSON.stringify(originalData?.[propertyKey])
+            ) {
+              acc = { ...acc, [propertyKey]: data[propertyKey] };
+            }
+            return acc;
+          }, {} as GoalFormValues),
+          linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
+            ? selectedLinkedInId
+            : null
+        };
+        
+        if (Object.keys(changes).length > 0 && goalData) {
+          await editGoal(changes as GoalFormData, goalData.id, params.campaignId);
+        }
+      }
+      const updatedFormsTracker = {
+        schedulingBudget: true,
+        offering: true,
+        goal: true,
+        audience: true,
+      };
+      localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
+      setFormsTracker((prevFormsTracker) => ({
+        ...prevFormsTracker,
+        ...updatedFormsTracker,
+      }));
+      setPageCompletion("goal", true); // Set the page completion to true
+      toast.success("Goal added successfully");
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast.error("Failed to save goal");
+      return;
     }
-    const updatedFormsTracker = {
-      schedulingBudget: true,
-      offering: true,
-      goal: true,
-      audience: true,
-    };
-    localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
-    setFormsTracker((prevFormsTracker) => ({
-      ...prevFormsTracker,
-      ...updatedFormsTracker,
-    }));
-    setPageCompletion("goal", true); // Set the page completion to true
-    toast.success("Goal added successfully");
   };
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => 
+      console.log('Form values changed:', { name, type, value, errors: form.formState.errors })
+    );
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   useEffect(() => {
     const fetchGoal = async () => {
@@ -329,7 +344,9 @@ export function GoalForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 mb-5">
+      <form onSubmit={handleSubmit(onSubmit, (errors) => {
+        console.log('Form validation errors:', errors);
+      })} className="space-y-8 mb-5">
         <FormField
           control={form.control}
           name="success_metric"
@@ -515,11 +532,10 @@ export function GoalForm() {
                     <Input
                       type="number"
                       {...field}
+                      value={field.value || ''}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const numberValue =
-                          value === "" ? undefined : Number(value);
-                        field.onChange(numberValue);
+                        field.onChange(value === '' ? 0 : Number(value));
                       }}
                       min="0"
                     />
@@ -539,11 +555,10 @@ export function GoalForm() {
                     <Input
                       type="number"
                       {...field}
+                      value={field.value || ''}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const numberValue =
-                          value === "" ? undefined : Number(value);
-                        field.onChange(numberValue);
+                        field.onChange(value === '' ? 0 : Number(value));
                       }}
                       min="0"
                     />

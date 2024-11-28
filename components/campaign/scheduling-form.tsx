@@ -20,15 +20,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import React, { useEffect, useState } from "react";
-import {
-  CampaignFormData,
-  useCampaignContext,
-} from "@/context/campaign-provider";
 import { useUserContext } from "@/context/user-context";
-import { getCampaignById } from "./camapign.api";
 import { CampaignEntry } from "@/context/campaign-provider";
 import { useButtonStatus } from "@/context/button-status";
-import { Label } from "../ui/label";
 import axios from "axios";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
@@ -55,7 +49,12 @@ const campaignFormSchema = z.object({
 
 type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
-const defaultValues: Partial<CampaignFormValues> = {};
+const defaultValues: Partial<CampaignFormValues> = {
+  schedule: {
+    weekdayStartTime: "09:00",
+    weekdayEndTime: "17:00"
+  }
+};
 
 export function SchedulingForm() {
   const router = useRouter();
@@ -64,21 +63,11 @@ export function SchedulingForm() {
     resolver: zodResolver(campaignFormSchema),
     defaultValues,
   });
-  const defaultFormsTracker = {
-    schedulingBudget: true,
-    offering: false,
-    goal: false,
-    audience: false,
-    training: false,
-  };
 
-  const { createCampaign, editCampaign } = useCampaignContext();
   const { user } = useUserContext();
-  const watchAllFields = form.watch();
   const [campaignData, setCampaignData] = useState<CampaignEntry>();
   const { setPageCompletion } = useButtonStatus();
   const [type, setType] = useState<"create" | "edit">("create");
-  const [formsTracker, setFormsTracker] = useState(defaultFormsTracker);
 
   const onSubmit = async (data: CampaignFormValues) => {
     const campaignData = {
@@ -341,7 +330,7 @@ export function SchedulingForm() {
           </div>
         </div>
 
-        <Button type="submit">
+        <Button type="submit" disabled={type === "create" && !form.formState.isValid}>
           {type === "create" ? "Add" : "Update"} Campaign
         </Button>
       </form>

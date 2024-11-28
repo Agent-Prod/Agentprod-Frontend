@@ -4,7 +4,7 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
+  useCallback,
   useMemo,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
@@ -28,14 +28,16 @@ interface MailGraphContextType {
   isLoading: boolean;
   setMailGraphData: (data: MailGraphData[]) => void;
   setContactsData: (data: ContactData[]) => void;
+  fetchDataIfNeeded: () => Promise<void>;
 }
 
 const defaultMailGraphState: MailGraphContextType = {
   mailGraphData: [],
   contactsData: [],
-  isLoading: true,
-  setMailGraphData: () => {},
-  setContactsData: () => {},
+  isLoading: false,
+  setMailGraphData: () => { },
+  setContactsData: () => { },
+  fetchDataIfNeeded: async () => { },
 };
 
 const MailGraphContext = createContext<MailGraphContextType>(defaultMailGraphState);
@@ -46,31 +48,30 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useUserContext();
   const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
   const [contactsData, setContactsData] = useState<ContactData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasLoadedData, setHasLoadedData] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get<{
-          mailgraph: MailGraphData[];
-          contacts: ContactData[];
-        }>(`/v2/mailgraph/${user?.id}`);
-        
-        setMailGraphData(response.data.mailgraph);
-        setContactsData(response.data.contacts);
-        setIsLoading(false);
-      } catch (error: any) {
-        console.error("Error fetching mailgraph data:", error);
-        setError(error.message || "Failed to load data.");
-        setIsLoading(false);
-      }
-    };
+  const fetchDataIfNeeded = useCallback(async () => {
+    if (!user?.id || hasLoadedData) return;
 
-    if (user?.id) {
-      fetchData();
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get<{
+        mailgraph: MailGraphData[];
+        contacts: ContactData[];
+      }>(`/v2/mailgraph/${user?.id}`);
+
+      setMailGraphData(response.data.mailgraph);
+      setContactsData(response.data.contacts);
+      setHasLoadedData(true);
+    } catch (error: any) {
+      console.error("Error fetching mailgraph data:", error);
+      setError(error.message || "Failed to load data.");
+    } finally {
+      setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, hasLoadedData]);
 
   const contextValue = useMemo(
     () => ({
@@ -79,8 +80,9 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
       isLoading,
       setMailGraphData,
       setContactsData,
+      fetchDataIfNeeded,
     }),
-    [mailGraphData, contactsData, isLoading]
+    [mailGraphData, contactsData, isLoading, fetchDataIfNeeded]
   );
 
   return (

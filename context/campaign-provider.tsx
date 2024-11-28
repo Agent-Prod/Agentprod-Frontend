@@ -142,6 +142,7 @@ interface CampaignContextType {
   toggleCampaignIsActive: (campaignId: string) => void;
   isLoading: boolean;
   setCampaigns: React.Dispatch<React.SetStateAction<CampaignEntry[]>>;
+  fetchCampaignsIfNeeded: () => Promise<void>;
 }
 
 const defaultCampaignState: CampaignContextType = {
@@ -156,6 +157,7 @@ const defaultCampaignState: CampaignContextType = {
   toggleCampaignIsActive: () => { },
   isLoading: false,
   setCampaigns: () => { },
+  fetchCampaignsIfNeeded: async () => { },
 };
 
 // Use the default state when creating the context
@@ -170,20 +172,40 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
   const router = useRouter();
-  // const { user } = useAuth();
   const { user } = useUserContext();
-
-  // const [campaignId, setCampaignId] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [userId, setUserId] = React.useState<string>();
+  const [hasLoadedData, setHasLoadedData] = useState(false);
 
   React.useEffect(() => {
     if (user && user.id) {
       setUserId(user.id);
     }
   }, [user]);
+
+  const fetchCampaignsIfNeeded = async () => {
+    if (!userId || hasLoadedData) return;
+
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get<CampaignEntry[]>(`v2/campaigns/all/${userId}`);
+      const sortedCampaigns = response.data.sort((a: any, b: any) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+      });
+
+      setCampaigns(sortedCampaigns);
+      setHasLoadedData(true);
+    } catch (error) {
+      console.error("Error fetching campaign:", error);
+      setError("Failed to load campaign.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const createCampaign = (data: CampaignFormData) => {
     console.log("user from camapgin", user);
@@ -390,38 +412,6 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
     );
   };
 
-  useEffect(() => {
-    const fetchCampaigns = () => {
-      if (userId) {
-        axiosInstance
-          .get<CampaignEntry[]>(`v2/campaigns/all/${userId}`)
-          .then((response) => {
-            console.log("response from all campaigns api", response);
-            // Sort campaigns based on created_at field
-            const sortedCampaigns = response.data.sort((a: any, b: any) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA; // Sort in descending order (newest first)
-            });
-
-            setCampaigns(sortedCampaigns);
-            setIsLoading(false);
-          })
-          .catch((error) => {
-            console.error("Error fetching campaign:", error);
-            setError(error.message || "Failed to load campaign.");
-            setIsLoading(false);
-          });
-      }
-    };
-
-    fetchCampaigns(); // Fetch initially
-
-    // const intervalId = setInterval(fetchCampaigns, 10000); // Fetch every 7 seconds
-
-    // return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, [userId, campaigns.length]); //chaning for the new stuff.
-
   const contextValue = useMemo(
     () => ({
       createCampaign,
@@ -435,8 +425,9 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       campaigns,
       isLoading,
       setCampaigns,
+      fetchCampaignsIfNeeded,
     }),
-    [userId, campaigns]
+    [userId, campaigns, isLoading, hasLoadedData]
   );
 
   return (

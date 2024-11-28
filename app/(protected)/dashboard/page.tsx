@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -126,7 +126,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign.campaign_id}>
       <TableCell>
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'campaign_name')}
         >
@@ -134,7 +134,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'sent_count')}
         >
@@ -142,7 +142,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'delivered_count')}
         >
@@ -150,7 +150,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'open_count')}
         >
@@ -158,7 +158,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'clicked_count')}
         >
@@ -166,7 +166,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'responded')}
         >
@@ -174,7 +174,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'spam_count')}
         >
@@ -182,7 +182,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <span 
+        <span
           className="cursor-pointer hover:underline"
           onClick={() => handleRowClick(campaign, 'bounced_count')}
         >
@@ -190,9 +190,9 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
         </span>
       </TableCell>
       <TableCell className="text-center">
-        
-          {campaign.total_leads}
-        
+
+        {campaign.total_leads}
+
       </TableCell>
     </TableRow>
   ), [handleRowClick]);
@@ -316,8 +316,13 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const { dashboardData, isLoading, analyticsData } = useDashboardContext();
-  const { mailGraphData, contactsData } = useMailGraphContext();
+  const { dashboardData, isLoading, analyticsData, fetchDashboardDataIfNeeded } = useDashboardContext();
+  const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
+
+  useEffect(() => {
+    fetchDashboardDataIfNeeded();
+    fetchDataIfNeeded();
+  }, []);
 
   const recentActivities: any[] = [];
 

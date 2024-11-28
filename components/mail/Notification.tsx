@@ -885,10 +885,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
-      {(email?.status &&
+      {email?.status &&
         !email.is_reply &&
-        email?.status?.toLowerCase() === "soft_bounce") ||
-        (email.bounce_datetime && (
+        email?.status?.toLowerCase() === "soft_bounce" && (
           <div className="flex items-center gap-3">
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Archive className="h-4 w-4 text-gray-400" />
@@ -897,11 +896,9 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               Temporary delivery failure occurred.
             </p>
           </div>
-        ))}
-      {(email?.status &&
-        !email.is_reply &&
-        email?.status?.toLowerCase() === "hard_bounce") ||
-        (email.bounce_datetime && (
+        )}
+      {email?.status &&
+        !email.is_reply && email?.status?.toLowerCase() === "hard_bounce" && (
           <div className="flex items-center gap-3">
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Archive className="h-4 w-4 text-gray-400" />
@@ -910,7 +907,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               Permanent delivery failure occurred.
             </p>
           </div>
-        ))}
+        )}
 
       {email?.status &&
         !email.is_reply &&
@@ -925,10 +922,10 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
-      {(email?.status &&
+      {email?.status &&
         !email.is_reply &&
-        email?.status?.toLowerCase() === "complain") ||
-        (email.spam_datetime && (
+        email?.status?.toLowerCase() === "complain"
+        && (
           <div className="flex items-center gap-3">
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Clock3 className="h-4 w-4 text-gray-400" />
@@ -937,7 +934,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               Recipient marked the email as spam.
             </p>
           </div>
-        ))}
+        )}
       {email?.status &&
         !email.is_reply &&
         email?.status?.toLowerCase() === "invalid_email" && (
@@ -988,6 +985,26 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               {email.open_datetime && (
                 <span className="text-gray-400 text-xs">
                   {formatDate(email.open_datetime)}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+
+      {email?.status &&
+        !email.is_reply &&
+        email?.status?.toLowerCase() === "marked as spam" && (
+          <div className="flex items-center gap-3">
+            <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+              <MailWarning className="h-4 w-4 text-gray-400" />
+            </div>
+            <p className="ml-1 text-xs">
+              This email was marked as spam by the recipient.
+            </p>
+            <span className="text-gray-400 text-xs">
+              {email.spam_datetime && (
+                <span className="text-gray-400 text-xs">
+                  {formatDate(email.spam_datetime)}
                 </span>
               )}
             </span>

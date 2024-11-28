@@ -1447,6 +1447,38 @@ export default function PeopleForm(): JSX.Element {
     setIsTableLoading(true);
 
     try {
+      const formData = form.getValues();
+      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
+      const postBody = {
+        campaign_id: params.campaignId,
+        audience_type: "prospective",
+        filters_applied: {
+          q_organization_domains: formData.q_organization_domains,
+          organization_industry_tag_ids:
+            formData.organization_industry_tag_ids,
+          currently_using_technologies: formData.currently_using_technologies,
+          q_organization_keyword_tags: formData.q_organization_keyword_tags,
+          job_posting_titles: formData.job_posting_titles,
+          job_posting_locations: formData.job_posting_locations,
+          organization_locations: formData.organization_locations,
+          company_headcount: checkedCompanyHeadcount,
+          organization_latest_funding_stage_cd: checkedFundingRounds,
+          search_signals: checkedSearchSignal,
+          revenue_range: {
+            min: formData.minimum_company_funding?.text,
+            max: formData.maximum_company_funding?.text,
+          },
+          person_titles: formData.person_titles,
+          per_page: formData.per_page,
+          email_status: formData.email_status,
+          organization_job_locations: formData.organization_job_locations,
+          q_organization_job_titles: formData.q_organization_job_titles,
+          buying_intent_topics: checkedIntentTopics,
+          buying_intent_scores: checkedIntentScores,
+          contact_email_status_v2: linkedinCheck
+        },
+      };
+      const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
       await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);

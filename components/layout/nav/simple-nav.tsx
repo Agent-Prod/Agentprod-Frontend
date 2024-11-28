@@ -14,13 +14,16 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
 
   return (
     <div key={nav.label}>
-      <Link href={nav.href || "/"}>
+      <Link
+        href={nav.href || "/"}
+        className="no-underline hover:no-underline text-inherit"
+      >
         <span
           className={cn(
             "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
             path === nav.href
               ? "bg-primary text-accent hover:bg-primary hover:text-accent"
-              : "transparent",
+              : "text-foreground",
             nav.disabled && "cursor-not-allowed opacity-80"
           )}
         >
@@ -28,7 +31,7 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
           <span className="flex items-center">
             {nav.title}
             {nav.beta && (
-              <span className="ml-2 rounded-full  px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
+              <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
                 Beta
               </span>
             )}
@@ -42,24 +45,28 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
       <div className="bg-accent rounded-b-md">
         {path.includes(nav.href!) && nav.isCollapsible
           ? nav.subNavs?.map((subLink) => {
-              const SubLinkIcon = Icons[subLink.icon || "arrowRight"];
-              return (
-                <Link key={subLink.label} href={subLink.href || "/"}>
-                  <span
-                    className={cn(
-                      "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                      path === subLink.href
-                        ? "bg-primary text-accent hover:bg-primary hover:text-accent"
-                        : "transparent",
-                      subLink.disabled && "cursor-not-allowed opacity-80"
-                    )}
-                  >
-                    <SubLinkIcon className="mr-2 h-4 w-4" />
-                    {subLink.title}
-                  </span>
-                </Link>
-              );
-            })
+            const SubLinkIcon = Icons[subLink.icon || "arrowRight"];
+            return (
+              <Link
+                key={subLink.label}
+                href={subLink.href || "/"}
+                className="no-underline hover:no-underline text-inherit"
+              >
+                <span
+                  className={cn(
+                    "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                    path === subLink.href
+                      ? "bg-primary text-accent hover:bg-primary hover:text-accent"
+                      : "text-foreground",
+                    subLink.disabled && "cursor-not-allowed opacity-80"
+                  )}
+                >
+                  <SubLinkIcon className="mr-2 h-4 w-4" />
+                  {subLink.title}
+                </span>
+              </Link>
+            );
+          })
           : null}
       </div>
     </div>

@@ -21,19 +21,11 @@ import Notification from "./Notification";
 import { useLeadSheetSidebar } from "@/context/lead-sheet-sidebar";
 import {
   BadgeX,
-  Bell,
-  CalendarCheck,
   Check,
   Edit3,
-  Forward,
   Linkedin,
-  MailPlus,
   RefreshCw,
-  ThumbsDown,
-  ThumbsUp,
-  TimerReset,
   Trash2,
-  UserX,
   User,
 } from "lucide-react";
 import { Input } from "../ui/input";
@@ -49,6 +41,7 @@ import { parseActionDraft } from "./parse-draft";
 import Image from "next/image";
 import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
+import ContentDisplay from "./ContentDisplay";
 
 interface ThreadDisplayMainProps {
   ownerEmail: string;
@@ -381,7 +374,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                     </span>
                   </div>
                 </div>
-                {email.subject === "" || email.subject==="No subject" ? (<></>) : (<CardHeader>
+                {email.subject === "" || email.subject === "No subject" ? (<></>) : (<CardHeader>
                   <CardTitle className="text-sm flex -mt-8 -ml-3">
                     <Input
                       value={editableSubject}
@@ -393,12 +386,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   </CardTitle>
                 </CardHeader>)}
                 <CardContent className="text-xs -ml-3 -mt-2">
-                  <Textarea
-                    value={editableBody}
+                  <ContentDisplay
+                    content={editableBody}
                     className="text-xs h-64"
-                    placeholder="Enter email body"
                     readOnly={!isEditing}
-                    onChange={(e) => setEditableBody(e.target.value)}
+                    onChange={(value) => setEditableBody(value)}
                   />
                 </CardContent>
                 <CardFooter className="flex justify-between text-xs items-center">
@@ -488,11 +480,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 </CardTitle>)}
               </CardHeader>
               <CardContent className={`text-xs -ml-3 ${email.subject === "" ? "-mt-12" : "-mt-3"} `}>
-                <Textarea
-                  value={email.body}
-                  readOnly
+                <ContentDisplay
+                  content={email.body}
                   className="text-xs h-64"
-                  placeholder="Enter email body"
+                  readOnly
                 />
               </CardContent>
             </Card>
@@ -653,7 +644,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           updateMailStatus(conversationId, "sent");
           setIsLoadingButton(false);
           setIsEditing(false);
-          setSelectedMailId(conversationId); 
+          setSelectedMailId(conversationId);
           refreshThread();
         })
         .catch((error) => {
@@ -672,7 +663,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       title,
       updateMailStatus,
       user.id,
-      refreshThread, 
+      refreshThread,
     ]);
 
     const handleRegenerateDraft = useCallback(() => {
@@ -797,12 +788,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </CardHeader>
             )}
             <CardContent className="text-xs -ml-3 -mt-4">
-              <Textarea
-                value={body}
-                disabled={!isEditing}
+              <ContentDisplay
+                content={body}
                 className="text-xs h-64"
-                placeholder="Enter message body"
-                onChange={(e) => setBody(e.target.value)}
+                readOnly={!isEditing}
+                onChange={(value) => setBody(value)}
               />
             </CardContent>
             <CardFooter className="flex justify-between text-xs items-center">
@@ -821,10 +811,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   className="ml-2"
                   onClick={handleSendNow}
                   disabled={
-                    isLoadingButton || 
-                    (platform === "linkedin" && 
-                     (!leads[0]?.connected_on_linkedin || 
-                      leads[0]?.connected_on_linkedin === "Not Connected"))
+                    isLoadingButton ||
+                    (platform === "linkedin" &&
+                      (!leads[0]?.connected_on_linkedin ||
+                        leads[0]?.connected_on_linkedin === "Not Connected"))
                   }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}

@@ -99,3 +99,19 @@
   --header-height: 80px;
   --tabs-header-height: 120px; /* Adjust based on your actual tabs header height */
 }
+
+.sidebar-link,
+.sidebar-link:hover,
+.sidebar-link:focus,
+.sidebar-link:active {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+a[href],
+a[href]:hover,
+a[href]:focus,
+a[href]:active {
+  text-decoration: none;
+  color: inherit;
+}

@@ -176,10 +176,12 @@ export function Mail({
   // Get query parameters
   const campaignIdFromUrl = searchParams.get('campaign_id');
   const filterFromUrl = searchParams.get('_filter')?.toLowerCase() || 'all';
+  const searchFilterFromUrl = searchParams.get('search_filter') || '';
 
   // Modify initial states to use URL parameters
   const [filter, setFilter] = React.useState(filterFromUrl);
   const [activeTab, setActiveTab] = React.useState(filterFromUrl);
+  const [searchTerm, setSearchTerm] = React.useState(searchFilterFromUrl);
   
   const [mails, setMails] = React.useState<Conversations[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -192,7 +194,6 @@ export function Mail({
     campaignName: '', 
     campaignId: campaignIdFromUrl
   } : null);
-  const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedMailId, setSelectedMailId] = React.useState<string | null>(
     null
   );
@@ -419,9 +420,14 @@ export function Mail({
 
   React.useEffect(() => {
     if (user?.id) {
-      fetchConversations(campaignIdFromUrl || undefined, 1, searchTerm, filterFromUrl);
+      fetchConversations(
+        campaignIdFromUrl || undefined, 
+        1, 
+        searchFilterFromUrl || searchTerm, 
+        filterFromUrl
+      );
     }
-  }, [user?.id, campaignIdFromUrl, filterFromUrl]);
+  }, [user?.id, campaignIdFromUrl, filterFromUrl, searchFilterFromUrl]);
 
   React.useEffect(() => {
     if (mails.length > 0 && !initialMailIdSet) {
@@ -505,12 +511,20 @@ export function Mail({
 
   const handleSearchClick = React.useCallback(() => {
     const trimmedSearchTerm = searchTerm.trim();
-    console.log('Search term:', trimmedSearchTerm);
     setPage(1);
     setMails([]);
 
+    // Update URL with search filter
+    const params = new URLSearchParams(searchParams.toString());
+    if (trimmedSearchTerm) {
+      params.set('search_filter', trimmedSearchTerm);
+    } else {
+      params.delete('search_filter');
+    }
+    router.push(`/mail?${params.toString()}`);
+
     fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filter);
-  }, [searchTerm, campaign, filter, fetchConversations]);
+  }, [searchTerm, campaign, filter, fetchConversations, router, searchParams]);
 
   const handleTabChange = (value: string) => {
     console.log('Tab', value);

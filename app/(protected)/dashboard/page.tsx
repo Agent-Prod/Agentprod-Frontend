@@ -352,6 +352,7 @@ export default function Page() {
     })
       .filter(Boolean)
   );
+  const router = useRouter();
 
   return (
     <>
@@ -360,9 +361,17 @@ export default function Page() {
         <div className="flex-1 space-y-4">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
             <div className="flex flex-col col-span-2">
-              <Card className="">
-                <CardContent className="flex items-center gap-5 pt-6 ">
-                  <div className="flex items-center gap-2 ">
+              <Card
+                className="cursor-pointer hover:bg-gray-100/20 dark:hover:bg-gray-800/20 transition-colors"
+                onClick={() => {
+                  const queryParams = new URLSearchParams({
+                    _filter: 'TO-APPROVE'
+                  });
+                  router.push(`/mail?${queryParams.toString()}`);
+                }}
+              >
+                <CardContent className="flex items-center gap-5 pt-6">
+                  <div className="flex items-center gap-2">
                     <Icons.mail />
                     <p className="font-medium">Emails Pending Approval</p>
                   </div>
@@ -450,7 +459,16 @@ export default function Page() {
                       </div>
                     ) : dashboardData?.hot_leads.length > 0 ? (
                       dashboardData.hot_leads.map((lead: any) => (
-                        <div key={lead.name} className="flex items-center">
+                        <div
+                          key={lead.name}
+                          className="flex items-center cursor-pointer hover:bg-gray-100/20 dark:hover:bg-gray-800/20 p-2 rounded-md"
+                          onClick={() => {
+                            const queryParams = new URLSearchParams({
+                              search_filter: lead.name.split(' ')[0]
+                            });
+                            router.push(`/mail?${queryParams.toString()}`);
+                          }}
+                        >
                           <Avatar className="h-9 w-9">
                             <AvatarImage src={lead.photo_url} alt="Avatar" />
                             <AvatarFallback>

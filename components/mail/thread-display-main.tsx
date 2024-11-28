@@ -388,7 +388,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <CardContent className="text-xs -ml-3 -mt-2">
                   <ContentDisplay
                     content={editableBody}
-                    className="text-xs h-64"
+                    className="text-xs h-72"
                     readOnly={!isEditing}
                     onChange={(value) => setEditableBody(value)}
                   />
@@ -482,7 +482,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               <CardContent className={`text-xs -ml-3 ${email.subject === "" ? "-mt-12" : "-mt-3"} `}>
                 <ContentDisplay
                   content={email.body}
-                  className="text-xs h-64"
+                  className="text-xs h-max"
                   readOnly
                 />
               </CardContent>
@@ -591,6 +591,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           setLoadingSmartSchedule(false);
           setIsEditing(false);
           setSelectedMailId(conversationId);
+          refreshThread();
         })
         .catch((error) => {
           console.error("Failed to approve email:", error);
@@ -606,6 +607,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       setThread,
       title,
       updateMailStatus,
+      refreshThread,
     ]);
 
     const handleSendNow = useCallback(() => {

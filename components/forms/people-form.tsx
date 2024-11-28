@@ -773,77 +773,6 @@ export default function PeopleForm(): JSX.Element {
 
     setCalculatedPages((pages - 1) * 2 + 1,);
 
-    const getRandomEmail = () => {
-      const premiumAcc = ["info@agentprod.com", "muskaan@agentprodapp.com", "demo@agentprod.com"];
-      const randomIndex = Math.floor(Math.random() * premiumAcc.length);
-      return premiumAcc[randomIndex];
-    };
-
-    const createScraperBody = (
-      count: number,
-      startPage: number
-    ) => ({
-      count: Math.min(count, 50),
-      email: getRandomEmail(),
-      getEmails: true,
-      guessedEmails: true,
-      maxDelay: 15,
-      minDelay: 8,
-      password: "Agentprod06ms",
-      searchUrl: apolloUrl,
-      startPage: (startPage - 1) * 2 + 1,
-      waitForVerification: true,
-      proxy: {
-        useApifyProxy: true,
-        apifyProxyGroups: ["RESIDENTIAL"],
-        apifyProxyCountry: "IN",
-      },
-    });
-
-    const APIFY_TOKEN = "apify_api_n5GCPgdvobcZfCa9w38PSxtIQiY22E4k3ARa";
-
-    const fetchLead = async (startPage: number, remainingLeads: number): Promise<any[]> => {
-      const TIMEOUT = 90000;
-      const maxRetries = 3;
-      let retries = 0;
-
-      while (retries < maxRetries) {
-        try {
-          const scraperBody = createScraperBody(remainingLeads, startPage);
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-
-          const response = await axios.post(
-            `https://api.apify.com/v2/acts/curious_coder~apollo-io-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
-            scraperBody,
-            {
-              signal: controller.signal,
-            }
-          );
-
-          clearTimeout(timeoutId);
-          return response.data;
-
-        } catch (error) {
-          console.error(
-            `Error fetching leads for page ${startPage} (attempt ${retries + 1}):`,
-            error
-          );
-
-          retries++;
-          if (retries === maxRetries) {
-            console.error(
-              `Failed to fetch leads for page ${startPage} after ${maxRetries} attempts`
-            );
-            return [];
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        }
-      }
-      return [];
-    };
 
     const existingLeadsResponse = await axiosInstance.get(
       `v2/leads/${user?.id}`
@@ -860,11 +789,12 @@ export default function PeopleForm(): JSX.Element {
     } else if (isSubscribed === true) {
       shouldCallAPI = true;
     }
+
+
     if (shouldCallAPI) {
       try {
         setIsLoading(true);
         setIsTableLoading(true);
-
         const calculateCountdownDuration = (perPage: number): number => {
           if (perPage <= 25) return 30;
           if (perPage <= 50) return 40;
@@ -874,7 +804,6 @@ export default function PeopleForm(): JSX.Element {
           if (perPage <= 400) return 120;
           return 180;
         };
-
         let countdownDuration = calculateCountdownDuration(formData.per_page);
 
         const countdownToastId = toast.loading(
@@ -910,51 +839,20 @@ export default function PeopleForm(): JSX.Element {
             );
           }
         }, 1000);
-
-        const batchSize = 4;
-        const totalLeadsNeeded = data.per_page;
-        const maxLeadsPerBatch = 50;
-        let enrichedLeads: any[] = [];
-        let remainingLeads = totalLeadsNeeded;
-
-        for (let i = 0; remainingLeads > 0; i += batchSize) {
-          const currentBatchSize = Math.min(batchSize, Math.ceil(remainingLeads / maxLeadsPerBatch));
-          const batch = Array.from(
-            { length: currentBatchSize },
-            (_, index) => ({
-              startPage: i + index + 1,
-              count: Math.min(maxLeadsPerBatch, remainingLeads - (index * maxLeadsPerBatch))
-            })
-          );
-
-          console.log(
-            `Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(totalLeadsNeeded / (batchSize * maxLeadsPerBatch))}`
-          );
-
-          const batchPromises = batch.map(({ startPage, count }) =>
-            fetchLead(startPage, count)
-          );
-          const batchResults = await Promise.all(batchPromises);
-          const batchLeads = batchResults.flat();
-
-          enrichedLeads.push(...batchLeads);
-          remainingLeads -= batchSize * maxLeadsPerBatch;
-
-          if (remainingLeads > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-          }
-        }
-
+  
+        // Directly call the Apollo API
+        const apolloResponse = await axiosInstance.post('/v2/apify/apify/run-actor', {
+          apollo_url: apolloUrl,
+          page_no: 1,
+          user_id: user.id,
+          per_page: data.per_page
+        });
         clearInterval(countdownInterval);
         toast.dismiss(countdownToastId);
-
-        if (enrichedLeads.length === 0) {
-          toast.error("No leads found");
-          setTab("tab1");
-        } else {
-          console.log("Fetched leads:", enrichedLeads);
-
-          const processedLeads = enrichedLeads
+  
+        if (apolloResponse.data.data && Array.isArray(apolloResponse.data.data)) {
+          const processedLeads = apolloResponse.data
+            .data
             .slice(0, data.per_page)
             .map((person: any) => ({
               ...person,
@@ -965,11 +863,14 @@ export default function PeopleForm(): JSX.Element {
           setLeads(processedLeads);
           console.log("Processed new leads:", processedLeads);
           setTab("tab2");
-
+  
           setIsTableLoading(false);
           toast.success(
             `${processedLeads.length} new leads fetched successfully`
           );
+        } else {
+          toast.error("No leads found");
+          setTab("tab1");
         }
       } catch (error) {
         console.error(error);

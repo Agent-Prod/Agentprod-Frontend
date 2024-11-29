@@ -95,7 +95,7 @@ export default function ParentLayout({
     return (
         <>
             <Header />
-            <div className="flex h-screen overflow-hidden md:pt-16">
+            <div className="flex flex-col min-h-screen overflow-hidden md:pt-16">
                 <TooltipProvider delayDuration={0}>
                     <ResizablePanelGroup
                         direction="horizontal"
@@ -104,7 +104,7 @@ export default function ParentLayout({
                                 sizes
                             )}`;
                         }}
-                        className="h-full items-stretch"
+                        className="flex-1 items-stretch"
                     >
                         {width > 768 ? (
                             <ResizablePanel
@@ -139,9 +139,9 @@ export default function ParentLayout({
                             />
                         ) : null}
                         <ResizablePanel minSize={70} defaultSize={85}>
-                            <ScrollArea className="h-screen px-6">
+                            <ScrollArea className="h-[calc(100vh-4rem)] px-6">
                                 <PageHeaderProvider>
-                                    <main className="py-2 max-w-7xl mx-auto">
+                                    <main className="py-2 pb-2 max-w-7xl mx-auto">
                                         {children}
                                     </main>
                                 </PageHeaderProvider>

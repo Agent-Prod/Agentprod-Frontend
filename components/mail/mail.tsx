@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -138,12 +138,14 @@ const CampaignDropdown = React.memo(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="flex items-center justify-center space-x-2"
+            className="w-[150px] flex items-center justify-between space-x-2"
           >
-            <span>
-              {currentCampaign ? currentCampaign.campaignName : 'All Campaigns'}
+            <span className="truncate">
+              {currentCampaign
+                ? `${currentCampaign.campaignName}`
+                : 'All Campaigns'}
             </span>
-            <ChevronDown size={20} />
+            <ChevronDown size={16} className="flex-shrink-0" />
           </Button>
         </DropdownMenuTrigger>
         {dropdownContent}
@@ -164,6 +166,48 @@ const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
 });
 
 const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain);
+
+interface ActiveFiltersProps {
+  filter: string;
+  campaign: { campaignName: string } | null;
+  onClearCampaign: () => void;
+  onClearFilter: () => void;
+}
+
+const ActiveFilters: React.FC<ActiveFiltersProps> = ({ filter, campaign, onClearCampaign, onClearFilter }) => {
+  if ((!filter && !campaign) || (filter === 'all' && !campaign)) return null;
+
+  return (
+    <div className="flex flex-wrap px-4 pb-2 h-[40px]">
+      {filter && filter !== 'all' && (
+        <div className="flex items-center gap-1 bg-muted/60 px-2 py-1 rounded-md text-sm">
+          <span>Filter: {filter}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-4 w-4 hover:bg-muted"
+            onClick={() => onClearFilter()}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+      {campaign && (
+        <div className="flex items-center gap-1 bg-muted/60 mx-2 px-2 py-1 rounded-md text-sm">
+          <span>Campaign: {campaign.campaignName}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-4 w-4 hover:bg-muted"
+            onClick={() => onClearCampaign()}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export function Mail({
   defaultLayout = [265, 440, 655],
@@ -616,38 +660,37 @@ export function Mail({
           >
             <div className="flex items-center px-4 pt-2 pb-0">
               <h1 className="text-xl font-bold">Inbox ({totalCount})</h1>
-              <TabsList className="ml-auto flex relative">
+              <TabsList className="ml-auto flex relative bg-muted/50 p-1 rounded-lg">
                 <TabsTrigger
                   value="all"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   All
                 </TabsTrigger>
                 <TabsTrigger
                   value="to-approve"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   To Approve
                 </TabsTrigger>
                 <TabsTrigger
                   value="replied"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   Replied
                 </TabsTrigger>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="outline"
-                      className="flex items-center justify-center space-x-2"
+                      variant="ghost"
+                      className="h-8 px-3 text-sm font-medium hover:bg-muted/80"
                     >
-                      <span>
-                        {filterState.activeTab.toLocaleUpperCase() || "More"}
-                      </span>
-                      <ChevronDown size={20} />
+                      <span>More</span>
+                      <ChevronDown size={16} className="ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent align="end" className="w-[180px]">
                     <DropdownMenuItem
                       onSelect={() => handleTabChange("OPENED")}
                     >
@@ -672,6 +715,7 @@ export function Mail({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
                 <CampaignDropdown
                   campaigns={campaigns}
                   handleCampaignChange={handleCampaignChange}
@@ -680,31 +724,40 @@ export function Mail({
               </TabsList>
             </div>
 
-            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="relative flex items-center">
+            <div className="bg-background/95 px-4 pt-4 pb-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <form className="relative" onSubmit={(e) => { e.preventDefault(); handleSearchClick(); }}>
                 <Input
-                  placeholder="Search"
-                  className="pr-10"
+                  placeholder="Search emails..."
+                  className="w-full pl-4 pr-10 h-9 bg-muted/50 border-none"
                   value={filterState.searchTerm}
                   onChange={handleSearchChange}
                 />
                 <Button
-                  type="button"
+                  type="submit"
                   variant="secondary"
                   size="icon"
-                  className="absolute right-0 top-0 h-full cursor-pointer "
-                  onClick={handleSearchClick}
+                  className="absolute right-0 top-0 h-full px-3"
                 >
                   <Search className="h-4 w-4 text-muted-foreground" />
                 </Button>
-              </div>
+              </form>
             </div>
+
+            <ActiveFilters
+              filter={filterState.filter}
+              campaign={campaign}
+              onClearCampaign={() => handleCampaignChange(null)}
+              onClearFilter={() => handleTabChange('all')}
+            />
 
             <TabsContent
               value={filterState.activeTab}
-              className="flex-grow overflow-hidden m-0"
+              className="flex-grow overflow-hidden m-0 h-[calc(100%-130px)]"
             >
-              <div ref={mailListRef} className="h-full flex flex-col">
+              <div
+                ref={mailListRef}
+                className="h-full overflow-auto"
+              >
                 {(isInitialLoading && page === 1 && !isCampaignsLoading) ||
                   isTransitioning ? (
                   <div className="flex flex-col space-y-3 p-4 pt-0">

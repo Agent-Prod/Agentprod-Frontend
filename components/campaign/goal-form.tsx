@@ -126,10 +126,10 @@ export function GoalForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/goals/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "Goal not found") {
             setType("create");
           } else {
@@ -300,8 +300,8 @@ export function GoalForm() {
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+        const response = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
         );
         setCampaignChannel(response.data.channel);
       } catch (error) {

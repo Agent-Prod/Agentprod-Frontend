@@ -54,13 +54,13 @@ function PreviewContent() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
+          const response = await axiosInstance.get(
+            `v2/campaigns/${id}`
           );
 
-          const data = await response.json();
+          const data = response.data;
           console.log(data, "ress");
-          if (response.ok) {
+          if (response.status === 200) {
             setCampaignType(data.campaign_type);
           } else {
             toast.error("Failed to fetch campaign data");

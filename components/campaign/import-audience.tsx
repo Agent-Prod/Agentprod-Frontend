@@ -128,10 +128,10 @@ export const ImportAudience = () => {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
@@ -369,8 +369,8 @@ export const ImportAudience = () => {
 
       const checkLeads = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
           );
           if (Array.isArray(response.data) && response.data.length >= 1) {
             setIsCreateBtnLoading(false);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/auth-provider";
+import axiosInstance from "@/utils/axiosInstance";
 
 export const useSubscription = () => {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
@@ -15,8 +16,8 @@ export const useSubscription = () => {
         setError(null);
 
         try {
-            const res = await axios.get(
-                `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+            const res = await axiosInstance.get(
+                `v2/pricing-plans/${user.id}`
             );
 
             const startTime = new Date(res.data.start_time).getTime();
@@ -24,8 +25,8 @@ export const useSubscription = () => {
             const daysPassed = (currentTime - startTime) / (1000 * 60 * 60 * 24);
 
             if (daysPassed > 30 && res.data.subscription_mode === "Razorpay") {
-                await axios.delete(
-                    `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${res.data.id}`
+                await axiosInstance.delete(
+                    `v2/pricing-plans/${res.data.id}`
                 );
                 setIsSubscribed(false);
             } else {

@@ -71,18 +71,18 @@ export function OfferingForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const campaignResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
+          const campaignResponse = await axiosInstance.get(
+            `v2/campaigns/${id}`
           );
-          const campaignData = await campaignResponse.json();
+          const campaignData = campaignResponse.data;
 
-          if (campaignResponse.ok) {
+          if (campaignResponse.status === 200) {
             setCampaignType(campaignData.campaign_type);
 
-            const offeringResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${id}`
+            const offeringResponse = await axiosInstance.get(
+              `v2/offerings/${id}`
             );
-            const offeringData = await offeringResponse.json();
+            const offeringData = offeringResponse.data;
 
             if (offeringData.detail === "Offering not found") {
               setType("create");

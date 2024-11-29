@@ -456,10 +456,10 @@ export default function PeopleForm(): JSX.Element {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
@@ -1109,8 +1109,8 @@ export default function PeopleForm(): JSX.Element {
         );
         console.log("filters to audience: ", audienceResponse.data);
 
-        const getRecData = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+        const getRecData = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
         );
         if (getRecData.data.schedule_type === "recurring") {
           const recurringResponse = await axiosInstance.post(
@@ -1137,8 +1137,8 @@ export default function PeopleForm(): JSX.Element {
 
         const checkLeads = async () => {
           try {
-            const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            const response = await axiosInstance.get(
+              `v2/lead/campaign/${params.campaignId}`
             );
             if (Array.isArray(response.data) && response.data.length >= 1) {
 
@@ -1482,8 +1482,8 @@ export default function PeopleForm(): JSX.Element {
       const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
       await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
-      const getRecData = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+      const getRecData = await axiosInstance.get(
+        `v2/campaigns/${params.campaignId}`
       );
       if (getRecData.data.schedule_type === "recurring") {
         const recurringResponse = await axiosInstance.put(
@@ -1746,7 +1746,7 @@ export default function PeopleForm(): JSX.Element {
         };
       }
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/apollo/lead/search`, requestBody);
+      const response = await axiosInstance.post(`v2/apollo/lead/search`, requestBody);
 
       // Assuming the API returns the total count in the response
       setTotalLeads(response.data.total_leads);

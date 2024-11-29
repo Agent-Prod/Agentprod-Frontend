@@ -63,8 +63,8 @@ function RegistrationPage() {
     setLoading(true); // Set loading state to true during form submission
 
     try {
-      const { data: dataCode } = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/check/coupon/${data.code}`
+      const { data: dataCode } = await axiosInstance.get(
+        `v2/check/coupon/${data.code}`
       );
 
       if (dataCode !== "Not Found") {
@@ -75,8 +75,8 @@ function RegistrationPage() {
 
         if (user && user.id) {
           console.log("User ID:", user.id);
-          const res = axios.post(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/`,
+          const res = await axiosInstance.post(
+            `v2/pricing-plans/`,
             {
               user_id: user.id,
               subscription_mode: "AppSumo",

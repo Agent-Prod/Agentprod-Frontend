@@ -24,6 +24,7 @@ import { useUserContext } from "@/context/user-context";
 import { CampaignEntry } from "@/context/campaign-provider";
 import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
@@ -92,15 +93,15 @@ export function SchedulingForm() {
 
     try {
       if (type === "create") {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/`,
+        const response = await axiosInstance.post(
+          `v2/campaigns/`,
           campaignData
         );
         router.push(`/campaign/${response.data.id}`);
         toast.success("Campaign is scheduled successfully!");
       } else {
-        await axios.put(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,
+        await axiosInstance.put(
+          `v2/campaigns/${params.campaignId}`,
           campaignData
         );
         router.push(`/campaign/${params.campaignId}`);
@@ -124,10 +125,10 @@ export function SchedulingForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/campaigns/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "Campaign not found") {
             setType("create");
           } else {

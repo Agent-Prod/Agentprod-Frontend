@@ -319,8 +319,8 @@ export function Mail({
 
         console.log('Fetching conversations with URL:', url);
 
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`,
+        const response = await axiosInstance.get(
+          url,
           {
             cancelToken: cancelTokenRef.current.token,
           }

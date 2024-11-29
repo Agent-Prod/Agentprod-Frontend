@@ -13,6 +13,7 @@ import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
+import axiosInstance from "@/utils/axiosInstance";
 
 declare global {
   interface Window {
@@ -111,8 +112,8 @@ function PriceCard({
         description: `Plan: ${title}`,
         order_id: data.orderId,
         handler: async function (response: any) {
-          const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/`,
+          const res = await axiosInstance.post(
+            `v2/pricing-plans/`,
             {
               user_id: user.id,
               subscription_mode: "Razorpay",

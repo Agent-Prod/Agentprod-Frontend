@@ -172,7 +172,7 @@ export default function Page() {
       verificationAttemptsRef.current++;
 
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`);
+        const response = await axiosInstance.get(`v2/user/${domain}/authenticate`);
 
         if (!response.data.error) {
           clearInterval(verificationIntervalRef.current!);
@@ -260,7 +260,7 @@ export default function Page() {
       appKey: inputAppPassword,
     };
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `https://warmup.agentprod.com/add-email`,
         payload
       );

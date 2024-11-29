@@ -64,8 +64,8 @@ export default function Page() {
 
   const fetchUserSubscription = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+      const res = await axiosInstance.get(
+        `v2/pricing-plans/${user.id}`
       );
       const planValue = res.data.subscription_mode || "Unknown";
       updatePlanInfo(planValue);

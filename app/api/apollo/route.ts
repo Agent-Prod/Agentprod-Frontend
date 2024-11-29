@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 // import type { NextApiRequest, NextApiResponse } from "next";
 
 export async function POST(req: Request, res: Response) {
@@ -6,7 +6,7 @@ export async function POST(req: Request, res: Response) {
   const { url, body } = await req.json();
   // console.log("URL: ", url);
   try {
-    const result = await axios.post(
+    const result = await axiosInstance.post(
       url,
       {
         api_key: process.env.APOLLO_API_KEY ?? "",

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React, { memo, useCallback, useEffect } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -28,6 +28,7 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
 import type { Campaign, DashboardData } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 
 interface TopPerformingCampaignsTableProps {
@@ -316,15 +317,28 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const { dashboardData, isLoading, analyticsData, fetchDashboardDataIfNeeded } = useDashboardContext();
+  const {
+    dashboardData,
+    isLoading,
+    analyticsData,
+    isAnalyticsLoading,
+    fetchDashboardDataIfNeeded,
+    fetchAnalyticsDataIfNeeded
+  } = useDashboardContext();
+
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
+  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(false);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();
     fetchDataIfNeeded();
   }, []);
 
-  const recentActivities: any[] = [];
+  useEffect(() => {
+    if (shouldLoadAnalytics) {
+      fetchAnalyticsDataIfNeeded();
+    }
+  }, [shouldLoadAnalytics]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
@@ -391,26 +405,38 @@ export default function Page() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
-                    <TopPerformingCampaignsTable
-                      campaigns={analyticsData?.map(campaign => ({
-                        campaign_id: campaign.campaign_id,
-                        sent_count: campaign.sent_count,
-                        delivered_count: campaign.delivered_count,
-                        clicked_count: campaign.clicked_count,
-                        spam_count: campaign.spam_count,
-                        bounced_count: campaign.bounced_count,
-                        user_id: campaign.user_id,
-                        open_count: campaign.open_count,
-                        campaign_name: campaign.campaign_name,
-                        responded: campaign.responded,
-                        engaged_leads: 0,
-                        response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        total_leads: campaign.total_leads
-                      }))}
-                      isLoading={isLoading}
-                    />
+                    {!shouldLoadAnalytics ? (
+                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
+                        <Button
+                          onClick={() => setShouldLoadAnalytics(true)}
+                          className="bg-gradient-to-r from-black to-black text-white"
+                        >
+                          Load Analytics
+                        </Button>
+                      </div>
+                    ) : (
+                      <TopPerformingCampaignsTable
+                        campaigns={analyticsData?.map(campaign => ({
+                          campaign_id: campaign.campaign_id,
+                          sent_count: campaign.sent_count,
+                          delivered_count: campaign.delivered_count,
+                          clicked_count: campaign.clicked_count,
+                          spam_count: campaign.spam_count,
+                          bounced_count: campaign.bounced_count,
+                          user_id: campaign.user_id,
+                          open_count: campaign.open_count,
+                          campaign_name: campaign.campaign_name,
+                          responded: campaign.responded,
+                          engaged_leads: 0,
+                          response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          total_leads: campaign.total_leads
+                        }))}
+                        isLoading={isAnalyticsLoading}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </ScrollArea>

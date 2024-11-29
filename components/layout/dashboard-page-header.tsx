@@ -25,7 +25,7 @@ export default function DashboardPageHeader() {
     <>
       {hidden ? null : (
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mt-4">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           {title === "Settings" && <p className="text-sm text-muted-foreground pt-1">Manage your account settings and set e-mail preferences.</p>}
           <Separator className="mt-3 mb-3" />
         </div>

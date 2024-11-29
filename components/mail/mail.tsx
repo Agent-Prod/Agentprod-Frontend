@@ -172,17 +172,18 @@ export function Mail({
 }: MailProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // Get query parameters
   const campaignIdFromUrl = searchParams.get('campaign_id');
   const filterFromUrl = searchParams.get('_filter')?.toLowerCase() || 'all';
   const searchFilterFromUrl = searchParams.get('search_filter') || '';
 
-  // Modify initial states to use URL parameters
-  const [filter, setFilter] = React.useState(filterFromUrl);
-  const [activeTab, setActiveTab] = React.useState(filterFromUrl);
-  const [searchTerm, setSearchTerm] = React.useState(searchFilterFromUrl);
-  
+  const [filterState, setFilterState] = React.useState({
+    filter: filterFromUrl,
+    activeTab: filterFromUrl,
+    searchTerm: searchFilterFromUrl
+  });
+
   const [mails, setMails] = React.useState<Conversations[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [showLoadingOverlay, setShowLoadingOverlay] = React.useState(false);
@@ -191,7 +192,7 @@ export function Mail({
     campaignName: string;
     campaignId: string;
   } | null>(campaignIdFromUrl ? {
-    campaignName: '', 
+    campaignName: '',
     campaignId: campaignIdFromUrl
   } : null);
   const [selectedMailId, setSelectedMailId] = React.useState<string | null>(
@@ -268,20 +269,19 @@ export function Mail({
     setLocalIsContextBarOpen(isContextBarOpen);
   }, [isContextBarOpen]);
 
+  // 2. Modify the fetch conversations effect
   const fetchConversations = React.useCallback(
     async (
       campaignId?: string,
       pageNum: number = 1,
       search?: string,
-      status?: string
+      status?: string,
+      signal?: AbortSignal
     ) => {
       if (cancelTokenRef.current) {
-        cancelTokenRef.current.cancel(
-          'Operation canceled due to new request.'
-        );
+        cancelTokenRef.current.cancel('Operation canceled due to new request.');
       }
 
-      cancelTokenRef.current = axios.CancelToken.source();
       setLoading(true);
       if (pageNum === 1) {
         setIsInitialLoading(true);
@@ -322,7 +322,7 @@ export function Mail({
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`,
           {
-            cancelToken: cancelTokenRef.current.token,
+            signal
           }
         );
 
@@ -381,6 +381,10 @@ export function Mail({
           setIsTransitioning(false);
         }
       } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Request aborted');
+          return;
+        }
         if (axios.isCancel(err)) {
           console.log('Request cancelled, keeping loader');
         } else {
@@ -403,7 +407,7 @@ export function Mail({
 
   const loadMore = React.useCallback(() => {
     if (!loading && hasMore) {
-      fetchConversations(campaign?.campaignId, page + 1, searchTerm, filter);
+      fetchConversations(campaign?.campaignId, page + 1, filterState.searchTerm, filterState.filter);
       if (page === 1 && mailListRef.current) {
         mailListRef.current.style.overflowY = 'auto';
       }
@@ -413,21 +417,27 @@ export function Mail({
     hasMore,
     campaign,
     page,
-    searchTerm,
-    filter,
+    filterState.searchTerm,
+    filterState.filter,
     fetchConversations,
   ]);
 
+  // 2. Modify the fetch conversations effect
   React.useEffect(() => {
     if (user?.id) {
+      const controller = new AbortController();
+
       fetchConversations(
-        campaignIdFromUrl || undefined, 
-        1, 
-        searchFilterFromUrl || searchTerm, 
-        filterFromUrl
+        campaignIdFromUrl || undefined,
+        1,
+        filterState.searchTerm,
+        filterState.filter,
+        controller.signal
       );
+
+      return () => controller.abort();
     }
-  }, [user?.id, campaignIdFromUrl, filterFromUrl, searchFilterFromUrl]);
+  }, [user?.id, campaignIdFromUrl, filterState.filter, filterState.searchTerm]); // Remove unnecessary dependencies
 
   React.useEffect(() => {
     if (mails.length > 0 && !initialMailIdSet) {
@@ -487,30 +497,37 @@ export function Mail({
       }
       router.push(`/mail?${params.toString()}`);
 
-      fetchConversations(newCampaign?.campaignId, 1, searchTerm, filter);
+      fetchConversations(newCampaign?.campaignId, 1, filterState.searchTerm, filterState.filter);
     },
-    [searchTerm, filter, fetchConversations, router, searchParams]
+    [filterState.searchTerm, filterState.filter, fetchConversations, router, searchParams]
   );
 
   const handleFilterChange = React.useCallback(
     (newFilter: string) => {
-      setFilter(newFilter);
+      setFilterState(prev => ({
+        ...prev,
+        filter: newFilter,
+        activeTab: newFilter
+      }));
       setPage(1);
       setMails([]);
-      fetchConversations(campaign?.campaignId, 1, searchTerm, newFilter);
+      fetchConversations(campaign?.campaignId, 1, filterState.searchTerm, newFilter);
     },
-    [campaign?.campaignId, searchTerm, fetchConversations]
+    [campaign?.campaignId, filterState.searchTerm, fetchConversations]
   );
 
   const handleSearchChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(e.target.value);
+      setFilterState(prev => ({
+        ...prev,
+        searchTerm: e.target.value
+      }));
     },
     []
   );
 
   const handleSearchClick = React.useCallback(() => {
-    const trimmedSearchTerm = searchTerm.trim();
+    const trimmedSearchTerm = filterState.searchTerm.trim();
     setPage(1);
     setMails([]);
 
@@ -523,13 +540,15 @@ export function Mail({
     }
     router.push(`/mail?${params.toString()}`);
 
-    fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filter);
-  }, [searchTerm, campaign, filter, fetchConversations, router, searchParams]);
+    fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filterState.filter);
+  }, [filterState.searchTerm, campaign, filterState.filter, fetchConversations, router, searchParams]);
 
   const handleTabChange = (value: string) => {
-    console.log('Tab', value);
-    setActiveTab(value);
-    handleFilterChange(value);
+    setFilterState(prev => ({
+      ...prev,
+      filter: value,
+      activeTab: value
+    }));
     setPage(1);
     setMails([]);
 
@@ -592,7 +611,7 @@ export function Mail({
         <ResizablePanel defaultSize={localIsContextBarOpen ? 40 : 20}>
           <Tabs
             defaultValue="all"
-            value={activeTab}
+            value={filterState.activeTab}
             onValueChange={handleTabChange}
           >
             <div className="flex items-center px-4 pt-2 pb-0">
@@ -623,7 +642,7 @@ export function Mail({
                       className="flex items-center justify-center space-x-2"
                     >
                       <span>
-                        {activeTab.toLocaleUpperCase() || "More"}
+                        {filterState.activeTab.toLocaleUpperCase() || "More"}
                       </span>
                       <ChevronDown size={20} />
                     </Button>
@@ -666,7 +685,7 @@ export function Mail({
                 <Input
                   placeholder="Search"
                   className="pr-10"
-                  value={searchTerm}
+                  value={filterState.searchTerm}
                   onChange={handleSearchChange}
                 />
                 <Button
@@ -682,7 +701,7 @@ export function Mail({
             </div>
 
             <TabsContent
-              value={activeTab}
+              value={filterState.activeTab}
               className="flex-grow overflow-hidden m-0"
             >
               <div ref={mailListRef} className="h-full flex flex-col">

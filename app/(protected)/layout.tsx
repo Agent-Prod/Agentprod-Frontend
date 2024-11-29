@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Header from "@/components/layout/header";
 import {
     ResizableHandle,
@@ -27,7 +27,6 @@ export default function ParentLayout({
     const { width } = useWindowSize();
     const { user } = useAuth();
 
-    const [isVerifying, setIsVerifying] = useState(false);
     const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const verificationAttemptsRef = useRef(0);
     const MAX_VERIFICATION_ATTEMPTS = 20;
@@ -61,14 +60,12 @@ export default function ParentLayout({
             return;
         }
 
-        setIsVerifying(true);
         localStorage.setItem('verificationInProgress', 'true');
         verificationAttemptsRef.current = 0;
 
         verificationIntervalRef.current = setInterval(async () => {
             if (verificationAttemptsRef.current >= MAX_VERIFICATION_ATTEMPTS) {
                 clearInterval(verificationIntervalRef.current!);
-                setIsVerifying(false);
                 localStorage.removeItem('verificationInProgress');
                 toast.error("Domain verification failed after maximum attempts. Please try again later.");
                 return;
@@ -81,7 +78,6 @@ export default function ParentLayout({
 
                 if (!response.data.error) {
                     clearInterval(verificationIntervalRef.current!);
-                    setIsVerifying(false);
                     localStorage.removeItem('verificationInProgress');
                     toast.success("Domain verified successfully!");
                 } else {
@@ -89,7 +85,6 @@ export default function ParentLayout({
                 }
             } catch (error: any) {
                 clearInterval(verificationIntervalRef.current!);
-                setIsVerifying(false);
                 localStorage.removeItem('verificationInProgress');
                 toast.error("An error occurred while verifying the domain. Please try again later.");
                 console.error("Domain verification error:", error);
@@ -100,7 +95,7 @@ export default function ParentLayout({
     return (
         <>
             <Header />
-            <div className="flex h-screen overflow-hidden md:pt-16 ">
+            <div className="flex h-screen overflow-hidden md:pt-16">
                 <TooltipProvider delayDuration={0}>
                     <ResizablePanelGroup
                         direction="horizontal"
@@ -129,17 +124,26 @@ export default function ParentLayout({
                                         false
                                     )}`;
                                 }}
-                                className={cn("transition-all duration-300 ease-in-out")}
+                                className={cn(
+                                    "transition-all duration-300 ease-in-out",
+                                    "border-r border-border"
+                                )}
                             >
                                 <Nav isCollapsed={isCollapsed} links={navItems} />
                             </ResizablePanel>
                         ) : null}
-                        {width > 768 ? <ResizableHandle withHandle /> : null}
+                        {width > 768 ? (
+                            <ResizableHandle
+                                withHandle
+                                className="bg-border hover:bg-primary/20 transition-colors"
+                            />
+                        ) : null}
                         <ResizablePanel minSize={70} defaultSize={85}>
-                            <ScrollArea className="h-screen">
+                            <ScrollArea className="h-screen px-6">
                                 <PageHeaderProvider>
-                                    {/* {isSubscribed === false && <WarningBanner />} */}
-                                    <main className="px-4 pb-20">{children}</main>
+                                    <main className="py-2 max-w-7xl mx-auto">
+                                        {children}
+                                    </main>
                                 </PageHeaderProvider>
                             </ScrollArea>
                         </ResizablePanel>

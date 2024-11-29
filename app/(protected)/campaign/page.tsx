@@ -27,6 +27,7 @@ import { Linkedin } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 
 interface CampaignEntry {
@@ -103,6 +104,7 @@ export default function CampaignPage() {
   const { user } = useUserContext();
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [localLoading, setLocalLoading] = useState(true);
   const LIMIT = 10;
 
   const BulkActions = () => {
@@ -126,29 +128,45 @@ export default function CampaignPage() {
 
   useEffect(() => {
     async function fetchRecurringCampaignData() {
-      const recurringDataPromises = campaigns
-        .filter((campaign) => campaign.schedule_type === "recurring")
-        .map(async (campaign) => {
-          try {
-            const response = await axiosInstance.get(
-              `/v2/recurring_campaign_request/${campaign.id}`
-            );
-            return {
-              campaign_id: campaign.id,
-              is_active: response.data.is_active,
-            };
-          } catch (error) {
-            console.error(
-              `Failed to fetch recurring data for campaign ${campaign.id}`,
-              error
-            );
-            return null;
-          }
-        });
+      const recurringCampaigns = campaigns.filter(
+        (campaign) => campaign.schedule_type === "recurring"
+      );
+
+      if (recurringCampaigns.length === 0) return;
+
+      const campaignsToFetch = recurringCampaigns.filter(
+        (campaign) => !recurringCampaignData.some(
+          (data) => data.campaign_id === campaign.id
+        )
+      );
+
+      if (campaignsToFetch.length === 0) return;
+
+      const recurringDataPromises = campaignsToFetch.map(async (campaign) => {
+        try {
+          const response = await axiosInstance.get(
+            `/v2/recurring_campaign_request/${campaign.id}`
+          );
+          return {
+            campaign_id: campaign.id,
+            is_active: response.data.is_active,
+          };
+        } catch (error) {
+          console.error(
+            `Failed to fetch recurring data for campaign ${campaign.id}`,
+            error
+          );
+          return null;
+        }
+      });
 
       const results = await Promise.all(recurringDataPromises);
       const filteredResults = results.filter((result) => result !== null);
-      setRecurringCampaignData(filteredResults);
+
+      setRecurringCampaignData(prevData => [
+        ...prevData,
+        ...filteredResults
+      ]);
     }
 
     if (campaigns.length > 0) {
@@ -223,6 +241,7 @@ export default function CampaignPage() {
 
   useEffect(() => {
     async function fetchCampaigns() {
+      setLocalLoading(true);
       try {
         const response = await axiosInstance.get(
           `v2/campaigns/all/${user.id}?limit=${LIMIT}&offset=${offset}`
@@ -236,9 +255,10 @@ export default function CampaignPage() {
         );
 
         setHasMore(offset + LIMIT < total);
-
       } catch (error) {
         console.error("Failed to fetch campaigns", error);
+      } finally {
+        setLocalLoading(false);
       }
     }
     fetchCampaigns();
@@ -252,53 +272,53 @@ export default function CampaignPage() {
   const displayedCampaigns = campaigns;
 
   const renderCampaignCard = (campaignItem: CampaignEntry) => (
-    <Card key={campaignItem.id}>
-      <CardContent className="flex flex-col items-left p-4 gap-4">
+    <Card key={campaignItem.id} className="transition-all duration-200 hover:shadow-lg hover:border-primary/20">
+      <CardContent className="flex flex-col p-6 gap-4">
         <div className="flex justify-between items-center">
-          <div className="relative h-12 w-24 pt-2">
-            <UKFlag className="absolute inset-0 z-10 h-9 w-9" />
-            <USAFlag className="absolute left-4 top-0 z-10 h-9 w-9" />
+          <div className="relative h-12 w-24">
+            <UKFlag className="absolute inset-0 z-10 h-9 w-9 transition-transform hover:scale-110" />
+            <USAFlag className="absolute left-4 top-0 z-20 h-9 w-9 transition-transform hover:scale-110" />
           </div>
-          <div className="flex gap-4 items-center">
-            <p className="text-sm text-muted-foreground">
-              Leads = {campaignItem?.contacts || 0}
-            </p>
-          </div>
+          <Badge variant="secondary" className="px-3 py-1">
+            Leads: {campaignItem?.contacts || 0}
+          </Badge>
         </div>
+
         <div className="flex items-center gap-2">
-          <span
-            className={`h-3 w-3 rounded-full ${campaignItem?.is_active
-                ? 'bg-green-500  relative before:content-[""] before:absolute before:h-full before:w-full before:rounded-full before:bg-green-500/50 before:animate-ping'
-                : 'bg-red-500'
-              }`}
-          />
-          <span className="text-sm text-muted-foreground">
+          <span className={`h-2.5 w-2.5 rounded-full ${campaignItem?.is_active
+            ? 'bg-green-500 animate-pulse'
+            : 'bg-red-500'
+            }`} />
+          <span className="text-sm font-medium">
             {campaignItem?.is_active ? 'Active' : 'Inactive'}
           </span>
         </div>
-        <div className="space-y-2">
-          <div className="text-xs dark:text-white/80 text-black -space-y-4 bg-green-400/80 dark:bg-green-400/20 w-max px-4 py-1 rounded-3xl">
-            {campaignItem?.schedule_type === "recurring"
-              ? "Contact Leads Every Day"
-              : "One-time"}
-          </div>
-          <div className={`text-xs flex items-center gap-1 dark:text-white/80 text-black ${campaignItem?.channel?.toLowerCase() === "linkedin"
-            ? "bg-blue-400/80 dark:bg-blue-400/20"
-            : "bg-purple-400/80 dark:bg-purple-400/20"
-            } w-max px-4 py-1 rounded-3xl`}>
+
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="outline" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300">
+            {campaignItem?.schedule_type === "recurring" ? "Recurring" : "One-time"}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={campaignItem?.channel?.toLowerCase() === "linkedin"
+              ? "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300"
+              : "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300"
+            }
+          >
             {campaignItem?.channel?.toLowerCase() === "linkedin" ? (
-              <>
-                LinkedIn
+              <div className="flex items-center gap-1">
                 <Linkedin className="w-3 h-3" />
-              </>
+                LinkedIn
+              </div>
             ) : (
-              <>
-                Email
+              <div className="flex items-center gap-1">
                 <MailIcon className="w-3 h-3" />
-              </>
+                Email
+              </div>
             )}
-          </div>
+          </Badge>
         </div>
+
         <div className="flex flex-col gap-2">
           <TooltipProvider>
             <Tooltip>
@@ -323,14 +343,14 @@ export default function CampaignPage() {
           </p>
         </div>
 
-        <div className="flex space-x-4 text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <Icons.circle className="mr-1 h-3 w-3" />
-            Replies: {campaignItem?.replies || 0}
+        <div className="flex justify-between items-center mt-4 p-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Icons.circle className="h-4 w-4 text-primary" />
+            <span className="text-sm">Replies: {campaignItem?.replies || 0}</span>
           </div>
-          <div className="flex items-center">
-            <Icons.star className="mr-1 h-3 w-3" />
-            Meetings: {campaignItem?.meetings_booked || 0}
+          <div className="flex items-center gap-2">
+            <Icons.star className="h-4 w-4 text-primary" />
+            <span className="text-sm">Meetings: {campaignItem?.meetings_booked || 0}</span>
           </div>
         </div>
 
@@ -386,17 +406,19 @@ export default function CampaignPage() {
   );
 
   return (
-    <div className="space-y-2 mb-5">
-      <Card className="bg-accent px-4 py-6">
-        <CardTitle>Send Your Email Campaign</CardTitle>
-        <Button className="mt-4">
-          <Link
-            href={`/campaign/${uuid()}`}
-            className="flex items-center gap-1"
-          >
-            <Plus size={16} /> Create Campaign
-          </Link>
-        </Button>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <Card className="bg-gradient-to-r from-accent to-accent/50 px-6 py-8">
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <CardTitle className="text-2xl">Send Your Email Campaign</CardTitle>
+            <p className="text-muted-foreground">Create and manage your email campaigns efficiently</p>
+          </div>
+          <Button className="bg-primary hover:bg-primary/90">
+            <Link href={`/campaign/${uuid()}`} className="flex items-center gap-2">
+              <Plus size={16} /> Create Campaign
+            </Link>
+          </Button>
+        </div>
       </Card>
 
       <div className="flex justify-between items-center mb-4">
@@ -415,35 +437,37 @@ export default function CampaignPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {!isLoading ? (
-          displayedCampaigns.length > 0 ? (
-            displayedCampaigns.map(renderCampaignCard)
-          ) : (
-            <div className="flex flex-col w-[75rem] items-center justify-center">
-              <Image
-                src="/emptyCampaign.svg"
-                alt="empty-campaign"
-                width="300"
-                height="300"
-                className="dark:filter dark:invert mt-16"
-              />
-              <p className="flex justify-center items-center mt-10 ml-14 text-gray-500">
-                No Campaigns Available
-              </p>
-            </div>
-          )
-        ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {localLoading ? (
           <div className="flex space-x-5 mt-4 justify-center items-center w-[75rem]">
             <Skeleton className="h-[230px] w-[290px] rounded-xl" />
             <Skeleton className="h-[230px] w-[290px] rounded-xl" />
             <Skeleton className="h-[230px] w-[290px] rounded-xl" />
             <Skeleton className="h-[230px] w-[290px] rounded-xl" />
           </div>
+        ) : displayedCampaigns.length > 0 ? (
+          displayedCampaigns.map(renderCampaignCard)
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Image
+              src="/emptyCampaign.svg"
+              alt="No campaigns"
+              width="300"
+              height="300"
+              className="dark:filter dark:invert mb-8"
+            />
+            <h3 className="text-xl font-semibold mb-2">No Campaigns Available</h3>
+            <p className="text-muted-foreground mb-6">Create your first campaign to get started</p>
+            <Button asChild>
+              <Link href={`/campaign/${uuid()}`}>
+                <Plus className="mr-2 h-4 w-4" /> Create Campaign
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
 
-      {hasMore && !isLoading && campaigns.length > 0 && (
+      {hasMore && !localLoading && campaigns.length > 0 && (
         <div className="flex justify-center mt-4">
           <Button
             variant="outline"

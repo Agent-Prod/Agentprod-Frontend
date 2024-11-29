@@ -108,7 +108,14 @@ export function LineChartComponent({
           bottom: 5,
         }}
       >
-        <Legend />
+        <Legend
+          verticalAlign="top"
+          height={36}
+          iconType="circle"
+          wrapperStyle={{
+            paddingBottom: "20px",
+          }}
+        />
         <XAxis
           dataKey="date"
           stroke="#888888"
@@ -116,6 +123,7 @@ export function LineChartComponent({
           tickLine={false}
           axisLine={false}
           interval="preserveStartEnd"
+          dy={10}
         />
         <YAxis
           stroke="#888888"
@@ -125,20 +133,35 @@ export function LineChartComponent({
           tickFormatter={(value) => Math.round(value).toString()}
           domain={[0, maxValue]}
           ticks={yAxisTicks}
+          dx={-10}
         />
-        <Tooltip />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          }}
+          labelStyle={{ color: "#666", fontWeight: "bold" }}
+          itemStyle={{ padding: "4px 0" }}
+        />
         <Line
           name="Emails Sent"
           type="monotone"
           dataKey="email_count"
-          stroke="#8884d8"
-          activeDot={{ r: 8 }}
+          stroke="#6366f1"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6, strokeWidth: 0 }}
         />
         <Line
           name="Leads Added"
           type="monotone"
           dataKey="leads_count"
-          stroke="#82ca9d"
+          stroke="#22c55e"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6, strokeWidth: 0 }}
         />
       </LineChart>
     </ResponsiveContainer>

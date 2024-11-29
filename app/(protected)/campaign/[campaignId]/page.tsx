@@ -21,6 +21,7 @@ const defaultFormsTracker = {
   qualification: false,
 };
 import { Skeleton } from "@/components/ui/skeleton";
+import axiosInstance from "@/utils/axiosInstance";
 
 export default function Page() {
   const params = useParams();
@@ -63,32 +64,20 @@ export default function Page() {
           AutopilotResponse,
           qualificationResponse,
         ] = await Promise.all([
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
-          ),
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`
-          ),
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${params.campaignId}`
-          ),
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
-          ),
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`
-          ),
-          fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`
-          ),
+          axiosInstance.get(`v2/campaigns/${params.campaignId}`),
+          axiosInstance.get(`v2/goals/${params.campaignId}`),
+          axiosInstance.get(`v2/offerings/${params.campaignId}`),
+          axiosInstance.get(`v2/lead/campaign/${params.campaignId}`),
+          axiosInstance.get(`v2/autopilot/${params.campaignId}`),
+          axiosInstance.get(`v2/qualifications/${params.campaignId}`),
         ]);
 
-        const campaignData = await campaignResponse.json();
-        const goalData = await goalResponse.json();
-        const offeringData = await offeringResponse.json();
-        const audienceData = await audienceResponse.json();
-        const AutopilotData = await AutopilotResponse.json();
-        const qualificationData = await qualificationResponse.json();
+        const campaignData = campaignResponse.data;
+        const goalData = goalResponse.data;
+        const offeringData = offeringResponse.data;
+        const audienceData = audienceResponse.data;
+        const AutopilotData = AutopilotResponse.data;
+        const qualificationData = qualificationResponse.data;
 
         if (
           campaignData.detail === "Campaign not found" &&

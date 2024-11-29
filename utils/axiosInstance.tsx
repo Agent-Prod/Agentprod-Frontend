@@ -1,13 +1,20 @@
 // utils/axiosInstance.js
 import axios from "axios";
+import { getCookie } from "cookies-next";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
-  // 10 second timeout
   headers: {
     "Content-Type": "application/json",
   },
-  // You can add more default settings here
+});
+
+axiosInstance.interceptors.request.use((config) => {
+  const token = getCookie('user_id');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default axiosInstance;

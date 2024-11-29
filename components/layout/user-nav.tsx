@@ -33,6 +33,7 @@ export function UserNav() {
     try {
       await supabaseLogout();
       deleteCookie("user");
+      deleteCookie("user_id");
       setUser({
         id: "",
         username: "",

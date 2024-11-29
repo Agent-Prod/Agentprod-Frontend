@@ -59,6 +59,17 @@ export default function UserAuthForm({
       console.log("button clicked");
       if (formType === "signin") {
         try {
+          const signIN = await axiosInstance.post('/v2/users/login',{
+            email:data.email,
+            password:data.password
+          })
+
+          setCookie('user_id', signIN.data.user_id, { 
+            maxAge: 3600 * 24 * 7, // 7 days
+            secure: true,
+            sameSite: 'strict'
+          });
+
           userData = await supabaseLogin({
             email: data.email,
             password: data.password,

@@ -410,8 +410,8 @@ export default function CampaignPage() {
       <Card className="bg-gradient-to-r from-accent to-accent/50 px-6 py-8">
         <div className="flex justify-between items-center">
           <div className="space-y-2">
-            <CardTitle className="text-2xl">Send Your Email Campaign</CardTitle>
-            <p className="text-muted-foreground">Create and manage your email campaigns efficiently</p>
+            <CardTitle className="text-2xl">Start Your Campaign</CardTitle>
+            <p className="text-muted-foreground">Create and manage your campaigns efficiently</p>
           </div>
           <Button className="bg-primary hover:bg-primary/90">
             <Link href={`/campaign/${uuid()}`} className="flex items-center gap-2">

@@ -344,38 +344,37 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (email?.status === "TO-APPROVE") {
         return (
-          <div className="flex gap-4 flex-col m-4 h-full">
-            <div className="flex w-full ">
-              <Avatar
-                className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
-                onClick={() => toggleSidebar(true)}
-              >
-                <AvatarImage
-                  src={leads[0]?.photo_url ? leads[0].photo_url : ""}
-                  alt="avatar"
-                />
-                <AvatarFallback className="bg-yellow-400 text-black text-xs">
-                  {name ? initials(name) : ""}
-                </AvatarFallback>
-              </Avatar>
-              <Card className="w-full mr-5 ">
-                <div className="flex gap-5 p-4 items-center">
-                  <span className="text-sm font-semibold">
-                    {leads[0]?.email
-                      ? !email.is_reply
-                        ? "You to " + name
-                        : name + " to you"
-                      : ""}
-                  </span>
-                  <div className="flex gap-3">
-                    <span className="text-gray-500 text-sm  ">
-                      {email?.received_datetime &&
-                        formatDate(email?.received_datetime.toString())}
-                    </span>
-                  </div>
-                </div>
-                {email.subject === "" || email.subject === "No subject" ? (<></>) : (<CardHeader>
-                  <CardTitle className="text-sm flex -mt-8 -ml-3">
+          <div className="flex gap-2 m-2">
+            <Avatar
+              className="h-7 w-7 items-center justify-center border bg-white"
+              onClick={() => toggleSidebar(true)}
+            >
+              <AvatarImage
+                src={leads[0]?.photo_url ? leads[0].photo_url : ""}
+                alt="avatar"
+              />
+              <AvatarFallback className="bg-yellow-400 text-black text-xs">
+                {name ? initials(name) : ""}
+              </AvatarFallback>
+            </Avatar>
+            <Card className="flex-1">
+              <div className="flex items-center justify-between p-2">
+                <span className="text-sm font-semibold">
+                  {leads[0]?.email
+                    ? !email.is_reply
+                      ? "You to " + name
+                      : name + " to you"
+                    : ""}
+                </span>
+                <span className="text-gray-500 text-sm">
+                  {email?.received_datetime &&
+                    formatDate(email?.received_datetime.toString())}
+                </span>
+              </div>
+
+              {email.subject && (
+                <CardHeader className="py-2">
+                  <CardTitle className="text-sm">
                     <Input
                       value={editableSubject}
                       className="text-xs"
@@ -384,56 +383,53 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                       onChange={(e) => setEditableSubject(e.target.value)}
                     />
                   </CardTitle>
-                </CardHeader>)}
-                <CardContent className="text-xs -ml-3 -mt-2">
-                  <ContentDisplay
-                    content={editableBody}
-                    className="text-xs h-72"
-                    readOnly={!isEditing}
-                    onChange={(value) => setEditableBody(value)}
-                  />
-                </CardContent>
-                <CardFooter className="flex justify-between text-xs items-center">
-                  <div>
-                    {email.channel !== "Linkedin" && (
-                      <Button disabled={isEditing} onClick={handleApproveEmail}>
-                        {loadingSmartSchedule ? (
-                          <LoadingCircle />
-                        ) : (
-                          "Smart Schedule"
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      variant={"secondary"}
-                      className="ml-2"
-                      disabled={isEditing}
-                      onClick={handleSendNow}
-                    >
-                      {isLoadingButton ? <LoadingCircle /> : "Send Now"}
+                </CardHeader>
+              )}
 
+              <CardContent className="py-2">
+                <ContentDisplay
+                  content={editableBody}
+                  className="text-xs min-h-[200px]"
+                  readOnly={!isEditing}
+                  onChange={(value) => setEditableBody(value)}
+                />
+              </CardContent>
+
+              <CardFooter className="flex justify-between items-center py-2">
+                <div className="flex gap-2">
+                  {email.channel !== "Linkedin" && (
+                    <Button size="sm" disabled={isEditing} onClick={handleApproveEmail}>
+                      {loadingSmartSchedule ? <LoadingCircle /> : "Smart Schedule"}
                     </Button>
-                  </div>
-                  <div>
-                    {!isEditing ? (
-                      <Button variant={"ghost"} onClick={() => setIsEditing(true)}>
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button variant={"ghost"} onClick={handleSaveClick}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button variant={"ghost"} onClick={handleRegenerateDraft}>
-                      <RefreshCw className="h-4 w-4" />
+                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={isEditing}
+                    onClick={handleSendNow}
+                  >
+                    {isLoadingButton ? <LoadingCircle /> : "Send Now"}
+                  </Button>
+                </div>
+                <div className="flex gap-1">
+                  {!isEditing ? (
+                    <Button size="sm" variant="ghost" onClick={() => setIsEditing(true)}>
+                      <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button variant={"ghost"} onClick={handleDeleteDraft}>
-                      <Trash2 className="h-4 w-4" />
+                  ) : (
+                    <Button size="sm" variant="ghost" onClick={handleSaveClick}>
+                      <Check className="h-4 w-4" />
                     </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </div>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={handleRegenerateDraft}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleDeleteDraft}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
           </div>
         );
       }
@@ -498,29 +494,19 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     if (thread?.[0]?.channel !== "LinkedIn") return null;
 
     return (
-      <div className="m-4">
-        <div className="flex items-center gap-3">
-          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-            <Linkedin className="h-4 w-4 text-gray-400" />
-          </div>
-          {leads[0]?.connected_on_linkedin === "SENT" ? (
-            <p className="ml-1 text-xs">
-              {name} has been sent a connection request
-            </p>
-          ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
-            <p className="ml-1 text-xs">
-              {name} has rejected your connection request
-            </p>
-          ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
-            <p className="ml-1 text-xs">
-              {name} has accepted your connection request
-            </p>
-          ) : (
-            <p className="ml-1 text-xs">
-              Connection request scheduled for {name}
-            </p>
-          )}
+      <div className="flex items-center gap-2 m-2">
+        <div className="h-7 w-7 bg-gray-800 rounded-full flex items-center justify-center">
+          <Linkedin className="h-4 w-4 text-gray-400" />
         </div>
+        <p className="text-xs">
+          {leads[0]?.connected_on_linkedin === "SENT"
+            ? `${name} has been sent a connection request`
+            : leads[0]?.connected_on_linkedin === "FAILED"
+              ? `${name} has rejected your connection request`
+              : leads[0]?.connected_on_linkedin === "CONNECTED"
+                ? `${name} has accepted your connection request`
+                : `Connection request scheduled for ${name}`}
+        </p>
       </div>
     );
   };

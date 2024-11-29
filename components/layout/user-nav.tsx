@@ -1,5 +1,4 @@
 "use client";
-import { logout as supabaseLogout } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,9 +30,8 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      await supabaseLogout();
       deleteCookie("user");
-      deleteCookie("user_id");
+      deleteCookie("auth-token");
       setUser({
         id: "",
         username: "",

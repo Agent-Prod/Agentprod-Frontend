@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-console */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,10 +15,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { setCookie } from "cookies-next";
-import {
-  login as supabaseLogin,
-  signup as supabaseSignup,
-} from "@/app/(auth)/actions";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
 import { useUserContext } from "@/context/user-context";
@@ -41,7 +35,7 @@ export default function UserAuthForm({
   formType: "signin" | "signup";
 }) {
   const { login } = useAuth();
-  const { user, setUser } = useUserContext();
+  const { setUser, setToken } = useUserContext();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormValue>({
@@ -55,127 +49,88 @@ export default function UserAuthForm({
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
     try {
-      let userData;
-      console.log("button clicked");
       if (formType === "signin") {
-        try {
-          const signIN = await axiosInstance.post('/v2/users/login',{
-            email:data.email,
-            password:data.password
-          })
+        const response = await axiosInstance.post('/v2/users/login', {
+          email: data.email,
+          password: data.password
+        });
 
-          setCookie('user_id', signIN.data.user_id, { 
-            maxAge: 3600 * 24 * 7, // 7 days
-            secure: true,
-            sameSite: 'strict'
+        const { user_id: userData } = response.data;
+        
+        if (userData?.session?.access_token) {
+          // Set the JWT token in cookies and context
+          setToken(userData.session.access_token);
+          
+          // Set user data in context
+          setUser({
+            id: userData.user.id,
+            email: userData.user.email,
           });
 
-          userData = await supabaseLogin({
-            email: data.email,
-            password: data.password,
-          });
+
           toast.success("Sign-in Successful!");
-
-          console.log("User details on signin:", userData.user);
-        } catch (error) {
-          toast.error("Sign-in failed. Please try again.");
-          console.error("Error during sign-in:", error);
+          login(userData.user);
         }
       } else if (formType === "signup") {
-        userData = await supabaseSignup({
+        const response = await axiosInstance.post('/v2/users/signup', {
           email: data.email,
           password: data.password,
         });
+        
         toast.success("Verification email sent!");
-        console.log("User details on signup:", userData);
-      }
-      console.log(userData);
-
-      if (userData?.user) {
-        console.log("UserData just after logged in", userData);
-        setUser({
-          id: userData?.user?.id,
-          email: userData?.user?.email,
-        });
-
-        try {
-          const response = await axiosInstance.post(
-            `/v2/users/initiate/${userData.user.id}`,
-            {
-              userId: userData.user.id,
-            }
-          );
-          console.log(
-            "API call response after new api:",
-            response.data,
-            userData.user.id
-          );
-        } catch (apiError) {
-          console.error("API call failed:", apiError);
-          toast.error("Failed to complete user setup.");
-        }
-
-        login(userData.user);
-
-        const userKey = "user";
-        setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // Expires in one week
       }
     } catch (error: any) {
       console.error(error.message || "An error occurred");
+      toast.error(error.response?.data?.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-2 w-full"
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter your email..."
-                    disabled={loading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter your password..."
-                    disabled={loading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 w-full">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="Enter your email..."
+                  disabled={loading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="Enter your password..."
+                  disabled={loading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
-            {formType === "signin" ? "Log In" : "Send Verification Email"}
-          </Button>
-        </form>
-      </Form>
-    </>
+        <Button disabled={loading} className="ml-auto w-full" type="submit">
+          {formType === "signin" ? "Log In" : "Send Verification Email"}
+        </Button>
+      </form>
+    </Form>
   );
 }

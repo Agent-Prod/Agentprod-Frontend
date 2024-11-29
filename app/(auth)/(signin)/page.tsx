@@ -16,9 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { resetPassword } from "@/app/(auth)/actions"; // adjust the path accordingly
 import { toast } from "sonner";
+import { useUserContext } from "@/context/user-context";
 
 export default function AuthenticationPage() {
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import React, {
   createContext,
   useContext,
@@ -8,6 +7,7 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
+import { setCookie, getCookie, deleteCookie } from "cookies-next";
 
 // Define the shape of the context state
 export interface AuthStateInterface {
@@ -32,24 +32,41 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Add cookie keys
+const userKey = "auth-user";
+
+// Add helper functions for cookie management
+function getUserFromCookies(): { [key: string]: any } | null {
+  const cookie = getCookie(userKey);
+  return cookie ? JSON.parse(cookie as string) : null;
+}
+
+function setUserInCookies(user: { [key: string]: any } | null) {
+  if (user) {
+    setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // 7 days
+  } else {
+    deleteCookie(userKey);
+  }
+}
+
 // AuthProvider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({
   userData,
   children,
 }: AuthProviderProps) => {
   const [userAuthData, setUserAuthData] =
-    useState<AuthStateInterface["user"]>(userData);
+    useState<AuthStateInterface["user"]>(() => userData || getUserFromCookies());
 
   const login = (userData: { [key: string]: any }) => {
     setUserAuthData(userData);
-    redirect("/dashboard");
-    // Optionally save the user data to localStorage/sessionStorage for persistence
+    setUserInCookies(userData);
+    // Remove redirect from here - handle it in the component that calls login
   };
 
   const logout = () => {
     setUserAuthData(null);
-    redirect("/");
-    // Optionally clear the user data from localStorage/sessionStorage
+    setUserInCookies(null);
+    // Remove redirect from here - handle it in the component that calls logout
   };
 
   const contextValue = useMemo(

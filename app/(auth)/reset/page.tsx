@@ -1,15 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/auth-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { resetPasswordMain } from "../actions";
+import { useUserContext } from "@/context/user-context";
 
 function Page() {
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");

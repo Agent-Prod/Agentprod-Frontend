@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import Header from "@/components/layout/header";
 import {
     ResizableHandle,
@@ -18,6 +18,7 @@ import { PageHeaderProvider } from "@/context/page-header";
 import axios from "axios";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "@/context/user-context";
 
 export default function ParentLayout({
     children,
@@ -26,7 +27,7 @@ export default function ParentLayout({
 }) {
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const { width } = useWindowSize();
-    const { user } = useAuth();
+    const { user } = useUserContext();
 
     const [isVerifying, setIsVerifying] = useState(false);
     const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,7 +40,7 @@ export default function ParentLayout({
             redirect("/");
             return;
         }
-
+        console.log("user", user);
         if (!hasInitializedRef.current) {
             const storedVerificationState = localStorage.getItem('verificationInProgress');
             if (storedVerificationState === 'true') {
@@ -101,6 +102,7 @@ export default function ParentLayout({
     return (
         <>
             <Header />
+            
             <div className="flex h-screen overflow-hidden md:pt-16 ">
                 <TooltipProvider delayDuration={0}>
                     <ResizablePanelGroup

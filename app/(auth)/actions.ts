@@ -78,24 +78,6 @@ export async function signupAppsumo(formData: { email: string; password: string 
   // redirect("/");
 }
 
-export async function logout() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-
-
-
-  if (error) {
-    throw new Error(error.message);
-  } else {
-
-    // Ideally, you might want to also revalidate or clear any cache that depends on the user session
-    // This step depends on your application's structure and how it handles cache
-    // redirect("/");
-    // Redirect to the homepage or login page after successful logout
-  }
-}
 
 export async function resetPassword(formData: { email: string }) {
   const cookieStore = cookies();

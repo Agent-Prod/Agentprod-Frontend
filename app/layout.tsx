@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import Providers from "@/components/layout/providers";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
 import { AuthStateInterface } from "@/context/auth-provider";
 import { Toaster } from "sonner";
 import Script from "next/script";
@@ -22,14 +21,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
 
   let authData: AuthStateInterface["user"] = null;
 
-  const { data, error } = await supabase.auth.getUser();
-  if (!error && data?.user) {
-    authData = data?.user;
-  }
 
   return (
     <html lang="en" suppressHydrationWarning>

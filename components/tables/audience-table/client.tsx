@@ -1,77 +1,3 @@
-// "use client";
-
-// import React from "react";
-// import { DataTable } from "@/components/ui/data-table";
-// import { Separator } from "@/components/ui/separator";
-// import {
-//   leadColumns,
-//   contactsColumn,
-//   selectContactsColumn,
-//   DeleteAction,
-// } from "./columns";
-// import { Lead, Contact, useLeads } from "@/context/lead-user";
-
-// interface AudienceTableClientProps {
-//   isContacts?: boolean;
-//   checkboxes?: boolean;
-//   onDelete: (id: string) => void;
-// }
-
-// export const AudienceTableClient: React.FC<AudienceTableClientProps> = ({
-//   isContacts = true,
-//   checkboxes = false,
-//   onDelete,
-// }) => {
-//   const { leads } = useLeads();
-
-//   if (isContacts) {
-//     const contactColumns = checkboxes ? selectContactsColumn : contactsColumn;
-//     const columnsWithDelete = [
-//       ...contactColumns,
-//       {
-//         id: "actions",
-//         cell: ({ row }: { row: any }) => (
-//           <DeleteAction leadId={row.original.id} onDelete={onDelete} />
-//         ),
-//       },
-//     ];
-//     return (
-//       <>
-//         <div className="flex items-start justify-between pb-2"></div>
-//         <Separator />
-//         <DataTable<Lead, Contact>
-//           searchKey="name"
-//           columns={columnsWithDelete}
-//           data={leads as Lead[]}
-//           simple={!checkboxes}
-//         />
-//       </>
-//     );
-//   } else {
-//     const leadColumnsWithDelete = [
-//       ...leadColumns,
-//       {
-//         id: "actions",
-//         cell: ({ row }: { row: any }) => (
-//           <DeleteAction leadId={row.original.id} onDelete={onDelete} />
-//         ),
-//       },
-//     ];
-//     return (
-//       <>
-//         <div className="flex items-start justify-between pb-2"></div>
-//         <Separator />
-//         <DataTable<Lead, Contact>
-//           searchKey="name"
-//           columns={leadColumnsWithDelete}
-//           data={leads as Lead[]}
-//           simple={true}
-//         />
-//       </>
-//     );
-//   }
-// };
-
 "use client";
 
 import React from "react";
@@ -130,9 +56,8 @@ export const AudienceTableClient: React.FC<AudienceTableClientProps> = ({
     const contactColumns = checkboxes ? selectContactsColumn : contactsColumn;
     const columnsWithOptionalDelete = addDeleteColumn(contactColumns);
     return (
-      <>
-        <div className="flex items-start justify-between pb-2"></div>
-        <Separator />
+      <div className="space-y-4">
+        <Separator className="my-1" />
         <DataTable<Lead, Contact>
           searchKey="name"
           columns={columnsWithOptionalDelete}
@@ -146,14 +71,13 @@ export const AudienceTableClient: React.FC<AudienceTableClientProps> = ({
           currentPageData={currentPageData}
           totalLeads={totalLeads}
         />
-      </>
+      </div>
     );
   } else {
     const leadColumnsWithOptionalDelete = addDeleteColumn(leadColumns);
     return (
-      <>
-        <div className="flex items-start justify-between pb-2"></div>
-        <Separator />
+      <div className="space-y-2">
+        <Separator className="my-1" />
         <DataTable<Lead, Contact>
           searchKey="name"
           columns={leadColumnsWithOptionalDelete}
@@ -164,7 +88,7 @@ export const AudienceTableClient: React.FC<AudienceTableClientProps> = ({
           onCampaignSelect={onCampaignSelect}
           onSelectionChange={onSelectionChange}
         />
-      </>
+      </div>
     );
   }
 };

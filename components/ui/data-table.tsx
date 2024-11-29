@@ -94,7 +94,7 @@ export function DataTable<TData extends { id: string }, TValue>({
   const handleRowSelectionChange = useCallback(
     (updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => {
       let newSelection: RowSelectionState;
-      
+
       if (typeof updaterOrValue === 'function') {
         newSelection = updaterOrValue(rowSelection);
       } else {
@@ -159,45 +159,46 @@ export function DataTable<TData extends { id: string }, TValue>({
   };
 
   return (
-    <>
-      <div className="flex space-x-5 items-center">
+    <div className="w-full">
+      <div className="flex items-center gap-3">
         <Input
           placeholder={`Search ${searchKey}...`}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(String(event.target.value))}
-          className="w-full md:max-w-sm my-3"
+          className="max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="flex items-center justify-center space-x-2"
+              className="flex items-center gap-2"
             >
               <span>
                 {selectedCampaign
                   ? selectedCampaign.campaignName
                   : "Select Campaign"}
               </span>
-              <ChevronDown size={20} />
+              <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80">
+          <DropdownMenuContent className="w-[300px]">
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => handleCampaignSelect(null)}>
-                <p className="cursor-pointer">All Campaigns</p>
+                All Campaigns
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <ScrollArea className="h-[400px] w-full rounded-md border p-2">
+              <ScrollArea className="h-[300px]">
                 {allCampaigns?.map((campaignItem) => (
                   <DropdownMenuItem
                     key={campaignItem.campaignId}
                     onClick={() => handleCampaignSelect(campaignItem)}
                   >
-                    <p className="cursor-pointer">
-                      {campaignItem.campaignName}{" "}
-                      {campaignItem.additionalInfo &&
-                        `- ${campaignItem.additionalInfo}`}
-                    </p>
+                    {campaignItem.campaignName}
+                    {campaignItem.additionalInfo && (
+                      <span className="text-muted-foreground ml-2">
+                        - {campaignItem.additionalInfo}
+                      </span>
+                    )}
                   </DropdownMenuItem>
                 ))}
               </ScrollArea>
@@ -205,61 +206,64 @@ export function DataTable<TData extends { id: string }, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <ScrollArea className="rounded-md border h-[50vh]">
-        <Table className="relative">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
+
+      <div className="mt-4">
+        <ScrollArea className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {rows.length > 0 ? (
-              rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {rows.length > 0 ? (
+                rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
+
       {!simple && rows.length > 0 && (
-        <div className="flex-1 text-sm text-muted-foreground pt-4">
-          {selectedLeadIds.size} of{" "}
-          {totalLeads} row(s) selected.
+        <div className="text-sm text-muted-foreground mt-2">
+          {selectedLeadIds.size} of {totalLeads} row(s) selected.
         </div>
       )}
-    </>
+    </div>
   );
 }

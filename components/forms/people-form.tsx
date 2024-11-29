@@ -1716,7 +1716,6 @@ export default function PeopleForm(): JSX.Element {
         q_organization_keyword_tags: formData.q_organization_keyword_tags?.map((tag: any) => tag.text),
         q_organization_job_titles: formData.job_posting_titles?.map((tag: any) => tag.text),
         organization_job_locations: formData.job_posting_locations?.map((tag: any) => tag.text),
-        q_organization_domains: formData.q_organization_domains?.map((tag: any) => tag.text),
         person_titles: formData.person_titles?.map((tag: any) => tag.text),
         organization_latest_funding_stage_cd: checkedFields(checkedFundingRounds, false),
         search_signals: checkedFields(checkedSearchSignal, false),
@@ -1728,7 +1727,12 @@ export default function PeopleForm(): JSX.Element {
         buying_intent_topics: checkedFields(checkedIntentTopics, false),
         buying_intent_scores: checkedFields(checkedIntentScores, false),
         contact_email_status_v2: linkedinCheck,
-        organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
+        // Handle company domains based on selection type
+        // organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
+        ...(selectionType === 'list' 
+          ? { organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id) }
+          : { q_keywords: formData.q_organization_domains?.[0]?.text }
+        ),
       };
 
       // Remove undefined or empty array properties

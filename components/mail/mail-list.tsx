@@ -208,17 +208,17 @@ const MailList: React.FC<MailListProps> = ({
         <button
           key={item.id}
           className={cn(
-            "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
+            "flex flex-col items-start border p-2 text-left text-sm transition-all hover:bg-accent",
             selectedMailId === item.id && "bg-muted"
           )}
           onClick={() => handleMailClick(item)}
           onMouseEnter={() => setHoveredMailId(item.id)}
           onMouseLeave={() => setHoveredMailId(null)}
         >
-          <div className="flex w-full flex-col gap-1">
+          <div className="flex w-full flex-col">
             <div className="flex items-center">
               <div className="flex items-center gap-2">
-                <Avatar className="flex h-8 w-8 items-center justify-center space-y-0 border bg-white">
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={item.photo_url || ""} alt="avatar" />
                   <AvatarFallback className="bg-yellow-400 text-black text-xs">
                     {item.name
@@ -233,32 +233,22 @@ const MailList: React.FC<MailListProps> = ({
                       : ""}
                   </AvatarFallback>
                 </Avatar>
-                <div className="font-semibold w-72 truncate">{`${item.name || "unknown"
-                  } from ${item.company_name || "unknown company"}`}</div>
-                <span className="text-xs">
-                  {item.category && getCategoryBadge(item.category)}
-                </span>
+                <div className="font-semibold w-72 truncate">{`${item.name || "unknown"} from ${item.company_name || "unknown company"}`}</div>
+                {item.category && getCategoryBadge(item.category)}
               </div>
-              <div
-                className={cn(
-                  "ml-auto text-xs flex gap-2 items-center",
-                  selectedMailId === item.id
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
+              <div className="ml-auto text-xs flex gap-2 items-center text-muted-foreground">
                 {item.subject === "" ? (
-                  <LinkedinIcon className="w-3 h-3 text-white" />
+                  <LinkedinIcon className="w-3 h-3" />
                 ) : (
-                  <Mail className="w-3 h-3 text-white" />
+                  <Mail className="w-3 h-3" />
                 )}
-                <span className="text-xs text-gray-400">
+                <span className="text-gray-400">
                   {item.updated_at && formatDate(item.updated_at)}
                 </span>
               </div>
             </div>
-            <div className="text-xs font-medium ml-10">{item.subject}</div>
-            <div className="line-clamp-2 text-xs text-muted-foreground ml-10 flex flex-row justify-between items-center">
+            {item.subject && <div className="text-xs font-medium ml-10">{item.subject}</div>}
+            <div className="line-clamp-2 text-xs text-muted-foreground ml-10 flex justify-between items-center">
               {(item.body_substr as string)?.substring(0, 80)}
               {hoveredMailId === item.id && (
                 <Trash2Icon
@@ -278,19 +268,19 @@ const MailList: React.FC<MailListProps> = ({
   );
 
   return (
-    <ScrollArea className="h-screen pb-44">
-      <div className="flex flex-col gap-2 p-4 pt-0">
+    <ScrollArea className="h-screen">
+      <div className="flex flex-col gap-1 p-2">
         {filteredItems.length > 0 ? (
           <>
             {filteredItems.map(renderMailItem)}
             {hasMore && (
-              <div ref={ref} className="h-10 flex justify-center items-center">
+              <div ref={ref} className="h-8 flex justify-center items-center">
                 {loading && <LoadingCircle />}
               </div>
             )}
           </>
         ) : (
-          <div className="text-muted-foreground text-center mt-10">
+          <div className="text-muted-foreground text-center mt-4">
             No Mails Available
           </div>
         )}

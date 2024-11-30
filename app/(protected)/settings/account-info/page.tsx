@@ -27,7 +27,7 @@ export default function Page() {
     if (user?.id) {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get(`/v2/settings/${user.id}`);
+        const response = await axiosInstance.get(`/v2/settings`);
         const data = response.data;
 
         const initialAccountInfo = [
@@ -65,7 +65,7 @@ export default function Page() {
   const fetchUserSubscription = async () => {
     try {
       const res = await axiosInstance.get(
-        `v2/pricing-plans/${user.id}`
+        `v2/pricing-plans/`
       );
       const planValue = res.data.subscription_mode || "Unknown";
       updatePlanInfo(planValue);

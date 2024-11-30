@@ -37,7 +37,7 @@ export default function Page() {
       setLoading(true);
       console.log(`Fetching page ${pageToFetch}`);
       try {
-        const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+        const response = await axiosInstance.get(`v2/lead/all/`, {
           params: {
             page: pageToFetch,
             size,

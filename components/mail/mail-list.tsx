@@ -88,7 +88,7 @@ const MailList: React.FC<MailListProps> = ({
   useEffect(() => {
     if (user?.id) {
       axiosInstance
-        .get(`/v2/mailbox/${user.id}`)
+        .get(`/v2/mailbox/`)
         .then((response) => {
           console.log("Mailbox data fetched:", response.data);
         })

@@ -37,7 +37,7 @@ export const SelectFromExisting = () => {
     if (!user?.id) return;
 
     try {
-      const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+      const response = await axiosInstance.get(`v2/lead/all/`, {
         params: {
           page: pageToFetch,
           size,

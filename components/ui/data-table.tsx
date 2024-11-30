@@ -85,7 +85,7 @@ export function DataTable<TData extends { id: string }, TValue>({
 
   useEffect(() => {
     const fetchCampaigns = async () => {
-      const campaigns = await axiosInstance.get(`v2/campaigns/names/${user.id}`);
+      const campaigns = await axiosInstance.get(`v2/campaigns/names/`);
       setCampaigns(campaigns.data.campaigns);
     };
     fetchCampaigns();

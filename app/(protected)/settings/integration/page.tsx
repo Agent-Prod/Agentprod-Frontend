@@ -143,7 +143,7 @@ export default function Page() {
 
   useEffect(() => {
     const fetchConnectedAccounts = async () => {
-      const response = await axiosInstance.get(`v2/linkedin/active-account/${user.id}`);
+      const response = await axiosInstance.get(`v2/linkedin/active-account/`);
       setConnectedAccounts(response.data.total_count);
     };
     fetchConnectedAccounts();

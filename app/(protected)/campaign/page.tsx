@@ -244,7 +244,7 @@ export default function CampaignPage() {
       setLocalLoading(true);
       try {
         const response = await axiosInstance.get(
-          `v2/campaigns/all/${user.id}?limit=${LIMIT}&offset=${offset}`
+          `v2/campaigns/all/?limit=${LIMIT}&offset=${offset}`
         );
 
         const newCampaigns = response.data.campaigns;
@@ -263,7 +263,7 @@ export default function CampaignPage() {
     }
     fetchCampaigns();
     localStorage.removeItem("formsTracker");
-  }, [setCampaigns, user.id, offset]);
+  }, [setCampaigns, user?.id, offset]);
 
   const handleLoadMore = () => {
     setOffset(prevOffset => prevOffset + LIMIT);

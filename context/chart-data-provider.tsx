@@ -60,7 +60,7 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axiosInstance.get<{
         mailgraph: MailGraphData[];
         contacts: ContactData[];
-      }>(`/v2/mailgraph/${user?.id}`);
+      }>(`/v2/mailgraph/`);
 
       setMailGraphData(response.data.mailgraph);
       setContactsData(response.data.contacts);

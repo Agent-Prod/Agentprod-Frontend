@@ -212,7 +212,7 @@ export default function Page() {
 
   const fetchHealthData = async (userId: any) => {
     try {
-      const response = await axiosInstance.get(`/v2/settings/health/${userId}`);
+      const response = await axiosInstance.get(`/v2/settings/health`);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch health data:", error);
@@ -315,8 +315,8 @@ export default function Page() {
     setIsLoadingMailboxes(true);
     try {
       // First fetch health data
-      const healthResponse = await fetchHealthData(user.id);
-      const response = await axiosInstance.get(`/v2/settings/mailboxes/${user.id}`);
+      const healthResponse = await fetchHealthData(user?.id);
+      const response = await axiosInstance.get(`/v2/settings/mailboxes`);
 
       // Map the mailboxes with their corresponding health values
       const updatedMailboxes = response.data.map((mailbox: any) => ({
@@ -411,7 +411,7 @@ export default function Page() {
 
       const postData1 = {
         senders: senders,
-        user_id: user.id,
+        user_id: user?.id,
       };
 
       try {
@@ -495,7 +495,7 @@ export default function Page() {
       sender_id: String(senderID),
       otp: String(otpInput),
       mailbox: String(emailInput),
-      user_id: String(user.id),
+      user_id: String(user?.id),
       sender_name: String(nameInput),
     };
     try {

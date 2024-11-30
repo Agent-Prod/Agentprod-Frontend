@@ -270,7 +270,7 @@ export function Mail({
   const fetchCampaigns = React.useCallback(async () => {
     setIsCampaignsLoading(true);
     try {
-      const response = await axiosInstance.get(`v2/campaigns/names/${user?.id}`);
+      const response = await axiosInstance.get(`v2/campaigns/names/`);
       const campaignData = response.data.campaigns || response.data;
       if (Array.isArray(campaignData)) {
         const formattedCampaigns = campaignData.map(campaign => ({
@@ -333,10 +333,10 @@ export function Mail({
       }
 
       try {
-        let url = `v2/mailbox/${user?.id}`;
+        let url = `v2/mailbox/`;
 
         if (campaignId) {
-          url = `v2/mailbox/campaign/${campaignId}/${user?.id}`;
+          url = `v2/mailbox/campaign/${campaignId}/`;
         }
 
         // Set ITEMS_PER_PAGE to 100 if the status is "replied"

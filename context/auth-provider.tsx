@@ -43,7 +43,7 @@ function getUserFromCookies(): { [key: string]: any } | null {
 
 function setUserInCookies(user: { [key: string]: any } | null) {
   if (user) {
-    setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // 7 days
+    setCookie(userKey, JSON.stringify(user), { maxAge: 3600 }); // 7 days
   } else {
     deleteCookie(userKey);
   }

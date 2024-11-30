@@ -17,7 +17,7 @@ export const useSubscription = () => {
 
         try {
             const res = await axiosInstance.get(
-                `v2/pricing-plans/${user.id}`
+                `v2/pricing-plans/`
             );
 
             const startTime = new Date(res.data.start_time).getTime();

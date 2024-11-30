@@ -46,7 +46,7 @@ function getTokenFromCookies(): string | null {
 
 function setUserInCookies(user: UserInterface | null) {
   if (user) {
-    setCookie(userKey, JSON.stringify(user), { maxAge: 3600 * 24 * 7 }); // 7 days
+    setCookie(userKey, JSON.stringify(user), { maxAge: 3600}); // 1 hour
   } else {
     deleteCookie(userKey);
   }
@@ -54,7 +54,7 @@ function setUserInCookies(user: UserInterface | null) {
 
 function setTokenInCookies(token: string | null) {
   if (token) {
-    setCookie(tokenKey, token, { maxAge: 3600 * 24 * 7 }); // 7 days
+    setCookie(tokenKey, token, { maxAge: 3600}); // 1 hour
   } else {
     deleteCookie(tokenKey);
   }

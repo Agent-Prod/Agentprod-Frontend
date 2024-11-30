@@ -217,7 +217,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
     setAnswerLoading(true);
     axiosInstance
       .post("/v2/answers", {
-        user_id: user.id,
+        user_id: user?.id,
         questions,
         answers,
       })
@@ -246,7 +246,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const regenrate = React.useCallback(() => {
     const payload = {
       follow_up_number: 3,
-      user_id: user.id,
+      user_id: user?.id,
       previous_emails: [
         {
           subject: title,
@@ -269,7 +269,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
       .catch((error) => {
         console.error("Error fetching followup data:", error);
       });
-  }, [user.id, title, body]);
+  }, [user?.id, title, body]);
 
   const cleanedCategory = email?.category?.trim();
 
@@ -1011,6 +1011,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
     </div>
+
   );
 };
 

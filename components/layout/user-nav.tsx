@@ -30,16 +30,15 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      deleteCookie("user");
-      deleteCookie("auth-token");
-      setUser({
-        id: "",
-        username: "",
-        firstName: "",
-        email: "",
+      // Delete all cookies
+      document.cookie.split(";").forEach((cookie) => {
+        document.cookie = cookie
+          .replace(/^ +/, "")
+          .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
       });
-      logout(); // Ensure logout state is cleared before redirect
-      router.push("/");
+      
+      // Hard refresh and redirect
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
     }

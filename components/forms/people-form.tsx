@@ -775,7 +775,7 @@ export default function PeopleForm(): JSX.Element {
 
 
     const existingLeadsResponse = await axiosInstance.get(
-      `v2/leads/${user?.id}`
+      `v2/leads/`
     );
     console.log("Existing leads:", existingLeadsResponse.data);
     if (existingLeadsResponse.data === null) {
@@ -844,7 +844,7 @@ export default function PeopleForm(): JSX.Element {
         const apolloResponse = await axiosInstance.post('/v2/apify/apify/run-actor', {
           apollo_url: apolloUrl,
           page_no: 1,
-          user_id: user.id,
+          user_id: user?.id,
           per_page: data.per_page
         });
         clearInterval(countdownInterval);
@@ -999,6 +999,7 @@ export default function PeopleForm(): JSX.Element {
   ];
 
   function mapLeadsToBodies(leads: Lead[], campaignId: string): Contact[] {
+    if(!user?.id) return [];
     return leads.map((lead) => ({
       id: lead.id,
       user_id: user.id,
@@ -1117,7 +1118,7 @@ export default function PeopleForm(): JSX.Element {
             "v2/recurring_campaign_request",
             {
               campaign_id: params.campaignId,
-              user_id: user.id,
+              user_id: user?.id,
               apollo_url: apolloUrl,
               page: calculatedPages + 1,
               is_active: false,

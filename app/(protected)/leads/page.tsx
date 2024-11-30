@@ -13,7 +13,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 
-const DEBOUNCE_DELAY = 300; // milliseconds
+const DEBOUNCE_DELAY = 300;
 
 export default function Page() {
   const { setLeads } = useLeads();
@@ -116,39 +116,34 @@ export default function Page() {
 
   if (loading && totalLeads === 0) {
     return (
-      <>
-        <div className="flex gap-8">
-          <div className="flex gap-2">
-            <div>
-              <Skeleton className="w-[76rem] h-[50px] rounded-lg" />
-            </div>
-          </div>
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <Skeleton className="w-full h-12 rounded-lg" />
         </div>
-        <Separator className="mt-2" />
-        <main className="mt-2">
-          <Skeleton className="w-[76rem] h-[30rem] rounded-lg" />
-        </main>
-      </>
+        <Separator />
+        <Skeleton className="w-full h-[calc(100vh-10rem)] rounded-lg" />
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="flex gap-8">
-        <div className="flex gap-2">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <LucideUsers2 className="h-5 w-5" />
           <div>
-            <div className="flex gap-2 font-bold">
-              <span>
-                <LucideUsers2 />
-              </span>
-              Leads({totalLeads})
-            </div>
-            <div className="text-muted-foreground text-xs">
+            <h1 className="font-semibold text-lg">
+              Leads <span className="text-muted-foreground">({totalLeads})</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">
               All leads found by Sally and uploaded by you.
-            </div>
+            </p>
           </div>
         </div>
       </div>
+
+      <Separator />
+
       <main>
         <AudienceTableClient
           isContacts={true}
@@ -157,18 +152,21 @@ export default function Page() {
           onCampaignSelect={handleCampaignSelect}
         />
       </main>
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-muted-foreground">
+
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
           Page {page} of {totalPages}
-        </div>
-        <div className="space-x-2">
+        </span>
+        <div className="flex gap-2">
           <Button
+            size="sm"
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || loading}
           >
             Previous
           </Button>
           <Button
+            size="sm"
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages || loading}
           >
@@ -176,6 +174,6 @@ export default function Page() {
           </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

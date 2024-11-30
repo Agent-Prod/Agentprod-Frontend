@@ -1,34 +1,26 @@
 "use client";
 import React from "react";
-import { Nav } from "@/components/layout/nav/nav";
-import { NavInterface } from "@/types";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { User, Mail, Layout } from "lucide-react";
 
-const navItems: NavInterface[] = [
+const navItems = [
   {
-    category: "Main",
-    items: [
-      {
-        title: "Account Info",
-        href: "/settings/account-info",
-        label: "Account Info",
-        isCollapsible: false,
-        icon: "user",
-      },
-      {
-        title: "Mailboxes",
-        href: "/settings/mailbox",
-        label: "Mailboxes",
-        isCollapsible: false,
-        icon: "mail",
-      },
-      {
-        title: "Integrations",
-        href: "/settings/integration",
-        label: "Integrations",
-        isCollapsible: false,
-        icon: "kanban",
-      },
-    ],
+    title: "Account Info",
+    href: "/settings/account-info",
+    icon: User,
+  },
+  {
+    title: "Mailboxes",
+    href: "/settings/mailbox",
+    icon: Mail,
+  },
+  {
+    title: "Integrations",
+    href: "/settings/integration",
+    icon: Layout,
   },
 ];
 
@@ -37,14 +29,36 @@ export default function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
-    <div className="flex">
-      <div className="w-52 flex-shrink-0">
-        <Nav isCollapsed={false} links={navItems} />
-      </div>
-      <div className="flex flex-col flex-grow">
-        <main className="flex-grow px-5 py-3">{children}</main>
-      </div>
+    <div className="container mx-auto px-4 py-2 max-w-5xl">
+      <nav className="mb-8">
+        <div className="border-b">
+          <div className="flex space-x-8">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center px-3 py-4 text-sm font-medium transition-colors hover:text-primary",
+                    "border-b-2 -mb-[2px]",
+                    pathname === item.href
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground"
+                  )}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.title}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+      <main>{children}</main>
     </div>
   );
 }

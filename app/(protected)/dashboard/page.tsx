@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 "use client";
-import React, { memo, useCallback, useEffect } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { LineChartComponent } from "@/components/charts/line-chart";
 import {
   Card,
@@ -28,6 +28,7 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { LoadingCircle } from "@/app/icons";
 import type { Campaign, DashboardData } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 
 interface TopPerformingCampaignsTableProps {
@@ -277,33 +278,38 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
   const metrics = [
     {
       title: "Total Emails Sent",
-      value: dashboardData?.emails_sent ?? 0
+      value: dashboardData?.emails_sent ?? 0,
+      icon: <Icons.mail className="h-4 w-4 text-muted-foreground" />
     },
     {
       title: "Engaged Leads",
-      value: dashboardData?.engaged ?? 0
+      value: dashboardData?.engaged ?? 0,
+      icon: <Icons.users className="h-4 w-4 text-muted-foreground" />
     },
     {
-      title: "Number of people reached out",
-      value: dashboardData?.total_leads ?? 0
+      title: "People Reached",
+      value: dashboardData?.total_leads ?? 0,
+      icon: <Icons.userPlus className="h-4 w-4 text-muted-foreground" />
     },
     {
       title: "Response Rate",
-      value: dashboardData?.response_rate ? Math.round(dashboardData.response_rate) : 0
+      value: `${dashboardData?.response_rate ? Math.round(dashboardData.response_rate) : 0}%`,
+      icon: <Icons.percent className="h-4 w-4 text-muted-foreground" />
     }
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 mt-4 h-full">
+    <div className="grid gap-4 grid-cols-2 mt-4">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-1/2">
-            <CardTitle className="text-sm font-medium">
+        <Card key={metric.title} className="hover:bg-accent/50 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium flex items-center gap-2">
+              {metric.icon}
               {metric.title}
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-1/2">
-            <div className="text-2xl font-bold">
+          <CardContent>
+            <div className="text-lg font-bold">
               {isLoading ? <LoadingCircle /> : metric.value}
             </div>
           </CardContent>
@@ -316,15 +322,28 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 DashboardMetrics.displayName = 'DashboardMetrics';
 
 export default function Page() {
-  const { dashboardData, isLoading, analyticsData, fetchDashboardDataIfNeeded } = useDashboardContext();
+  const {
+    dashboardData,
+    isLoading,
+    analyticsData,
+    isAnalyticsLoading,
+    fetchDashboardDataIfNeeded,
+    fetchAnalyticsDataIfNeeded
+  } = useDashboardContext();
+
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
+  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(false);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();
     fetchDataIfNeeded();
   }, []);
 
-  const recentActivities: any[] = [];
+  useEffect(() => {
+    if (shouldLoadAnalytics) {
+      fetchAnalyticsDataIfNeeded();
+    }
+  }, [shouldLoadAnalytics]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
@@ -358,11 +377,11 @@ export default function Page() {
     <>
       <DashboardPageHeader />
       <ScrollArea className="h-full scroll-my-36">
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <div className="flex flex-col col-span-2">
+            <div className="flex flex-col col-span-2 gap-4">
               <Card
-                className="cursor-pointer hover:bg-gray-100/20 dark:hover:bg-gray-800/20 transition-colors"
+                className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm"
                 onClick={() => {
                   const queryParams = new URLSearchParams({
                     _filter: 'TO-APPROVE'
@@ -370,12 +389,12 @@ export default function Page() {
                   router.push(`/mail?${queryParams.toString()}`);
                 }}
               >
-                <CardContent className="flex items-center gap-5 pt-6">
-                  <div className="flex items-center gap-2">
-                    <Icons.mail />
+                <CardContent className="flex items-center justify-between pt-6">
+                  <div className="flex items-center gap-3">
+                    <Icons.mail className="h-5 w-5 text-primary" />
                     <p className="font-medium">Emails Pending Approval</p>
                   </div>
-                  <Badge variant={"secondary"}>
+                  <Badge variant="secondary" className="ml-auto">
                     {dashboardData?.pending_approvals || 0}
                   </Badge>
                 </CardContent>
@@ -384,33 +403,49 @@ export default function Page() {
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
-            <Card className="col-span-4">
-              <ScrollArea className="lg:h-72 md:h-[28rem]">
-                <CardHeader>
-                  <CardTitle>Top Performing Campaigns</CardTitle>
+            <Card className="col-span-4 shadow-sm">
+              <ScrollArea className="h-[16rem]">
+                <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Top Performing Campaigns</CardTitle>
+                    {!shouldLoadAnalytics && (
+                      <Button
+                        onClick={() => setShouldLoadAnalytics(true)}
+                        className="bg-gradient-to-r from-black to-black text-white"
+                      >
+                        Load Analytics
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="relative">
-                    <TopPerformingCampaignsTable
-                      campaigns={analyticsData?.map(campaign => ({
-                        campaign_id: campaign.campaign_id,
-                        sent_count: campaign.sent_count,
-                        delivered_count: campaign.delivered_count,
-                        clicked_count: campaign.clicked_count,
-                        spam_count: campaign.spam_count,
-                        bounced_count: campaign.bounced_count,
-                        user_id: campaign.user_id,
-                        open_count: campaign.open_count,
-                        campaign_name: campaign.campaign_name,
-                        responded: campaign.responded,
-                        engaged_leads: 0,
-                        response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                        total_leads: campaign.total_leads
-                      }))}
-                      isLoading={isLoading}
-                    />
+                <CardContent className="px-6 pb-4 pt-0">
+                  <div className="relative w-full h-full">
+                    {!shouldLoadAnalytics ? (
+                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
+                      </div>
+                    ) : (
+                      <TopPerformingCampaignsTable
+                        campaigns={analyticsData?.map(campaign => ({
+                          campaign_id: campaign.campaign_id,
+                          sent_count: campaign.sent_count,
+                          delivered_count: campaign.delivered_count,
+                          clicked_count: campaign.clicked_count,
+                          spam_count: campaign.spam_count,
+                          bounced_count: campaign.bounced_count,
+                          user_id: campaign.user_id,
+                          open_count: campaign.open_count,
+                          campaign_name: campaign.campaign_name,
+                          responded: campaign.responded,
+                          engaged_leads: 0,
+                          response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          total_leads: campaign.total_leads
+                        }))}
+                        isLoading={isAnalyticsLoading}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </ScrollArea>
@@ -432,11 +467,11 @@ export default function Page() {
 
             <Card className="col-span-3">
               <ScrollArea className="md:h-[26rem]">
-                <CardHeader>
+                <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <CardTitle>Linkedin Campaign</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="relative">
+                <CardContent className="px-6 pb-6 pt-0">
+                  <div className="relative w-full h-full">
                     <LinkedinCampaignsTable
                       campaigns={dashboardData?.linkedin_data || []}
                       isLoading={isLoading}

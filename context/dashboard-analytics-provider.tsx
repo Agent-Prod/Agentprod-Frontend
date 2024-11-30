@@ -56,8 +56,10 @@ interface DashboardContextType {
   dashboardData: DashboardData;
   analyticsData: AnalyticsData;
   isLoading: boolean;
+  isAnalyticsLoading: boolean;
   setDashboardData: (dashboardData: DashboardData) => void;
   fetchDashboardDataIfNeeded: () => Promise<void>;
+  fetchAnalyticsDataIfNeeded: () => Promise<void>;
 }
 
 const defaultDashboardState: DashboardContextType = {
@@ -101,8 +103,10 @@ const defaultDashboardState: DashboardContextType = {
   },
   analyticsData: [],
   isLoading: false,
+  isAnalyticsLoading: false,
   setDashboardData: () => { },
   fetchDashboardDataIfNeeded: async () => { },
+  fetchAnalyticsDataIfNeeded: async () => { },
 };
 
 const DashboardContext = createContext<DashboardContextType>(
@@ -121,32 +125,51 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     defaultDashboardState.dashboardData
   );
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>([]);
-  const [hasLoadedData, setHasLoadedData] = useState(false);
+  const [hasDashboardLoaded, setHasDashboardLoaded] = useState(false);
+  const [hasAnalyticsLoaded, setHasAnalyticsLoaded] = useState(false);
 
   const fetchDashboardDataIfNeeded = async () => {
-    if (!user?.id || hasLoadedData) return;
+    if (!user?.id || hasDashboardLoaded) return;
 
     setIsLoading(true);
     try {
-      const [dashboardResponse, analyticsResponse] = await Promise.all([
-        axiosInstance.get<DashboardData>(`v2/dashboard/${user.id}`),
-        axiosInstance.get<AnalyticsData>(`v2/campaign/analytics/${user.id}`)
-      ]);
+      const dashboardResponse = await axiosInstance.get<DashboardData>(
+        `v2/dashboard/${user.id}`
+      );
 
       if (dashboardResponse.data) {
         setDashboardData(dashboardResponse.data);
       }
+      setHasDashboardLoaded(true);
+    } catch (error: any) {
+      console.error("Error fetching dashboard data:", error);
+      setError(error.message || "Failed to load dashboard data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAnalyticsDataIfNeeded = async () => {
+    if (!user?.id || hasAnalyticsLoaded) return;
+
+    setIsAnalyticsLoading(true);
+    try {
+      const analyticsResponse = await axiosInstance.get<AnalyticsData>(
+        `v2/campaign/analytics/${user.id}`
+      );
+
       if (analyticsResponse.data) {
         setAnalyticsData(analyticsResponse.data);
       }
-      setHasLoadedData(true);
+      setHasAnalyticsLoaded(true);
     } catch (error: any) {
-      console.error("Error fetching dashboard data:", error);
-      setError(error.message || "Failed to load data.");
+      console.error("Error fetching analytics data:", error);
+      setError(error.message || "Failed to load analytics data.");
     } finally {
-      setIsLoading(false);
+      setIsAnalyticsLoading(false);
     }
   };
 
@@ -155,10 +178,12 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
       dashboardData,
       analyticsData,
       isLoading,
+      isAnalyticsLoading,
       setDashboardData,
       fetchDashboardDataIfNeeded,
+      fetchAnalyticsDataIfNeeded,
     }),
-    [dashboardData, analyticsData, isLoading, hasLoadedData]
+    [dashboardData, analyticsData, isLoading, isAnalyticsLoading, hasDashboardLoaded, hasAnalyticsLoaded]
   );
 
   return (

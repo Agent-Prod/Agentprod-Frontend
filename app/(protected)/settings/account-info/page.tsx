@@ -151,42 +151,47 @@ export default function Page() {
   };
 
   return (
-    <div>
-      <div className="rounded-md border border-collapse mb-8">
-        <Table className="w-full text-left">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Account Information</h1>
+        <div className="flex gap-4">
+          <Button onClick={isEditing ? handleUpdateClick : handleEditClick}>
+            {isEditing ? "Save changes" : "Edit profile"}
+          </Button>
+          {isEditing && (
+            <Button variant="outline" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border bg-card">
+        <Table>
           <TableBody>
             {accountInfo.map((info) => (
-              <TableRow key={info.id} className="hover:bg-transparent">
-                <TableCell className="font-medium px-4 py-2 border-r bg-muted/50 w-1/3">
+              <TableRow key={info.id}>
+                <TableCell className="font-medium w-1/3 bg-muted/30">
                   {info.id}
                 </TableCell>
-                <TableCell className="px-4 py-2">
+                <TableCell>
                   {isEditing && info.isEditable ? (
                     <Input
                       type="text"
                       value={info?.value?.toString() ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(info.id, e.target.value)
-                      }
+                      onChange={(e) => handleInputChange(info.id, e.target.value)}
+                      className="max-w-md"
                     />
                   ) : (
-                    info?.value?.toString()
+                    <span className="text-muted-foreground">
+                      {info?.value?.toString() || "—"}
+                    </span>
                   )}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex gap-4">
-        <Button onClick={isEditing ? handleUpdateClick : handleEditClick}>
-          {isEditing ? "Update" : "Edit"}
-        </Button>
-        {isEditing && (
-          <Button variant="outline" onClick={() => setIsEditing(false)}>
-            Cancel
-          </Button>
-        )}
       </div>
     </div>
   );

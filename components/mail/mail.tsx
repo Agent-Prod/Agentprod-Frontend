@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -138,12 +138,14 @@ const CampaignDropdown = React.memo(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="flex items-center justify-center space-x-2"
+            className="w-[150px] flex items-center justify-between space-x-2"
           >
-            <span>
-              {currentCampaign ? currentCampaign.campaignName : 'All Campaigns'}
+            <span className="truncate">
+              {currentCampaign
+                ? `${currentCampaign.campaignName}`
+                : 'All Campaigns'}
             </span>
-            <ChevronDown size={20} />
+            <ChevronDown size={16} className="flex-shrink-0" />
           </Button>
         </DropdownMenuTrigger>
         {dropdownContent}
@@ -165,6 +167,48 @@ const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
 
 const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain);
 
+interface ActiveFiltersProps {
+  filter: string;
+  campaign: { campaignName: string } | null;
+  onClearCampaign: () => void;
+  onClearFilter: () => void;
+}
+
+const ActiveFilters: React.FC<ActiveFiltersProps> = ({ filter, campaign, onClearCampaign, onClearFilter }) => {
+  if ((!filter && !campaign) || (filter === 'all' && !campaign)) return null;
+
+  return (
+    <div className="flex flex-wrap px-4 pb-2 h-[40px]">
+      {filter && filter !== 'all' && (
+        <div className="flex items-center gap-1 bg-muted/60 px-2 py-1 rounded-md text-sm">
+          <span>Filter: {filter}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-4 w-4 hover:bg-muted"
+            onClick={() => onClearFilter()}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+      {campaign && (
+        <div className="flex items-center gap-1 bg-muted/60 mx-2 px-2 py-1 rounded-md text-sm">
+          <span>Campaign: {campaign.campaignName}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-4 w-4 hover:bg-muted"
+            onClick={() => onClearCampaign()}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export function Mail({
   defaultLayout = [265, 440, 655],
   defaultCollapsed = false,
@@ -172,17 +216,18 @@ export function Mail({
 }: MailProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // Get query parameters
   const campaignIdFromUrl = searchParams.get('campaign_id');
   const filterFromUrl = searchParams.get('_filter')?.toLowerCase() || 'all';
   const searchFilterFromUrl = searchParams.get('search_filter') || '';
 
-  // Modify initial states to use URL parameters
-  const [filter, setFilter] = React.useState(filterFromUrl);
-  const [activeTab, setActiveTab] = React.useState(filterFromUrl);
-  const [searchTerm, setSearchTerm] = React.useState(searchFilterFromUrl);
-  
+  const [filterState, setFilterState] = React.useState({
+    filter: filterFromUrl,
+    activeTab: filterFromUrl,
+    searchTerm: searchFilterFromUrl
+  });
+
   const [mails, setMails] = React.useState<Conversations[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [showLoadingOverlay, setShowLoadingOverlay] = React.useState(false);
@@ -191,7 +236,7 @@ export function Mail({
     campaignName: string;
     campaignId: string;
   } | null>(campaignIdFromUrl ? {
-    campaignName: '', 
+    campaignName: '',
     campaignId: campaignIdFromUrl
   } : null);
   const [selectedMailId, setSelectedMailId] = React.useState<string | null>(
@@ -268,20 +313,19 @@ export function Mail({
     setLocalIsContextBarOpen(isContextBarOpen);
   }, [isContextBarOpen]);
 
+  // 2. Modify the fetch conversations effect
   const fetchConversations = React.useCallback(
     async (
       campaignId?: string,
       pageNum: number = 1,
       search?: string,
-      status?: string
+      status?: string,
+      signal?: AbortSignal
     ) => {
       if (cancelTokenRef.current) {
-        cancelTokenRef.current.cancel(
-          'Operation canceled due to new request.'
-        );
+        cancelTokenRef.current.cancel('Operation canceled due to new request.');
       }
 
-      cancelTokenRef.current = axios.CancelToken.source();
       setLoading(true);
       if (pageNum === 1) {
         setIsInitialLoading(true);
@@ -322,7 +366,7 @@ export function Mail({
         const response = await axiosInstance.get(
           url,
           {
-            cancelToken: cancelTokenRef.current.token,
+            signal
           }
         );
 
@@ -381,6 +425,10 @@ export function Mail({
           setIsTransitioning(false);
         }
       } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Request aborted');
+          return;
+        }
         if (axios.isCancel(err)) {
           console.log('Request cancelled, keeping loader');
         } else {
@@ -403,7 +451,7 @@ export function Mail({
 
   const loadMore = React.useCallback(() => {
     if (!loading && hasMore) {
-      fetchConversations(campaign?.campaignId, page + 1, searchTerm, filter);
+      fetchConversations(campaign?.campaignId, page + 1, filterState.searchTerm, filterState.filter);
       if (page === 1 && mailListRef.current) {
         mailListRef.current.style.overflowY = 'auto';
       }
@@ -413,21 +461,27 @@ export function Mail({
     hasMore,
     campaign,
     page,
-    searchTerm,
-    filter,
+    filterState.searchTerm,
+    filterState.filter,
     fetchConversations,
   ]);
 
+  // 2. Modify the fetch conversations effect
   React.useEffect(() => {
     if (user?.id) {
+      const controller = new AbortController();
+
       fetchConversations(
-        campaignIdFromUrl || undefined, 
-        1, 
-        searchFilterFromUrl || searchTerm, 
-        filterFromUrl
+        campaignIdFromUrl || undefined,
+        1,
+        filterState.searchTerm,
+        filterState.filter,
+        controller.signal
       );
+
+      return () => controller.abort();
     }
-  }, [user?.id, campaignIdFromUrl, filterFromUrl, searchFilterFromUrl]);
+  }, [user?.id, campaignIdFromUrl, filterState.filter, filterState.searchTerm]); // Remove unnecessary dependencies
 
   React.useEffect(() => {
     if (mails.length > 0 && !initialMailIdSet) {
@@ -487,30 +541,37 @@ export function Mail({
       }
       router.push(`/mail?${params.toString()}`);
 
-      fetchConversations(newCampaign?.campaignId, 1, searchTerm, filter);
+      fetchConversations(newCampaign?.campaignId, 1, filterState.searchTerm, filterState.filter);
     },
-    [searchTerm, filter, fetchConversations, router, searchParams]
+    [filterState.searchTerm, filterState.filter, fetchConversations, router, searchParams]
   );
 
   const handleFilterChange = React.useCallback(
     (newFilter: string) => {
-      setFilter(newFilter);
+      setFilterState(prev => ({
+        ...prev,
+        filter: newFilter,
+        activeTab: newFilter
+      }));
       setPage(1);
       setMails([]);
-      fetchConversations(campaign?.campaignId, 1, searchTerm, newFilter);
+      fetchConversations(campaign?.campaignId, 1, filterState.searchTerm, newFilter);
     },
-    [campaign?.campaignId, searchTerm, fetchConversations]
+    [campaign?.campaignId, filterState.searchTerm, fetchConversations]
   );
 
   const handleSearchChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(e.target.value);
+      setFilterState(prev => ({
+        ...prev,
+        searchTerm: e.target.value
+      }));
     },
     []
   );
 
   const handleSearchClick = React.useCallback(() => {
-    const trimmedSearchTerm = searchTerm.trim();
+    const trimmedSearchTerm = filterState.searchTerm.trim();
     setPage(1);
     setMails([]);
 
@@ -523,13 +584,15 @@ export function Mail({
     }
     router.push(`/mail?${params.toString()}`);
 
-    fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filter);
-  }, [searchTerm, campaign, filter, fetchConversations, router, searchParams]);
+    fetchConversations(campaign?.campaignId, 1, trimmedSearchTerm, filterState.filter);
+  }, [filterState.searchTerm, campaign, filterState.filter, fetchConversations, router, searchParams]);
 
   const handleTabChange = (value: string) => {
-    console.log('Tab', value);
-    setActiveTab(value);
-    handleFilterChange(value);
+    setFilterState(prev => ({
+      ...prev,
+      filter: value,
+      activeTab: value
+    }));
     setPage(1);
     setMails([]);
 
@@ -592,43 +655,42 @@ export function Mail({
         <ResizablePanel defaultSize={localIsContextBarOpen ? 40 : 20}>
           <Tabs
             defaultValue="all"
-            value={activeTab}
+            value={filterState.activeTab}
             onValueChange={handleTabChange}
           >
             <div className="flex items-center px-4 pt-2 pb-0">
               <h1 className="text-xl font-bold">Inbox ({totalCount})</h1>
-              <TabsList className="ml-auto flex relative">
+              <TabsList className="ml-auto flex relative bg-muted/50 p-1 rounded-lg">
                 <TabsTrigger
                   value="all"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   All
                 </TabsTrigger>
                 <TabsTrigger
                   value="to-approve"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   To Approve
                 </TabsTrigger>
                 <TabsTrigger
                   value="replied"
-                  className="text-zinc-800 dark:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                 >
                   Replied
                 </TabsTrigger>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="outline"
-                      className="flex items-center justify-center space-x-2"
+                      variant="ghost"
+                      className="h-8 px-3 text-sm font-medium hover:bg-muted/80"
                     >
-                      <span>
-                        {activeTab.toLocaleUpperCase() || "More"}
-                      </span>
-                      <ChevronDown size={20} />
+                      <span>More</span>
+                      <ChevronDown size={16} className="ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
+                  <DropdownMenuContent align="end" className="w-[180px]">
                     <DropdownMenuItem
                       onSelect={() => handleTabChange("OPENED")}
                     >
@@ -653,6 +715,7 @@ export function Mail({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
                 <CampaignDropdown
                   campaigns={campaigns}
                   handleCampaignChange={handleCampaignChange}
@@ -661,31 +724,40 @@ export function Mail({
               </TabsList>
             </div>
 
-            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="relative flex items-center">
+            <div className="bg-background/95 px-4 pt-4 pb-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <form className="relative" onSubmit={(e) => { e.preventDefault(); handleSearchClick(); }}>
                 <Input
-                  placeholder="Search"
-                  className="pr-10"
-                  value={searchTerm}
+                  placeholder="Search emails..."
+                  className="w-full pl-4 pr-10 h-9 bg-muted/50 border-none"
+                  value={filterState.searchTerm}
                   onChange={handleSearchChange}
                 />
                 <Button
-                  type="button"
+                  type="submit"
                   variant="secondary"
                   size="icon"
-                  className="absolute right-0 top-0 h-full cursor-pointer "
-                  onClick={handleSearchClick}
+                  className="absolute right-0 top-0 h-full px-3"
                 >
                   <Search className="h-4 w-4 text-muted-foreground" />
                 </Button>
-              </div>
+              </form>
             </div>
 
+            <ActiveFilters
+              filter={filterState.filter}
+              campaign={campaign}
+              onClearCampaign={() => handleCampaignChange(null)}
+              onClearFilter={() => handleTabChange('all')}
+            />
+
             <TabsContent
-              value={activeTab}
-              className="flex-grow overflow-hidden m-0"
+              value={filterState.activeTab}
+              className="flex-grow overflow-hidden m-0 h-[calc(100%-130px)]"
             >
-              <div ref={mailListRef} className="h-full flex flex-col">
+              <div
+                ref={mailListRef}
+                className="h-full overflow-auto"
+              >
                 {(isInitialLoading && page === 1 && !isCampaignsLoading) ||
                   isTransitioning ? (
                   <div className="flex flex-col space-y-3 p-4 pt-0">

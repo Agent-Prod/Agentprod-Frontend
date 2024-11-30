@@ -46,6 +46,8 @@ import {
   Activity,
   BarChart3,
   Sparkles,
+  Percent,
+  UserPlus,
 } from "lucide-react";
 
 export type Icon = LucideIcon;
@@ -93,6 +95,9 @@ export const Icons = {
   zap: Zap,
   copy: Copy,
   activity: Activity,
+  users: Users,
+  userPlus: UserPlus,
+  percent: Percent,
   analytics: BarChart3,
 
   gitHub: ({ ...props }: LucideProps) => (

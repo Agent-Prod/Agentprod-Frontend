@@ -121,6 +121,7 @@ export const SelectFromExisting = () => {
   };
 
   function mapLeadsToBodies(leads: Contact[], campaignId: string): Contact[] {
+    if (!user) return [];
     return leads.map((lead) => ({
       id: uuid(),
       user_id: user.id,

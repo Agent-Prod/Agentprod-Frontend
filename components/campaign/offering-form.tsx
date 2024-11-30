@@ -105,7 +105,7 @@ export function OfferingForm() {
                 company_features: persona.company_features || [],
               });
             } else {
-              const userPersona = await getPersonaByUserId(user.id);
+              const userPersona = await getPersonaByUserId();
               if (userPersona) {
                 form.reset({
                   product_offering: offeringData.name || "",
@@ -130,7 +130,7 @@ export function OfferingForm() {
     };
 
     fetchCampaignAndOffering();
-  }, [params.campaignId, user.id, form]);
+  }, [params.campaignId, user?.id, form]);
 
   const onSubmit = async (data: OfferingFormValues) => {
     let offeringData;

@@ -281,6 +281,9 @@ export const ImportAudience = () => {
   };
 
   function mapLeadsToBodies(leads: Lead[]): Contact[] {
+    if (!user) {
+      return [];
+    }
     return leads.map((lead: any) => ({
       id: lead.id,
       user_id: user.id,

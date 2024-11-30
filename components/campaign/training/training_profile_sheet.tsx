@@ -168,7 +168,7 @@ export const TrainingPeopleProfileSheet = ({
       try {
         const response = await axiosInstance.post("/v2/training/preview", {
           campaign_id: params.campaignId,
-          user_id: user.id,
+          user_id: user?.id,
         });
 
         setData(response.data);
@@ -178,7 +178,7 @@ export const TrainingPeopleProfileSheet = ({
     };
 
     fetchData();
-  }, [params.campaignId, user.id]);
+  }, [params.campaignId, user?.id]);
 
   // useEffect(() => {
   //   const fetchData = async () => {

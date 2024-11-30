@@ -120,7 +120,7 @@ export default function Training() {
   const [fileType, setFileType] = useState<'image' | 'video' | 'pdf'>('image');
   const[customEmail, setCustomEmail] = useState<string>("");
   const [testLoading, setTestLoading] = useState(false);
-
+  if (!user) return;
   useEffect(() => {
     const fetchCustomInstructions = async () => {
       try {

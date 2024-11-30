@@ -204,7 +204,7 @@ export default function Page() {
     setIsChooseServiceOpen(false);
 
     if (user?.id) {
-      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/${user.id}`;
+      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/`;
     } else {
       toast.error("User ID is missing. Please try again.");
     }

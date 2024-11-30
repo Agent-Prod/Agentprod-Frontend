@@ -115,12 +115,12 @@ function PriceCard({
           const res = await axiosInstance.post(
             `v2/pricing-plans/`,
             {
-              user_id: user.id,
+              user_id: user?.id,
               subscription_mode: "Razorpay",
               order_id: response.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
               amount: price.toString(),
-              email: user.email,
+              email: user?.email || "",
               start_time: new Date().toISOString(),
               subscribed: true,
             }
@@ -131,7 +131,7 @@ function PriceCard({
           onCheckoutComplete();
         },
         prefill: {
-          name: user.firstName,
+          name: user?.firstName || "",
           email: user?.email || "",
         },
         theme: {

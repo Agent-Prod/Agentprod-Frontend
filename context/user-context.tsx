@@ -11,6 +11,7 @@ export interface UserInterface {
   lastName?: string;
 }
 
+
 export interface AppState {
   user: UserInterface | null;
   setUser: (user: UserInterface | null) => void;
@@ -51,6 +52,7 @@ function setUserInCookies(user: UserInterface | null) {
     deleteCookie(userKey);
   }
 }
+
 
 function setTokenInCookies(token: string | null) {
   if (token) {

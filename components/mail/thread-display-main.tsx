@@ -186,7 +186,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             receiver: recipientEmail,
             message_id: messageId,
             sender: senderEmail,
-            user_id: user.id,
+            user_id: user?.id,
             message: email.body,
             conversation_id: conversationId,
           };
@@ -226,7 +226,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         setSelectedMailId,
         setThread,
         updateMailStatus,
-        user.id,
+        user?.id,
       ]);
 
       const handleApproveEmail = useCallback(() => {
@@ -324,7 +324,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       const handleRegenerateDraft = useCallback(() => {
         const payload = {
-          user_id: user.id,
+          user_id: user?.id,
           conversation_id: conversationId,
           campaign_id: leads[0].campaign_id,
         };
@@ -340,7 +340,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             console.error("Failed to regenerate draft:", error);
             toast.error("Failed to regenerate the draft. Please try again.");
           });
-      }, [conversationId, leads, user.id]);
+      }, [conversationId, leads, user?.id]);
 
       if (email?.status === "TO-APPROVE") {
         return (
@@ -621,7 +621,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
-          user_id: user.id,
+          user_id: user?.id,
           message: body,
           conversation_id: conversationId,
           message_id: messageId,
@@ -664,13 +664,13 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       setThread,
       title,
       updateMailStatus,
-      user.id,
+      user?.id,
       refreshThread,
     ]);
 
     const handleRegenerateDraft = useCallback(() => {
       const payload = {
-        user_id: user.id,
+        user_id: user?.id,
         conversation_id: conversationId,
         campaign_id: leads[0].campaign_id,
       };
@@ -686,7 +686,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           console.error("Failed to regenerate draft:", error);
           toast.error("Failed to regenerate the draft. Please try again.");
         });
-    }, [conversationId, leads, user.id]);
+    }, [conversationId, leads, user?.id]);
 
     const handleDeleteDraft = useCallback(
       (draft_id: any) => {

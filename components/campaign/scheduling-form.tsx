@@ -71,6 +71,7 @@ export function SchedulingForm() {
   const [type, setType] = useState<"create" | "edit">("create");
 
   const onSubmit = async (data: CampaignFormValues) => {
+    if (!user) return;
     const campaignData = {
       user_id: user.id,
       campaign_name: data.campaignName,

@@ -190,7 +190,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
 
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get<CampaignEntry[]>(`v2/campaigns/all/${userId}`);
+      const response = await axiosInstance.get<CampaignEntry[]>(`v2/campaigns/all/`);
       const sortedCampaigns = response.data.sort((a: any, b: any) => {
         const dateA = new Date(a.created_at).getTime();
         const dateB = new Date(b.created_at).getTime();

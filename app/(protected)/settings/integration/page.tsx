@@ -100,7 +100,7 @@ export default function Page() {
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.id,
     };
     console.log("Payload:", payload);
     try {
@@ -118,7 +118,7 @@ export default function Page() {
   const updateSaleforceLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.id,
     };
     console.log("Payload:", payload);
     try {
@@ -153,7 +153,7 @@ export default function Page() {
     const fetchHubSpotStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.id,
           platform: "hubspot",
         });
         setIsConnectedToHubspot(response.data.message);
@@ -166,7 +166,7 @@ export default function Page() {
     const fetchSalesforceStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.id,
           platform: "salesforce",
         });
         setIsConnectedToSalesforce(response.data.message);
@@ -184,7 +184,7 @@ export default function Page() {
     if (isConnectedToHubspot) {
       setIsHubspotMailboxOpen(true);
     } else {
-      hubspotLogin(user.id);
+      hubspotLogin(user?.id);
     }
   };
 
@@ -192,7 +192,7 @@ export default function Page() {
     if (isConnectedToSalesforce) {
       setIsSalesforceMailboxOpen(true);
     } else {
-      salesforceLogin(user.id);
+      salesforceLogin(user?.id);
     }
   };
 
@@ -203,7 +203,7 @@ export default function Page() {
   const handleLinkedInConnect = async () => {
     try {
       const payload = {
-        user_id: user.id,
+        user_id: user?.id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
         password: linkedInPassword,
@@ -315,7 +315,7 @@ export default function Page() {
   const handleFinalLinkedInConnect = async () => {
     try {
       const payload = {
-        user_id: user.id,
+        user_id: user?.id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
         password: linkedInPassword,

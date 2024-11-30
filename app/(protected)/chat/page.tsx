@@ -75,7 +75,7 @@ export default function Home() {
     if (!userId) return;
     const fetchMessages = () => {
       axiosInstance
-        .get(`v2/conversation/${userId}`)
+        .get(`v2/conversation/`)
         .then((response) => {
           const adaptedMessages = response.data.map((msg: any) => ({
             ...msg,

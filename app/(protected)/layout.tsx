@@ -141,7 +141,7 @@ export default function ParentLayout({
                         <ResizablePanel minSize={70} defaultSize={85}>
                             <ScrollArea className="h-[calc(100vh-4rem)] px-6">
                                 <PageHeaderProvider>
-                                    <main className="py-2 pb-2 max-w-7xl mx-auto">
+                                    <main className="py-2 pb-2 mx-auto">
                                         {children}
                                     </main>
                                 </PageHeaderProvider>

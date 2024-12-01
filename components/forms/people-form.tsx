@@ -527,177 +527,102 @@ export default function PeopleForm(): JSX.Element {
     return checked;
   };
 
-  const constructApolloUrl = (formData: any) => {
-    let url =
-      "https://app.apollo.io/#/people?finderViewId=6674b20eecfedd000184539f&sortByField=account_owner_id&sortAscending=true";
+  const constructApolloUrl = (
+    formData: any,): string => {
+    const params: string[] = [
+      'finderViewId=6674b20eecfedd000184539f',
+      'sortByField=account_owner_id',
+      'sortAscending=true'
+    ];
 
-    // Add likely_to_engage only when checkbox is checked
+    const addArrayParam = (key: string, values: Array<any>, valueKey?: string) => {
+      values.forEach(item => {
+        const value = valueKey ? item[valueKey] : item;
+        params.push(`${key}[]=${encodeURIComponent(value).replace(/%2C/g, ',').replace(/%20/g, '+')}`);
+      });
+    };
+
     if (linkedinSelectionType !== "Linkedin") {
-      if (likelyToEngage) {
-        url += "&contactEmailStatusV2[]=likely_to_engage";
-      } else {
-        url += "&contactEmailStatusV2[]=verified"
-      }
+      params.push(`contactEmailStatusV2[]=${likelyToEngage ? 'likely_to_engage' : 'verified'}`);
     }
 
-    if (
-      formData.organization_locations &&
-      formData.organization_locations.length > 0
-    ) {
-      url += formData.organization_locations
-        .map(
-          (location: any) =>
-            `&personLocations[]=${encodeURIComponent(location.text)}`
-        )
-        .join("");
+    if (formData.organization_locations?.length) {
+      addArrayParam('personLocations', formData.organization_locations, 'text');
     }
 
-    if (
-      formData.organization_industry_tag_ids &&
-      formData.organization_industry_tag_ids.length > 0
-    ) {
-      url += formData.organization_industry_tag_ids
-        .map(
-          (industry: any) =>
-            `&organizationIndustryTagIds[]=${encodeURIComponent(
-              industry.value
-            )}`
-        )
-        .join("");
+    if (formData.organization_industry_tag_ids?.length) {
+      addArrayParam('organizationIndustryTagIds', formData.organization_industry_tag_ids, 'value');
     }
 
-    if (
-      formData.currently_using_technologies &&
-      formData.currently_using_technologies.length > 0
-    ) {
-      url += formData.currently_using_technologies
-        .map(
-          (technology: any) =>
-            `&currentlyUsingAnyOfTechnologyUids[]=${encodeURIComponent(
-              technology.id
-            )}`
-        )
-        .join("")
+    if (formData.currently_using_technologies?.length) {
+      addArrayParam('currentlyUsingAnyOfTechnologyUids', formData.currently_using_technologies, 'id');
     }
 
-    if (formData.person_titles && formData.person_titles.length > 0) {
-      url += formData.person_titles
-        .map(
-          (title: any) => `&personTitles[]=${encodeURIComponent(title.text)}`
-        )
-        .join("");
+    if (formData.person_titles?.length) {
+      addArrayParam('personTitles', formData.person_titles, 'text');
     }
 
-    if (checkedCompanyHeadcount && checkedCompanyHeadcount.length > 0) {
-      url += checkedCompanyHeadcount
-        .map((range: string) => {
-          if (range === "10000+") {
-            return `&organizationNumEmployeesRanges%5B%5D=10001`;
-          }
+    if (checkedCompanyHeadcount?.length) {
+      checkedCompanyHeadcount.forEach(range => {
+        if (range === "10000+") {
+          params.push('organizationNumEmployeesRanges[]=10001');
+        } else {
           const [min, max] = range.split("-");
-          return `&organizationNumEmployeesRanges[]=${encodeURIComponent(min)},${max === "x" ? "" : encodeURIComponent(max)}`;
-        })
-        .join("");
+          params.push(`organizationNumEmployeesRanges[]=${min},${max === "x" ? "" : max}`);
+        }
+      });
     }
 
-    if (selectionType === 'list' && formData.q_organization_domains && formData.q_organization_domains.length > 0) {
-      url += formData.q_organization_domains
-        .map((domain: any) => `&organizationIds[]=${encodeURIComponent(domain.id)}`)
-        .join("");
-    } else if (selectionType === 'custom' && formData.q_organization_domains && formData.q_organization_domains.length > 0) {
-      const customDomain = formData.q_organization_domains[0];
-      if (customDomain && customDomain.text) {
-        url += `&qKeywords=${encodeURIComponent(customDomain.text)}`;
+    if (formData.q_organization_domains?.length) {
+      if (selectionType === 'list') {
+        addArrayParam('organizationIds', formData.q_organization_domains, 'id');
+      } else if (selectionType === 'custom' && formData.q_organization_domains[0]?.text) {
+        params.push(`qKeywords=${encodeURIComponent(formData.q_organization_domains[0].text)}`);
       }
     }
 
-    if (
-      formData.q_organization_keyword_tags &&
-      formData.q_organization_keyword_tags.length > 0
-    ) {
-      url += formData.q_organization_keyword_tags
-        .map(
-          (tag: any) =>
-            `&qOrganizationKeywordTags[]=${encodeURIComponent(tag.text)}`
-        )
-        .join("");
-      url +=
-        "&includedOrganizationKeywordFields[]=tags&includedOrganizationKeywordFields[]=name";
+    if (formData.q_organization_keyword_tags?.length) {
+      addArrayParam('qOrganizationKeywordTags', formData.q_organization_keyword_tags, 'text');
+      params.push('includedOrganizationKeywordFields[]=tags');
+      params.push('includedOrganizationKeywordFields[]=name');
     }
 
-    if (formData.job_posting_titles && formData.job_posting_titles.length > 0) {
-      url += formData.job_posting_titles
-        .map(
-          (tag: any) =>
-            `&qOrganizationJobTitles[]=${encodeURIComponent(tag.text)}`
-        )
-        .join("");
+    if (formData.job_posting_titles?.length) {
+      addArrayParam('qOrganizationJobTitles', formData.job_posting_titles, 'text');
     }
 
-    if (formData.job_posting_locations && formData.job_posting_locations.length > 0) {
-      url += formData.job_posting_locations
-        .map(
-          (tag: any) =>
-            `&organizationJobLocations[]=${encodeURIComponent(tag.text)}`
-        )
-        .join("")
+    if (formData.job_posting_locations?.length) {
+      addArrayParam('organizationJobLocations', formData.job_posting_locations, 'text');
     }
 
-    if (checkedFundingRounds && checkedFundingRounds.length > 0) {
-      url += checkedFundingRounds
-        .map(
-          (round: string) =>
-            `&organizationLatestFundingStageCd[]=${encodeURIComponent(round)}`
-        )
-        .join("");
+    if (checkedFundingRounds?.length) {
+      addArrayParam('organizationLatestFundingStageCd', checkedFundingRounds);
     }
 
-    if (checkedSearchSignal && checkedSearchSignal.length > 0) {
-      url += checkedSearchSignal
-        .map(
-          (signal: string) =>
-            `&searchSignalIds[]=${encodeURIComponent(signal)}`
-        )
-        .join("")
+    if (checkedSearchSignal?.length) {
+      addArrayParam('searchSignalIds', checkedSearchSignal);
     }
 
-    if (checkedIntentScores && checkedIntentScores.length > 0) {
-      url += checkedIntentScores
-        .map(
-          (intent: string) =>
-            `&intentStrengths[]=${encodeURIComponent(intent)}`
-        )
-        .join("")
+    if (checkedIntentScores?.length) {
+      addArrayParam('intentStrengths', checkedIntentScores);
     }
 
-    if (checkedIntentTopics && checkedIntentTopics.length > 0) {
-      url += checkedIntentTopics
-        .map(
-          (intent: string) =>
-            `&intentIds[]=${encodeURIComponent(intent)}`
-        )
-        .join("")
+    if (checkedIntentTopics?.length) {
+      addArrayParam('intentIds', checkedIntentTopics);
     }
 
     if (formData.minimum_company_funding || formData.maximum_company_funding) {
-      const minRevenue = formData.minimum_company_funding ? encodeURIComponent(formData.minimum_company_funding.text) : '';
-      const maxRevenue = formData.maximum_company_funding ? encodeURIComponent(formData.maximum_company_funding.text) : '';
-
-      url += `&revenueRange%5Bmin%5D=${minRevenue}&revenueRange%5Bmax%5D=${maxRevenue}`;
+      const minValue = formData.minimum_company_funding?.text || '';
+      const maxValue = formData.maximum_company_funding?.text || '';
+      params.push(`revenueRange[min]=${encodeURIComponent(minValue)}`);
+      params.push(`revenueRange[max]=${encodeURIComponent(maxValue)}`);
     }
 
-    if (formData.email_status && formData.email_status.length > 0) {
-      url += formData.email_status
-        .map(
-          (status: any) =>
-            `&contactEmailStatusV2[]=${encodeURIComponent(status.text)}`
-        )
-        .join("");
+    if (formData.email_status?.length) {
+      addArrayParam('contactEmailStatusV2', formData.email_status, 'text');
     }
 
-    console.log(url)
-
-    return url;
+    return `https://app.apollo.io/#/people?${params.join('&')}`;
   };
 
   useEffect(() => {
@@ -839,7 +764,7 @@ export default function PeopleForm(): JSX.Element {
             );
           }
         }, 1000);
-  
+
         // Directly call the Apollo API
         const apolloResponse = await axiosInstance.post('/v2/apify/apify/run-actor', {
           apollo_url: apolloUrl,
@@ -849,7 +774,7 @@ export default function PeopleForm(): JSX.Element {
         });
         clearInterval(countdownInterval);
         toast.dismiss(countdownToastId);
-  
+
         if (apolloResponse.data.data && Array.isArray(apolloResponse.data.data)) {
           const processedLeads = apolloResponse.data
             .data
@@ -863,7 +788,7 @@ export default function PeopleForm(): JSX.Element {
           setLeads(processedLeads);
           console.log("Processed new leads:", processedLeads);
           setTab("tab2");
-  
+
           setIsTableLoading(false);
           toast.success(
             `${processedLeads.length} new leads fetched successfully`
@@ -1729,7 +1654,7 @@ export default function PeopleForm(): JSX.Element {
         contact_email_status_v2: linkedinCheck,
         // Handle company domains based on selection type
         // organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
-        ...(selectionType === 'list' 
+        ...(selectionType === 'list'
           ? { organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id) }
           : { q_keywords: formData.q_organization_domains?.[0]?.text }
         ),

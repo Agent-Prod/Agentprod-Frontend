@@ -174,13 +174,15 @@ export const ImportAudience = () => {
 
   const enrichmentHandler = async () => {
     setIsEnrichmentLoading(true);
-    setShowCard(false); // Hide the card when enrichment starts
+    setShowCard(false);
     toast.loading("Enriching leads...", { id: "enrichment" });
 
     const leadsToEnrich = fileData?.map((row) => {
       const mappedRow: { [key: string]: string } = {};
       selectedValue.forEach(({ presetValue, fileColumnName }) => {
-        if (fileColumnName in row) {
+        if (presetValue === "company_name") {
+          mappedRow["organization_name"] = row[fileColumnName];
+        } else {
           mappedRow[presetValue] = row[fileColumnName];
         }
       });
@@ -200,15 +202,15 @@ export const ImportAudience = () => {
         first_name: lead.first_name || lead.name.split(" ")[0] || "",
         last_name: lead.last_name || lead.name.split(" ")[1] || "",
         email: lead.email || "",
-        company_website_url: lead.company_website_url || "",
-        company_name: lead.company_name || "",
+        organization_website_url: lead.organization_website_url || "",
+        organization_name: lead.organization_name || "",
         linkedin_url: lead.linkedin_url || "",
       }));
 
       // Call the new endpoint
       const response = await axiosInstance.post(
         'v2/apollo/leads/bulk_enrich',
-        enrichmentData
+        {details: enrichmentData}
       );
 
       const enrichedLeads = response.data;
@@ -413,8 +415,6 @@ export const ImportAudience = () => {
   };
 
   const filteredOptions = [
-    "First Name",
-    "Last Name",
     "Name",
     "Email",
     "LinkedIn URL",

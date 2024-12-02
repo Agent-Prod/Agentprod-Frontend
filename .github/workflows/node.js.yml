@@ -37,5 +37,5 @@ jobs:
 
       - name: Update PM2 process
         run: |
-          pm2 reload 7 && pm2 save
+          pm2 reload 0 && pm2 save
         continue-on-error: false

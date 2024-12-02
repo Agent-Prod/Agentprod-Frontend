@@ -249,7 +249,7 @@ export default function PeopleForm(): JSX.Element {
   const [technologiesDropdownIsOpen, setTechnologiesDropdownIsOpen] = useState(false);
   const technologyDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [likelyToEngage, setLikelyToEngage] = useState(true)
+  const [likelyToEngage, setLikelyToEngage] = useState(false)
   const [error, setError] = React.useState<string | null>(null);
   const [apolloUrl, setApolloUrl] = useState("");
   const [organizationCompanyTags, setOrganizationCompanyTags] = React.useState<
@@ -543,7 +543,7 @@ export default function PeopleForm(): JSX.Element {
     };
 
     if (linkedinSelectionType !== "Linkedin") {
-      params.push(`contactEmailStatusV2[]=${likelyToEngage ? 'likely_to_engage' : 'verified'}`);
+      params.push(`contactEmailStatusV2[]=${likelyToEngage ? 'likely_to_engage' : ''}`);
     }
 
     if (formData.organization_locations?.length) {
@@ -1628,7 +1628,7 @@ export default function PeopleForm(): JSX.Element {
     setIsLoadingTotalLeads(true);
     try {
       const formData = form.getValues();
-      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : [...(likelyToEngage ? ["likely_to_engage"] : ["verified"])];
+      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : [...(likelyToEngage ? ["likely_to_engage"] : [])];
 
       const requestBody = {
         page: 1,
@@ -1947,7 +1947,7 @@ export default function PeopleForm(): JSX.Element {
                       console.log("Updated form data:", formData);
                     }}
                   >
-                    Likely to engage (Always enabled for better response rates)
+                    Likely to engage 
                   </Label>
                 </div>}
 

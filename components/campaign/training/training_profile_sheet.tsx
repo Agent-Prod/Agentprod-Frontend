@@ -95,6 +95,9 @@ interface ContactData {
   subdepartments: string[];
   seniority: string;
   functions: string[];
+  organization?: {
+    logo_url: string;
+  };
   phone_numbers: PhoneNumber[];
   intent_strength?: any;
   show_intent?: boolean;
@@ -125,7 +128,7 @@ export interface Data {
   contact: ContactData;
   linkedin_information: LinkedInInformation;
   email: EmailContent;
-  posts : string[];
+  posts: string[];
 }
 
 export const TrainingPeopleProfileSheet = ({
@@ -303,7 +306,7 @@ export const TrainingPeopleProfileSheet = ({
                   src={
                     newPreviews
                       ? newData?.contact.photo_url
-                      : data?.contact.photo_url
+                      : data?.contact.photo_url ?? data?.contact.organization?.logo_url
                   }
                   alt="avatar"
                 />
@@ -349,16 +352,16 @@ export const TrainingPeopleProfileSheet = ({
                 <span className="text-sm text-muted-foreground">
                   {newPreviews
                     ? renderEmploymentHistory(
-                        newData?.contact?.employment_history
-                      )
+                      newData?.contact?.employment_history
+                    )
                     : renderEmploymentHistory(
-                        data?.contact?.employment_history
-                      ) && newPreviews
-                    ? renderEmploymentHistory(
+                      data?.contact?.employment_history
+                    ) && newPreviews
+                      ? renderEmploymentHistory(
                         newData?.contact?.employment_history[0]
                           .organization_name
                       )
-                    : renderEmploymentHistory(
+                      : renderEmploymentHistory(
                         data?.contact?.employment_history[0]?.organization_name
                       )}
                 </span>
@@ -366,23 +369,23 @@ export const TrainingPeopleProfileSheet = ({
               {newPreviews
                 ? renderPhoneNumbers(newData?.contact?.phone_numbers)
                 : renderPhoneNumbers(data?.contact?.phone_numbers) && (
-                    <div className="flex space-x-2">
-                      {/* <Phone className="h-5 w-5 text-muted-foreground" /> */}
-                      <span className="text-sm text-muted-foreground">
-                        {newPreviews
-                          ? renderPhoneNumbers(
-                              newData?.contact?.phone_numbers
-                              // [0]
-                              //   ?.sanitized_number
-                            )
-                          : renderPhoneNumbers(
-                              data?.contact?.phone_numbers
-                              // [0]
-                              //   ?.sanitized_number
-                            ) || "N/A"}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex space-x-2">
+                    {/* <Phone className="h-5 w-5 text-muted-foreground" /> */}
+                    <span className="text-sm text-muted-foreground">
+                      {newPreviews
+                        ? renderPhoneNumbers(
+                          newData?.contact?.phone_numbers
+                          // [0]
+                          //   ?.sanitized_number
+                        )
+                        : renderPhoneNumbers(
+                          data?.contact?.phone_numbers
+                          // [0]
+                          //   ?.sanitized_number
+                        ) || "N/A"}
+                    </span>
+                  </div>
+                )}
               <div className="flex space-x-2">
                 <Linkedin className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
@@ -410,96 +413,96 @@ export const TrainingPeopleProfileSheet = ({
               {newPreviews
                 ? renderEmploymentHistory(newData?.contact?.employment_history)
                 : renderEmploymentHistory(
-                    data?.contact?.employment_history
-                  ) && (
-                    <>
-                      <div className="flex px-2 py-1 font-mono text-xs justify-between">
-                        <span>
-                          {
-                            newPreviews
-                              ? renderSingleEmploymentHistory(
-                                  newData?.contact?.employment_history
-                                )
-                              : // [0]
-                                // .start_date.substring(
-                                //     0,
-                                //     4
-                                //   )
-                                renderSingleEmploymentHistory(
-                                  data?.contact?.employment_history
-                                )
-                            // [0].start_date.substring(
+                  data?.contact?.employment_history
+                ) && (
+                  <>
+                    <div className="flex px-2 py-1 font-mono text-xs justify-between">
+                      <span>
+                        {
+                          newPreviews
+                            ? renderSingleEmploymentHistory(
+                              newData?.contact?.employment_history
+                            )
+                            : // [0]
+                            // .start_date.substring(
                             //     0,
                             //     4
                             //   )
-                          }
-                        </span>
-                        {/* <span className="w-[200px]">
+                            renderSingleEmploymentHistory(
+                              data?.contact?.employment_history
+                            )
+                          // [0].start_date.substring(
+                          //     0,
+                          //     4
+                          //   )
+                        }
+                      </span>
+                      {/* <span className="w-[200px]">
                           {newPreviews
                             ? newData?.contact?.employment_history[0].title
                             : data?.contact?.employment_history[0].title}
                         </span> */}
-                      </div>
-                      <CollapsibleContent className="space-y-2">
-                        {
-                          newPreviews
-                            ? renderEmploymentHistory(
-                                newData?.contact?.employment_history
-                              )
-                            : // .map(
-                              //     (val: any, ind: any) => {
-                              //       if (ind === 0) return null;
-                              //       return (
-                              //         <div
-                              //           className="flex px-2 py-1 font-mono text-xs justify-between"
-                              //           key={`e_his${ind}`}
-                              //         >
-                              //           <span>
-                              //             {val.start_date.substring(0, 4)} -{" "}
-                              //             {val.end_date
-                              //               ? val.end_date.substring(0, 4)
-                              //               : ""}
-                              //           </span>
-                              //           <span className="w-[200px]">
-                              //             {val.title}
-                              //           </span>
-                              //         </div>
-                              //       );
-                              //     }
-                              //   )
-                              renderEmploymentHistory(
-                                data?.contact?.employment_history
-                              )
-                          // .map(
-                          //   (val, ind) => {
-                          //     if (ind === 0) return null;
-                          //     return (
-                          //       <div
-                          //         className="flex px-2 py-1 font-mono text-xs justify-between"
-                          //         key={`e_his${ind}`}
-                          //       >
-                          //         <span>
-                          //           {val.start_date.substring(0, 4)} -{" "}
-                          //           {val.end_date
-                          //             ? val.end_date.substring(0, 4)
-                          //             : ""}
-                          //         </span>
-                          //         <span className="w-[200px]">
-                          //           {val.title}
-                          //         </span>
-                          //       </div>
-                          //     );
-                          //   }
-                          // )
-                        }
+                    </div>
+                    <CollapsibleContent className="space-y-2">
+                      {
+                        newPreviews
+                          ? renderEmploymentHistory(
+                            newData?.contact?.employment_history
+                          )
+                          : // .map(
+                          //     (val: any, ind: any) => {
+                          //       if (ind === 0) return null;
+                          //       return (
+                          //         <div
+                          //           className="flex px-2 py-1 font-mono text-xs justify-between"
+                          //           key={`e_his${ind}`}
+                          //         >
+                          //           <span>
+                          //             {val.start_date.substring(0, 4)} -{" "}
+                          //             {val.end_date
+                          //               ? val.end_date.substring(0, 4)
+                          //               : ""}
+                          //           </span>
+                          //           <span className="w-[200px]">
+                          //             {val.title}
+                          //           </span>
+                          //         </div>
+                          //       );
+                          //     }
+                          //   )
+                          renderEmploymentHistory(
+                            data?.contact?.employment_history
+                          )
+                        // .map(
+                        //   (val, ind) => {
+                        //     if (ind === 0) return null;
+                        //     return (
+                        //       <div
+                        //         className="flex px-2 py-1 font-mono text-xs justify-between"
+                        //         key={`e_his${ind}`}
+                        //       >
+                        //         <span>
+                        //           {val.start_date.substring(0, 4)} -{" "}
+                        //           {val.end_date
+                        //             ? val.end_date.substring(0, 4)
+                        //             : ""}
+                        //         </span>
+                        //         <span className="w-[200px]">
+                        //           {val.title}
+                        //         </span>
+                        //       </div>
+                        //     );
+                        //   }
+                        // )
+                      }
 
-                        {/* <div className="flex px-2 py-1 font-mono text-sm justify-between">
+                      {/* <div className="flex px-2 py-1 font-mono text-sm justify-between">
                       <span></span>
                       <span>Software Developer</span>
                     </div> */}
-                      </CollapsibleContent>
-                    </>
-                  )}
+                    </CollapsibleContent>
+                  </>
+                )}
             </Collapsible>
             <br />
             <br />
@@ -557,9 +560,9 @@ export const TrainingPeopleProfileSheet = ({
               <p className="text-sm font-medium leading-none">
                 {newPreviews
                   ? newData?.contact?.employment_history?.[0]
-                      ?.organization_name || null
+                    ?.organization_name || null
                   : data?.contact?.employment_history?.[0]?.organization_name ||
-                    null}
+                  null}
               </p>
             </div>
             <div className="space-y-3">
@@ -679,26 +682,25 @@ export const TrainingPeopleProfileSheet = ({
                     {newPreviews
                       ? newData?.linkedin_information.affiliated_pages?.title
                       : data?.linkedin_information.affiliated_pages?.title && (
-                          <div className="text-muted-foreground">
-                            {newPreviews
-                              ? newData.linkedin_information.affiliated_pages
-                                  ?.title[0]
+                        <div className="text-muted-foreground">
+                          {newPreviews
+                            ? newData.linkedin_information.affiliated_pages
+                              ?.title[0]
+                            : data.linkedin_information.affiliated_pages
+                              ?.title[0]}
+                          {newPreviews
+                            ? newData.linkedin_information.affiliated_pages
+                              ?.description[0]
+                            : data.linkedin_information.affiliated_pages
+                              ?.description[0] &&
+                            ` - ${newPreviews
+                              ? newData.linkedin_information
+                                .affiliated_pages?.description[0]
                               : data.linkedin_information.affiliated_pages
-                                  ?.title[0]}
-                            {newPreviews
-                              ? newData.linkedin_information.affiliated_pages
-                                  ?.description[0]
-                              : data.linkedin_information.affiliated_pages
-                                  ?.description[0] &&
-                                ` - ${
-                                  newPreviews
-                                    ? newData.linkedin_information
-                                        .affiliated_pages?.description[0]
-                                    : data.linkedin_information.affiliated_pages
-                                        ?.description[0]
-                                }`}
-                          </div>
-                        )}
+                                ?.description[0]
+                            }`}
+                        </div>
+                      )}
                   </div>
                   <CollapsibleContent className="space-y-2">
                     <div className="flex flex-col gap-2">
@@ -750,33 +752,33 @@ export const TrainingPeopleProfileSheet = ({
                     */}
                 {newPreviews
                   ? newData?.linkedin_information?.stock_info &&
-                    Object.entries(newData.linkedin_information.stock_info).map(
-                      ([key, value]) => (
-                        <div
-                          className="text-muted-foreground text-sm"
-                          key={key}
-                        >
-                          {formatText(key)}:{" "}
-                          <span className="font-normal">
-                            {renderValue(value)}
-                          </span>
-                        </div>
-                      )
+                  Object.entries(newData.linkedin_information.stock_info).map(
+                    ([key, value]) => (
+                      <div
+                        className="text-muted-foreground text-sm"
+                        key={key}
+                      >
+                        {formatText(key)}:{" "}
+                        <span className="font-normal">
+                          {renderValue(value)}
+                        </span>
+                      </div>
                     )
+                  )
                   : data?.linkedin_information?.stock_info &&
-                    Object.entries(data.linkedin_information.stock_info).map(
-                      ([key, value]) => (
-                        <div
-                          className="text-muted-foreground text-sm"
-                          key={key}
-                        >
-                          {formatText(key)}:{" "}
-                          <span className="font-normal">
-                            {renderValue(value)}
-                          </span>
-                        </div>
-                      )
-                    )}
+                  Object.entries(data.linkedin_information.stock_info).map(
+                    ([key, value]) => (
+                      <div
+                        className="text-muted-foreground text-sm"
+                        key={key}
+                      >
+                        {formatText(key)}:{" "}
+                        <span className="font-normal">
+                          {renderValue(value)}
+                        </span>
+                      </div>
+                    )
+                  )}
               </div>
               <br />
               <br />
@@ -795,33 +797,33 @@ export const TrainingPeopleProfileSheet = ({
                     ))} */}
                   {newPreviews
                     ? newData?.linkedin_information?.funding_info &&
-                      Object.entries(
-                        newData.linkedin_information.funding_info
-                      ).map(([key, value]) => (
-                        <div
-                          className="text-muted-foreground text-sm"
-                          key={key}
-                        >
-                          {formatText(key)}:{" "}
-                          <span className="font-normal">
-                            {renderValue(value)}
-                          </span>
-                        </div>
-                      ))
+                    Object.entries(
+                      newData.linkedin_information.funding_info
+                    ).map(([key, value]) => (
+                      <div
+                        className="text-muted-foreground text-sm"
+                        key={key}
+                      >
+                        {formatText(key)}:{" "}
+                        <span className="font-normal">
+                          {renderValue(value)}
+                        </span>
+                      </div>
+                    ))
                     : data?.linkedin_information?.funding_info &&
-                      Object.entries(
-                        data.linkedin_information.funding_info
-                      ).map(([key, value]) => (
-                        <div
-                          className="text-muted-foreground text-sm"
-                          key={key}
-                        >
-                          {formatText(key)}:{" "}
-                          <span className="font-normal">
-                            {renderValue(value)}
-                          </span>
-                        </div>
-                      ))}
+                    Object.entries(
+                      data.linkedin_information.funding_info
+                    ).map(([key, value]) => (
+                      <div
+                        className="text-muted-foreground text-sm"
+                        key={key}
+                      >
+                        {formatText(key)}:{" "}
+                        <span className="font-normal">
+                          {renderValue(value)}
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>

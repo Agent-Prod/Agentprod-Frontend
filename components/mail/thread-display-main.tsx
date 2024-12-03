@@ -351,7 +351,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 onClick={() => toggleSidebar(true)}
               >
                 <AvatarImage
-                  src={leads[0]?.photo_url ? leads[0].photo_url : ""}
+                  src={leads[0]?.photo_url ?? leads[0]?.organization?.logo_url}
                   alt="avatar"
                 />
                 <AvatarFallback className="bg-yellow-400 text-black text-xs">
@@ -446,7 +446,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               onClick={() => toggleSidebar(true)}
             >
               <AvatarImage
-                src={leads[0]?.photo_url ? leads[0].photo_url : ""}
+                src={leads[0]?.photo_url ?? leads[0]?.organization?.logo_url}
                 alt="avatar"
               />
               <AvatarFallback className="bg-yellow-400 text-black text-xs">
@@ -749,7 +749,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             onClick={() => toggleSidebar(true)}
           >
             <AvatarImage
-              src={leads[0]?.photo_url ? leads[0].photo_url : ""}
+              src={leads[0]?.photo_url ?? leads[0]?.organization?.logo_url}
               alt="avatar"
             />
 

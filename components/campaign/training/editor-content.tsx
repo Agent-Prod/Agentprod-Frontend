@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
@@ -143,9 +144,9 @@ export default function EditorContent() {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
           );
-          
+
           const data = await response.json();
-          console.log(data,"ress")
+          console.log(data, "ress")
           if (response.ok) {
             setCampaignType(data.campaign_type);
           } else {

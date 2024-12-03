@@ -37,8 +37,8 @@ export interface AppState {
 
 const defaultState: AppState = {
   user: DummyUser,
-  setUser: () => {},
-  updateUser: () => {},
+  setUser: () => { },
+  updateUser: () => { },
 };
 
 const UserContext = React.createContext<AppState>(defaultState);

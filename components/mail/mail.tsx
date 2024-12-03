@@ -75,6 +75,9 @@ export interface Conversations {
   status: string;
   name: string;
   photo_url: string | null;
+  organization?: {
+    logo_url: string | null;
+  } | null;
   company_name: string;
   category: string;
   channel?: string;

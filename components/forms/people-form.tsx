@@ -215,9 +215,6 @@ export default function PeopleForm(): JSX.Element {
   const [checkedSearchSignal, setCheckedSearchSignal] =
     React.useState<string[]>([]);
 
-  const [checkedIntentTopics, setCheckedIntentTopics] = React.useState<string[]>();
-  const [checkedIntentScores, setCheckedIntentScores] = React.useState<string[]>();
-
   const [minimumCompanyFunding, setMinimumCompanyFunding] =
     React.useState<InputType>({
       id: "",
@@ -603,14 +600,6 @@ export default function PeopleForm(): JSX.Element {
       addArrayParam('searchSignalIds', checkedSearchSignal);
     }
 
-    if (checkedIntentScores?.length) {
-      addArrayParam('intentStrengths', checkedIntentScores);
-    }
-
-    if (checkedIntentTopics?.length) {
-      addArrayParam('intentIds', checkedIntentTopics);
-    }
-
     if (formData.minimum_company_funding || formData.maximum_company_funding) {
       const minValue = formData.minimum_company_funding?.text || '';
       const maxValue = formData.maximum_company_funding?.text || '';
@@ -634,8 +623,6 @@ export default function PeopleForm(): JSX.Element {
     checkedCompanyHeadcount,
     checkedFundingRounds,
     checkedSearchSignal,
-    checkedIntentScores,
-    checkedIntentTopics,
     form.watch("organization_locations"),
     form.watch("organization_industry_tag_ids"),
     form.watch("person_titles"),
@@ -669,8 +656,6 @@ export default function PeopleForm(): JSX.Element {
       email_status: data.email_status,
       organization_job_locations: data.organization_job_locations,
       q_organization_job_titles: data.q_organization_job_titles,
-      buying_intent_topics: checkedIntentTopics || [],
-      buying_intent_scores: checkedIntentScores || [],
       contact_email_status_v2: likelyToEngage ? ["likely_to_engage"] : [],
     };
     setIsSubmitting(true);
@@ -1022,8 +1007,6 @@ export default function PeopleForm(): JSX.Element {
             email_status: formData.email_status,
             organization_job_locations: formData.organization_job_locations,
             q_organization_job_titles: formData.q_organization_job_titles,
-            buying_intent_topics: checkedIntentTopics,
-            buying_intent_scores: checkedIntentScores,
             contact_email_status_v2: linkedinCheck
           },
         };
@@ -1177,26 +1160,6 @@ export default function PeopleForm(): JSX.Element {
         shouldDirty: true,
       })
 
-      const intentTopic = Array.isArray(allFiltersFromDB.buying_intent_topics)
-        ? allFiltersFromDB.buying_intent_topics
-        : [];
-
-      setCheckedIntentTopics(intentTopic)
-      form.setValue("buying_intent_topics", intentTopic, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-
-      const intentScore = Array.isArray(allFiltersFromDB.buying_intent_scores)
-        ? allFiltersFromDB.buying_intent_scores
-        : [];
-
-      setCheckedIntentTopics(intentScore)
-      form.setValue("buying_intent_scores", intentScore, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-
       // Currently using Technologies
       if (allFiltersFromDB.currently_using_technologies) {
         setCurrentlyUsingTechnologiesTags(
@@ -1283,25 +1246,25 @@ export default function PeopleForm(): JSX.Element {
 
       // Buying intent
 
-      if (allFiltersFromDB.buying_intent_scores) {
-        setCheckedIntentScores(
-          allFiltersFromDB.buying_intent_scores
-        );
-        setValue(
-          "buying_intent_scores",
-          allFiltersFromDB.buying_intent_scores
-        )
-      }
+      // if (allFiltersFromDB.buying_intent_scores) {
+      //   setCheckedIntentScores(
+      //     allFiltersFromDB.buying_intent_scores
+      //   );
+      //   setValue(
+      //     "buying_intent_scores",
+      //     allFiltersFromDB.buying_intent_scores
+      //   )
+      // }
 
-      if (allFiltersFromDB.buying_intent_topics) {
-        setCheckedIntentTopics(
-          allFiltersFromDB.buying_intent_topics
-        );
-        setValue(
-          "buying_intent_topics",
-          allFiltersFromDB.buying_intent_topics
-        )
-      }
+      // if (allFiltersFromDB.buying_intent_topics) {
+      //   setCheckedIntentTopics(
+      //     allFiltersFromDB.buying_intent_topics
+      //   );
+      //   setValue(
+      //     "buying_intent_topics",
+      //     allFiltersFromDB.buying_intent_topics
+      //   )
+      // }
 
       // Company Domains
       if (allFiltersFromDB.q_organization_domains) {
@@ -1398,8 +1361,6 @@ export default function PeopleForm(): JSX.Element {
           email_status: formData.email_status,
           organization_job_locations: formData.organization_job_locations,
           q_organization_job_titles: formData.q_organization_job_titles,
-          buying_intent_topics: checkedIntentTopics,
-          buying_intent_scores: checkedIntentScores,
           contact_email_status_v2: linkedinCheck
         },
       };
@@ -1649,14 +1610,14 @@ export default function PeopleForm(): JSX.Element {
           min: formData.minimum_company_funding?.text?.toString(),
           max: formData.maximum_company_funding?.text?.toString()
         },
-        buying_intent_topics: checkedFields(checkedIntentTopics, false),
-        buying_intent_scores: checkedFields(checkedIntentScores, false),
         contact_email_status_v2: linkedinCheck,
         // Handle company domains based on selection type
         // organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id),
-        ...(selectionType === 'list'
-          ? { organization_ids: formData.q_organization_domains?.map((tag: any) => tag.id) }
-          : { q_keywords: formData.q_organization_domains?.[0]?.text }
+        ...(formData.q_organization_domains && formData.q_organization_domains?.length > 0 && selectionType === 'list'
+          ? { organization_ids: formData.q_organization_domains.map((tag: any) => tag.id) }
+          : formData.q_organization_domains && formData.q_organization_domains?.length > 0 && selectionType === 'custom'
+            ? { q_keywords: formData.q_organization_domains[0]?.text }
+            : {}
         ),
       };
 
@@ -1947,7 +1908,7 @@ export default function PeopleForm(): JSX.Element {
                       console.log("Updated form data:", formData);
                     }}
                   >
-                    Likely to engage 
+                    Likely to engage
                   </Label>
                 </div>}
 
@@ -2709,117 +2670,6 @@ export default function PeopleForm(): JSX.Element {
                           </FormItem>
                         )}
                       />
-                    </div>
-                  </FormDropdown>
-                </div>
-
-
-                <div className="bg-muted rounded-lg shadow-sm">
-                  <FormDropdown
-                    section={DropdownSection.BuyingIntent}
-                    title="Buying Intent"
-                    isOpen={openDropdown === DropdownSection.BuyingIntent}
-                    onToggle={toggleDropdown}
-                  >
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="buying_intent_scores"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col items-start">
-                            <FormLabel
-                              className="text-left"
-                            >
-                              Intent Scores
-                            </FormLabel>
-                            <FormControl>
-                              <div>
-                                {buyingIntentScores.map(
-                                  (intent, index) => (
-                                    <div
-                                      className="text-sm flex items-center mb-3"
-                                      key={index}
-                                    >
-                                      <Checkbox
-                                        {...field}
-                                        className="mr-2"
-                                        checked={checkedIntentScores?.includes(
-                                          intent.id
-                                        )}
-                                        onCheckedChange={(checked) => {
-                                          const isChecked = checked.valueOf();
-                                          const value = intent.id;
-
-                                          const newCheckedValues = isChecked
-                                            ? [...(checkedIntentScores || []), value]
-                                            : (checkedIntentScores || []).filter(item => item !== value);
-
-                                          setCheckedIntentScores(newCheckedValues);
-                                          field.onChange(newCheckedValues);
-                                        }}
-                                        value={intent.name}
-                                      />
-                                      {intent.name}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="buying_intent_topics"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col items-start">
-                            <FormLabel
-                              className="text-left"
-                            >
-                              Intent Topics
-                            </FormLabel>
-                            <FormControl>
-                              <div>
-                                {buyingIntentTopics.map(
-                                  (intent, index) => (
-                                    <div
-                                      className="text-sm flex items-center mb-3"
-                                      key={index}
-                                    >
-                                      <Checkbox
-                                        {...field}
-                                        className="mr-2"
-                                        checked={checkedIntentTopics?.includes(
-                                          intent.id
-                                        )}
-
-                                        onCheckedChange={(checked) => {
-                                          const isChecked = checked.valueOf();
-                                          const value = intent.id;
-
-                                          const newCheckedValues = isChecked
-                                            ? [...(checkedIntentTopics || []), value]
-                                            : (checkedIntentTopics || []).filter(item => item !== value);
-
-                                          setCheckedIntentTopics(newCheckedValues);
-                                          field.onChange(newCheckedValues);
-                                        }}
-
-                                        value={intent.name}
-                                      />
-                                      {intent.name}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
                     </div>
                   </FormDropdown>
                 </div>

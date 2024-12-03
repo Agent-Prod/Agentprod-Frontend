@@ -306,7 +306,7 @@ export const TrainingPeopleProfileSheet = ({
                   src={
                     newPreviews
                       ? newData?.contact.photo_url
-                      : data?.contact.photo_url ?? data?.contact.organization?.logo_url
+                      : data?.contact.photo_url ?? data?.contact?.organization?.logo_url
                   }
                   alt="avatar"
                 />

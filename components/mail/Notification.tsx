@@ -728,7 +728,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         ))}
 
-      {email?.status &&
+      {/* {email?.status &&
         !email.is_reply &&
         email?.status?.toLowerCase() === "sent" && (
           <div className="flex items-center gap-3">
@@ -746,7 +746,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               )}
             </span>
           </div>
-        )}
+        )} */}
 
       {email?.status &&
         !email.is_reply &&

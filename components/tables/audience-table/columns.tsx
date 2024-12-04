@@ -248,7 +248,7 @@ export const contactsColumn: ColumnDef<Lead>[] = [
       <div key={row.id} className="flex items-center gap-3">
         <Avatar className="h-6 w-6">
           <AvatarImage
-            src={row.original.photo_url}
+            src={row.original.photo_url ?? row.original?.organization?.logo_url}
             alt={`Avatar for ${row.original.name}`}
           />
           <AvatarFallback>

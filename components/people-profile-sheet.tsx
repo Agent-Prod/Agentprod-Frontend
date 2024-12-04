@@ -134,7 +134,7 @@ export const PeopleProfileSheet = ({
           <div className="p-4 h-full">
             <div className="flex">
               <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-                <AvatarImage src={data?.photo_url} alt="avatar" />
+                <AvatarImage src={data?.photo_url ?? data?.organization?.logo_url} alt="avatar" />
                 <AvatarFallback>{initials(data?.name || "AP")}</AvatarFallback>
               </Avatar>
               <div className="ml-4 space-y-1 w-full">
@@ -713,10 +713,10 @@ export const PeopleProfileSheet = ({
                     const platformData = data.social_monitoring_data
                       .split('####')
                       .find(section => section.includes(platform.name));
-                    
+
                     // Only show platforms with actual data
-                    const hasData = platformData && 
-                      !platformData.includes('No data available') && 
+                    const hasData = platformData &&
+                      !platformData.includes('No data available') &&
                       !platformData.includes('No relevant recent posts available');
 
                     // Skip rendering if no data
@@ -729,7 +729,7 @@ export const PeopleProfileSheet = ({
                             {platform.icon}
                             <h4 className="text-sm font-medium">{platform.name}</h4>
                           </div>
-                          
+
                           <div className="space-y-2 ml-6">
                             {platformData?.split('\n').map((line, index) => {
                               if (line.includes('**Date:**')) {
@@ -1037,7 +1037,7 @@ export const PeopleProfileSheet = ({
 
             {/* Add this section after the LinkedIn Posts collapsible */}
 
-            
+
           </div>
         </div>
       </div>

@@ -52,6 +52,7 @@ export function OfferingForm() {
   const { setPageCompletion } = useButtonStatus();
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignType, setCampaignType] = useState("");
+  const [offeringId, setOfferingId] = useState<string | null>(null);
 
   const form = useForm<OfferingFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -88,6 +89,7 @@ export function OfferingForm() {
               setType("create");
             } else {
               setType("edit");
+              setOfferingId(offeringData.id);
             }
 
             // Fetch persona data
@@ -166,7 +168,7 @@ export function OfferingForm() {
         toast.success("Offering created successfully.");
       } else {
         await editPersona(postData);
-        await editOffering(offeringData, params.campaignId);
+        await editOffering(offeringData, offeringId!);
         toast.success("Offering updated successfully.");
       }
 

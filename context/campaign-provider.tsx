@@ -371,8 +371,22 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
   };
 
   const editGoal = (data: GoalFormData, goalId: string, campaignId: string) => {
+    const putData = {
+      campaign_id: campaignId,
+      emails: data.emails.map((email) => email.value),
+      current_email: data.emails[0]?.value,
+      success_metric: data.success_metric,
+      scheduling_link: data?.scheduling_link || null,
+      follow_up_days: data.follow_up_days,
+      follow_up_times: data.follow_up_times,
+      mark_as_lost: data.mark_as_lost,
+      linkedin_accounts: data.linkedin_accounts,
+      like_post: data.like_post,
+      withdraw_invite: data.withdraw_invite,
+    };
+
     axiosInstance
-      .put(`v2/goals/${goalId}`, data)
+      .put(`v2/goals/${goalId}`, putData)
       .then((response) => {
         console.log("Goal edited successfully:", response.data);
         router.push(`/campaign/${campaignId}`);
@@ -380,7 +394,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       .catch((error) => {
         console.error("Error editing goal:", error);
         toast({
-          title: "Error editing offering",
+          title: "Error editing goal",
           description: error.message || "Failed to edit goal.",
         });
       });

@@ -728,7 +728,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         ))}
 
-      {email?.status &&
+      {/* {email?.status &&
         !email.is_reply &&
         email?.status?.toLowerCase() === "sent" && (
           <div className="flex items-center gap-3">
@@ -746,7 +746,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
               )}
             </span>
           </div>
-        )}
+        )} */}
 
       {email?.status &&
         !email.is_reply &&
@@ -774,7 +774,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
       {(email?.status &&
         !email.is_reply &&
         email?.status?.toLowerCase() === "click") ||
-        (email.open_datetime && (
+        (email.click_datetime && (
           <div className="flex items-center gap-3">
             <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
               <Clock3 className="h-4 w-4 text-gray-400" />

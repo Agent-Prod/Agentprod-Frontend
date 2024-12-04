@@ -174,14 +174,18 @@ export const ImportAudience = () => {
 
   const enrichmentHandler = async () => {
     setIsEnrichmentLoading(true);
-    setShowCard(false); // Hide the card when enrichment starts
+    setShowCard(false);
     toast.loading("Enriching leads...", { id: "enrichment" });
 
     const leadsToEnrich = fileData?.map((row) => {
       const mappedRow: { [key: string]: string } = {};
       selectedValue.forEach(({ presetValue, fileColumnName }) => {
-        if (fileColumnName in row) {
-          mappedRow[presetValue] = row[fileColumnName];
+        if (row[fileColumnName]) {
+          if (presetValue === "company_name") {
+            mappedRow["organization_name"] = row[fileColumnName];
+          } else {
+            mappedRow[presetValue] = row[fileColumnName];
+          }
         }
       });
       return mappedRow;
@@ -195,20 +199,30 @@ export const ImportAudience = () => {
     try {
       setIsLoading(true);
 
-      // Prepare the data for the new endpoint
-      const enrichmentData = leadsToEnrich.map(lead => ({
-        first_name: lead.first_name || lead.name.split(" ")[0] || "",
-        last_name: lead.last_name || lead.name.split(" ")[1] || "",
-        email: lead.email || "",
-        company_website_url: lead.company_website_url || "",
-        company_name: lead.company_name || "",
-        linkedin_url: lead.linkedin_url || "",
-      }));
+      // Prepare the data for the new endpoint, excluding empty fields
+      const enrichmentData = leadsToEnrich.map(lead => {
+        const enrichmentEntry: any = {};
+        
+        if (lead.first_name || (lead.name && lead.name.split(" ")[0])) {
+          enrichmentEntry.first_name = lead.first_name || lead.name.split(" ")[0];
+        }
+        
+        if (lead.last_name || (lead.name && lead.name.split(" ")[1])) {
+          enrichmentEntry.last_name = lead.last_name || lead.name.split(" ")[1];
+        }
+        
+        if (lead.email) enrichmentEntry.email = lead.email;
+        if (lead.organization_website_url) enrichmentEntry.organization_website_url = lead.organization_website_url;
+        if (lead.organization_name) enrichmentEntry.organization_name = lead.organization_name;
+        if (lead.linkedin_url) enrichmentEntry.linkedin_url = lead.linkedin_url;
+
+        return enrichmentEntry;
+      });
 
       // Call the new endpoint
       const response = await axiosInstance.post(
         'v2/apollo/leads/bulk_enrich',
-        enrichmentData
+        {details: enrichmentData}
       );
 
       const enrichedLeads = response.data;
@@ -416,8 +430,6 @@ export const ImportAudience = () => {
   };
 
   const filteredOptions = [
-    "First Name",
-    "Last Name",
     "Name",
     "Email",
     "LinkedIn URL",

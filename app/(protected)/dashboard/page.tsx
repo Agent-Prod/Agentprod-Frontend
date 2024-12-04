@@ -505,7 +505,7 @@ export default function Page() {
                           }}
                         >
                           <Avatar className="h-9 w-9">
-                            <AvatarImage src={lead.photo_url} alt="Avatar" />
+                            <AvatarImage src={lead.photo_url ?? lead?.organization?.logo_url} alt="Avatar" />
                             <AvatarFallback>
                               {lead.fallback ||
                                 (lead.name ? lead.name.charAt(0) : "")}

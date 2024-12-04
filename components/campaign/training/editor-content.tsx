@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
@@ -144,10 +145,10 @@ export default function EditorContent() {
           const response = await axiosInstance.get(
             `v2/campaigns/${id}`
           );
-          
           const data = response.data;
           console.log(data,"ress")
           if (response.status === 200) {
+
             setCampaignType(data.campaign_type);
           } else {
             toast.error("Failed to fetch campaign data");

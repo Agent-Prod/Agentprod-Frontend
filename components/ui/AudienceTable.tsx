@@ -67,7 +67,7 @@ function AudienceTable() {
                   onClick={() => handleLeadClick(lead.id)}
                 >
                   <Avatar>
-                    <AvatarImage src={lead.photo_url} alt={lead.first_name} />
+                    <AvatarImage src={lead.photo_url ?? lead?.organization?.logo_url} alt={lead?.first_name} />
                     <AvatarFallback>{lead.first_name?.[0]}</AvatarFallback>
                   </Avatar>
                   <span className="ml-4">{lead.first_name}</span>

@@ -610,7 +610,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       refreshThread,
     ]);
 
-    const handleSendNow = useCallback(() => {
+    const handleSendNow = useCallback((thread: EmailMessage[]) => {
       setIsLoadingButton(true);
 
       let payload;
@@ -811,12 +811,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <Button
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
-                  onClick={handleSendNow}
+                  onClick={() => handleSendNow(emails)}
                   disabled={
                     isLoadingButton ||
-                    (platform === "linkedin" &&
-                      (!leads[0]?.connected_on_linkedin ||
-                        leads[0]?.connected_on_linkedin === "Not Connected"))
+                    (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
                   }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}

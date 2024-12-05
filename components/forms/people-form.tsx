@@ -755,6 +755,7 @@ export default function PeopleForm(): JSX.Element {
           apollo_url: apolloUrl,
           page_no: 1,
           user_id: user.id,
+          campaign_id: params.campaignId,
           per_page: data.per_page
         });
         clearInterval(countdownInterval);

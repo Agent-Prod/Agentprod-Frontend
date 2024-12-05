@@ -596,68 +596,42 @@ export const PeopleProfileSheet = ({
 
               {data.linkedin_posts && data.linkedin_posts.length > 0 && (
                 <>
-                  <div className="border-white/20 border rounded-md p-2">
-                    <div className="text-sm font-semibold mb-2">Latest Post</div>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-grow">
-                        <p className="text-xs whitespace-pre-wrap break-words">
-                          {JSON.parse(data.linkedin_posts[0]).text.length > 300
-                            ? JSON.parse(data.linkedin_posts[0]).text.substring(0, 300) + "..."
-                            : JSON.parse(data.linkedin_posts[0]).text}
-                        </p>
-                      </div>
-                    </div>
-                    {JSON.parse(data.linkedin_posts[0]).attachments && (
-                      <div className="mt-2">
-                        {JSON.parse(data.linkedin_posts[0]).attachments.map((attachment: string, index: number) => (
-                          <div key={index} className="mt-2">
-                            {isDisplayableImage(attachment) ? (
-                              <Image src={attachment} alt={`Attachment ${index + 1}`} width={200} height={200} />
-                            ) : (
-                              <a href={attachment} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                View Attachment {index + 1}
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {data.linkedin_posts.map((post: { split: (arg0: string) => [any, any]; }, index: number) => {
+                    // Split the post text and attachments if they exist
+                    const [postText, attachmentsText] = post.split("[Attachments:");
+                    const attachments = attachmentsText
+                      ? attachmentsText.replace("]", "").split(", ")
+                      : [];
 
-                  <CollapsibleContent className="space-y-4 w-full">
-                    {data.linkedin_posts.slice(1).map((post: string, index: number) => {
-                      const parsedPost = JSON.parse(post);
-                      return (
-                        <div key={`post_card_${index + 1}`} className="border-white/20 border rounded-md p-2">
-                          <div className="text-sm font-semibold mb-2">Post {index + 2}</div>
-                          <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="flex-grow">
-                              <p className="text-xs whitespace-pre-wrap break-words">
-                                {parsedPost.text.length > 300
-                                  ? parsedPost.text.substring(0, 300) + "..."
-                                  : parsedPost.text}
-                              </p>
-                            </div>
+                    // Truncate the post text if it's too long
+                    const displayText = postText.length > 300 ? postText.substring(0, 300) + "..." : postText;
+
+                    return (
+                      <div key={`post_${index}`} className="border-white/20 border rounded-md p-2">
+                        <div className="text-sm font-semibold mb-2">Post {index + 1}</div>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-grow">
+                            <p className="text-xs whitespace-pre-wrap break-words">{displayText}</p>
                           </div>
-                          {parsedPost.attachments && (
-                            <div className="mt-2">
-                              {parsedPost.attachments.map((attachment: string, index: number) => (
-                                <div key={index} className="mt-2">
-                                  {isDisplayableImage(attachment) ? (
-                                    <Image src={attachment} alt={`Attachment ${index + 1}`} width={200} height={200} />
-                                  ) : (
-                                    <a href={attachment} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                      View Attachment
-                                    </a>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
-                      );
-                    })}
-                  </CollapsibleContent>
+                        {attachments.length > 0 && (
+                          <div className="mt-2">
+                            {attachments.map((attachment: string, attachmentIndex: number) => (
+                              <div key={`attachment_${attachmentIndex}`} className="mt-2">
+                                {isDisplayableImage(attachment) ? (
+                                  <Image src={attachment} alt={`Attachment ${attachmentIndex + 1}`} width={200} height={200} />
+                                ) : (
+                                  <a href={attachment} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                    View Attachment {attachmentIndex + 1}
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </Collapsible>

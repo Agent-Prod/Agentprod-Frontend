@@ -181,12 +181,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         let endpoint;
 
         if (email.channel?.toLowerCase() === "linkedin") {
-          const messageId = thread[thread.length - 1].id;
           payload = {
             receiver: recipientEmail,
-            message_id: messageId,
             sender: senderEmail,
             user_id: user.id,
+            message_id: email.message_id,
             message: email.body,
             conversation_id: conversationId,
           };
@@ -617,14 +616,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let endpoint;
 
       if (platform === "linkedin") {
-        const messageId = thread[thread.length - 1].id;
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
           user_id: user.id,
           message: body,
-          conversation_id: conversationId,
-          message_id: messageId,
+          conversation_id: conversationId
         };
         endpoint = "/v2/linkedin/send-message";
       } else {

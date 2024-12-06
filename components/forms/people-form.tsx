@@ -964,7 +964,7 @@ export default function PeopleForm(): JSX.Element {
   const createAudience = async () => {
     setIsCreateBtnLoading(true);
     try {
-      const response = await axiosInstance.post<Contact[]>(
+      const response = await axiosInstance.post(
         `v2/lead/bulk/`,
         {
           user_id: user.id,

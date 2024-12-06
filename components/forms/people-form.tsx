@@ -962,14 +962,14 @@ export default function PeopleForm(): JSX.Element {
   }
 
   const createAudience = async () => {
-    const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
-    console.log("data = " + audienceBody);
-
     setIsCreateBtnLoading(true);
     try {
       const response = await axiosInstance.post<Contact[]>(
         `v2/lead/bulk/`,
-        audienceBody
+        {
+          user_id: user.id,
+          campaign_id: params.campaignId,
+        }
       );
       const data = response.data;
       console.log("DATA from contacts: ", data);
@@ -1010,6 +1010,7 @@ export default function PeopleForm(): JSX.Element {
             q_organization_job_titles: formData.q_organization_job_titles,
             contact_email_status_v2: linkedinCheck
           },
+          apollo_url: apolloUrl,
         };
 
         const audienceResponse = await axiosInstance.post(
@@ -1364,11 +1365,14 @@ export default function PeopleForm(): JSX.Element {
           q_organization_job_titles: formData.q_organization_job_titles,
           contact_email_status_v2: linkedinCheck
         },
+        apollo_url: apolloUrl,
       };
       const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
-      const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
-      await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
+      await axiosInstance.post(`v2/lead/bulk/update`,  {
+        user_id: user.id,
+        campaign_id: params.campaignId,
+      });
       const getRecData = await axios.get(
         `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
       );

@@ -29,69 +29,100 @@ import { LoadingCircle } from "@/app/icons";
 import type { Campaign, DashboardData } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-
+import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/auth-provider";
 interface TopPerformingCampaignsTableProps {
   campaigns: Campaign[];
   isLoading: boolean;
 }
 
-const LinkedinCampaignsTable = memo(({ campaigns, isLoading }: any) => {
+const LinkedinCampaignsTable = memo(() => {
+  const { user } = useAuth();
+  const [campaigns, setCampaigns] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [shouldLoadLinkedInAnalytics, setShouldLoadLinkedInAnalytics] = useState(false);
+
+  const fetchLinkedInAnalytics = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get(`v2/campaign/linkedin/${user?.id}`);
+      const data = await response.data;
+      setCampaigns(data);
+    } catch (error) {
+      console.error('Failed to fetch LinkedIn analytics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (shouldLoadLinkedInAnalytics) {
+      fetchLinkedInAnalytics();
+    }
+  }, [shouldLoadLinkedInAnalytics]);
+
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign?.campaign_name}>
-
       <TableCell>{campaign?.campaign_name}</TableCell>
-
-      <TableCell className="hidden sm:table-cell text-center">
-        {campaign?.connections_sent}
-      </TableCell>
-      <TableCell className="hidden sm:table-cell text-center">
-        {campaign?.connections_accepted}
-      </TableCell>
-      <TableCell className="text-center">
-        {campaign?.connections_withdrawn}
-      </TableCell>
-      <TableCell className="text-center">
-        {campaign?.message_sent}
-      </TableCell>
-      <TableCell className="text-center">
-        {campaign?.message_received}
-      </TableCell>
+      <TableCell className="text-center">{campaign?.connection_sent}</TableCell>
+      <TableCell className="text-center">{campaign?.connection_accepted}</TableCell>
+      <TableCell className="text-center">{campaign?.connection_withdrawn}</TableCell>
+      <TableCell className="text-center">{campaign?.posts_liked}</TableCell>
+      <TableCell className="text-center">{campaign?.comments}</TableCell>
     </TableRow>
   ), []);
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Campaign Name</TableHead>
-          <TableHead className="hidden sm:table-cell text-center">Connection Sent</TableHead>
-          <TableHead className="hidden sm:table-cell text-center">Connection Accepted</TableHead>
-          <TableHead className="text-center">Connection Withdrawn</TableHead>
-          <TableHead className="text-center">Messages Sent</TableHead>
-          <TableHead className="text-center">Message Received</TableHead>
+    <div className="space-y-4">
+      {!shouldLoadLinkedInAnalytics && (
+        <div className="flex justify-end px-6">
+          <Button
+            onClick={() => setShouldLoadLinkedInAnalytics(true)}
+            className="bg-gradient-to-r from-black to-black text-white"
+          >
+            Load LinkedIn Analytics
+          </Button>
+        </div>
+      )}
 
-
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading ? (
-          <TableRow>
-            <TableCell colSpan={4} className="text-center">
-              <LoadingCircle />
-            </TableCell>
-          </TableRow>
-        ) : !campaigns?.length ? (
-          <TableRow>
-            <TableCell colSpan={4} className="text-center">
-              No LinkedIn campaigns available.
-            </TableCell>
-          </TableRow>
-        ) : (
-          campaigns.map(renderCampaignRow)
-        )}
-      </TableBody>
-    </Table>
+      {!shouldLoadLinkedInAnalytics ? (
+        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+          <p className="text-muted-foreground text-sm">
+            Load analytics data to view LinkedIn campaign performance
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Campaign Name</TableHead>
+              <TableHead className="text-center">Connections Sent</TableHead>
+              <TableHead className="text-center">Connections Accepted</TableHead>
+              <TableHead className="text-center">Connections Withdrawn</TableHead>
+              <TableHead className="text-center">Posts Liked</TableHead>
+              <TableHead className="text-center">Comments</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  <LoadingCircle />
+                </TableCell>
+              </TableRow>
+            ) : !campaigns?.length ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No LinkedIn campaigns available.
+                </TableCell>
+              </TableRow>
+            ) : (
+              campaigns.map(renderCampaignRow)
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </div>
   );
 });
 
@@ -404,7 +435,7 @@ export default function Page() {
             </div>
 
             <Card className="col-span-4 shadow-sm">
-              <ScrollArea className="h-[16rem]">
+              <ScrollArea className="h-[20rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
                     <CardTitle>Top Performing Campaigns</CardTitle>
@@ -468,14 +499,11 @@ export default function Page() {
             <Card className="col-span-3">
               <ScrollArea className="md:h-[26rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
-                  <CardTitle>Linkedin Campaign</CardTitle>
+                  <CardTitle>LinkedIn Campaign</CardTitle>
                 </CardHeader>
                 <CardContent className="px-6 pb-6 pt-0">
                   <div className="relative w-full h-full">
-                    <LinkedinCampaignsTable
-                      campaigns={dashboardData?.linkedin_data || []}
-                      isLoading={isLoading}
-                    />
+                    <LinkedinCampaignsTable />
                   </div>
                 </CardContent>
               </ScrollArea>

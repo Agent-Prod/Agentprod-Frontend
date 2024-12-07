@@ -67,8 +67,8 @@ const LinkedinCampaignsTable = memo(() => {
       <TableCell className="text-center">{campaign?.connection_sent}</TableCell>
       <TableCell className="text-center">{campaign?.connection_accepted}</TableCell>
       <TableCell className="text-center">{campaign?.connection_withdrawn}</TableCell>
+      <TableCell className="text-center">{campaign?.conversations}</TableCell>
       <TableCell className="text-center">{campaign?.posts_liked}</TableCell>
-      <TableCell className="text-center">{campaign?.comments}</TableCell>
     </TableRow>
   ), []);
 
@@ -99,8 +99,8 @@ const LinkedinCampaignsTable = memo(() => {
               <TableHead className="text-center">Connections Sent</TableHead>
               <TableHead className="text-center">Connections Accepted</TableHead>
               <TableHead className="text-center">Connections Withdrawn</TableHead>
+              <TableHead className="text-center">Conversations</TableHead>
               <TableHead className="text-center">Posts Liked</TableHead>
-              <TableHead className="text-center">Comments</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

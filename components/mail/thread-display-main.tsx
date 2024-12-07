@@ -181,12 +181,14 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         let endpoint;
 
         if (email.channel?.toLowerCase() === "linkedin") {
+          const messageId = thread[thread.length - 1].id;
+          const strippedMessage = email.body.replace(/<[^>]*>/g, '');
           payload = {
             receiver: recipientEmail,
             sender: senderEmail,
             user_id: user.id,
-            message_id: email.message_id,
-            message: email.body,
+            message_id: messageId,
+            message: strippedMessage,
             conversation_id: conversationId,
           };
           endpoint = "/v2/linkedin/send-message";
@@ -616,12 +618,15 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let endpoint;
 
       if (platform === "linkedin") {
+        const messageId = thread[thread.length - 1].id;
+        const strippedMessage = body.replace(/<[^>]*>/g, '');
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
           user_id: user.id,
-          message: body,
-          conversation_id: conversationId
+          message: strippedMessage,
+          conversation_id: conversationId,
+          message_id: messageId
         };
         endpoint = "/v2/linkedin/send-message";
       } else {
@@ -809,10 +814,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
                   onClick={() => handleSendNow(emails)}
-                  disabled={
-                    isLoadingButton ||
-                    (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
-                  }
+                // disabled={
+                //   isLoadingButton ||
+                //   (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
+                // }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}
                 </Button>

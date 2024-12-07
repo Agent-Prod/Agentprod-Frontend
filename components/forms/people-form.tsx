@@ -296,6 +296,7 @@ export default function PeopleForm(): JSX.Element {
 
   const [totalLeads, setTotalLeads] = useState<number | null>(null);
   const [isLoadingTotalLeads, setIsLoadingTotalLeads] = useState(false);
+  const [isGettingAudience, setIsGettingAudience] = useState(false);
 
   const [locationDropdownIsOpen, setLocationDropdownIsOpen] = useState(false);
   const [filteredLocations, setFilteredLocations] = useState(orgLocations);
@@ -1369,7 +1370,7 @@ export default function PeopleForm(): JSX.Element {
       };
       const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
 
-      await axiosInstance.post(`v2/lead/bulk/update`,  {
+      await axiosInstance.post(`v2/lead/bulk/update`, {
         user_id: user.id,
         campaign_id: params.campaignId,
       });
@@ -1652,6 +1653,59 @@ export default function PeopleForm(): JSX.Element {
       setIsLoadingTotalLeads(false);
     }
   };
+
+  const saveFilters = async () => {
+    setIsGettingAudience(true);
+    try {
+      const formData = form.getValues();
+        const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
+        const postBody = {
+          campaign_id: params.campaignId,
+          audience_type: "prospective",
+          filters_applied: {
+            q_organization_domains: formData.q_organization_domains,
+            organization_industry_tag_ids:
+              formData.organization_industry_tag_ids,
+            currently_using_technologies: formData.currently_using_technologies,
+            q_organization_keyword_tags: formData.q_organization_keyword_tags,
+            job_posting_titles: formData.job_posting_titles,
+            job_posting_locations: formData.job_posting_locations,
+            organization_locations: formData.organization_locations,
+            company_headcount: checkedCompanyHeadcount,
+            organization_latest_funding_stage_cd: checkedFundingRounds,
+            search_signals: checkedSearchSignal,
+            revenue_range: {
+              min: formData.minimum_company_funding?.text,
+              max: formData.maximum_company_funding?.text,
+            },
+            person_titles: formData.person_titles,
+            per_page: formData.per_page,
+            email_status: formData.email_status,
+            organization_job_locations: formData.organization_job_locations,
+            q_organization_job_titles: formData.q_organization_job_titles,
+            contact_email_status_v2: linkedinCheck
+          },
+          apollo_url: apolloUrl,
+        };
+      if(type === "create") {
+        const audienceResponse = await axiosInstance.post(
+          "v2/audience/",
+          postBody
+        );
+        console.log("filters to audience: ", audienceResponse.data);
+        toast.success("Audience Filters Saved successfully");
+      } else {
+        const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
+        console.log("updated filters: ", updateFilters.data);
+        toast.success("Audience Filters Saved successfully");
+      }
+    } catch (error) {
+      console.error("Error getting audience:", error);
+      toast.error("Failed to get audience");
+    } finally {
+      setIsGettingAudience(false);
+    }
+  }
 
   useEffect(() => {
     console.log("Form values changed:", form.getValues());
@@ -1971,7 +2025,7 @@ export default function PeopleForm(): JSX.Element {
                 />
 
 
-                <div className="flex flex-col space-y-2 mt-4">
+                <div className="flex flex-col space-y-4 mt-4">
                   <div className="flex items-center space-x-3">
                     <Button
                       onClick={handleTotalLeadsClick}
@@ -1987,16 +2041,31 @@ export default function PeopleForm(): JSX.Element {
                         "Calculate Leads"
                       )}
                     </Button>
-                    {totalLeads !== null && (
-                      <div className="flex items-center bg-secondary/20 px-4 py-2 rounded-md">
-                        <span className="text-sm font-medium mr-2">Total Available:</span>
-                        <span className="text-lg font-bold tabular-nums">
-                          {totalLeads.toLocaleString('en-US')}
-                        </span>
-                      </div>
-                    )}
+                    <Button
+                      onClick={saveFilters}
+                      disabled={isGettingAudience}
+                      variant="outline"
+                      className="min-w-[120px]"
+                    >
+                      {isGettingAudience ? (
+                        <div className="flex items-center space-x-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading</span>
+                        </div>
+                      ) : (
+                        "Get Audience"
+                      )}
+                    </Button>
                   </div>
 
+                  {totalLeads !== null && (
+                    <div className="flex items-center bg-secondary/20 px-4 py-2 rounded-md">
+                      <span className="text-sm font-medium mr-2">Total Available:</span>
+                      <span className="text-lg font-bold tabular-nums">
+                        {totalLeads.toLocaleString('en-US')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-1/2 flex flex-col gap-4">

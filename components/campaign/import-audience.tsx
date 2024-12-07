@@ -351,9 +351,12 @@ export const ImportAudience = () => {
     setIsCreateBtnLoading(true);
     try {
       // Step 1: Create contacts
-      const contactsResponse = await axiosInstance.post<Contact[]>(
+      const contactsResponse = await axiosInstance.post(
         `v2/lead/bulk/`,
-        audienceBody
+        {
+          user_id: user.id,
+          campaign_id: params.campaignId,
+        }
       );
       const contactsData = contactsResponse.data;
       setLeads(Array.isArray(contactsData) ? contactsData : [contactsData]);

@@ -43,6 +43,7 @@ function AudienceTable() {
 
   return (
     <div className="">
+      {JSON.stringify(!deselectedLeads.map((lead) => lead.id))}
       <div className="h-96 overflow-y-scroll border rounded-lg my-10">
         <Table>
           <TableHeader>

@@ -43,6 +43,7 @@ import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
 
+
 interface ThreadDisplayMainProps {
   ownerEmail: string;
   updateMailStatus: (mailId: string, status: string) => void;
@@ -182,13 +183,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
         if (email.channel?.toLowerCase() === "linkedin") {
           const messageId = thread[thread.length - 1].id;
-          const strippedMessage = email.body.replace(/<[^>]*>/g, '');
           payload = {
             receiver: recipientEmail,
             sender: senderEmail,
             user_id: user.id,
             message_id: messageId,
-            message: strippedMessage,
+            message: email.body,
             conversation_id: conversationId,
           };
           endpoint = "/v2/linkedin/send-message";
@@ -619,12 +619,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       if (platform === "linkedin") {
         const messageId = thread[thread.length - 1].id;
-        const strippedMessage = body.replace(/<[^>]*>/g, '');
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
           user_id: user.id,
-          message: strippedMessage,
+          message: body,
           conversation_id: conversationId,
           message_id: messageId
         };

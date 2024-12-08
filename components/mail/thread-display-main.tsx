@@ -43,6 +43,7 @@ import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
 
+
 interface ThreadDisplayMainProps {
   ownerEmail: string;
   updateMailStatus: (mailId: string, status: string) => void;
@@ -181,11 +182,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         let endpoint;
 
         if (email.channel?.toLowerCase() === "linkedin") {
+          const messageId = thread[thread.length - 1].id;
           payload = {
             receiver: recipientEmail,
             sender: senderEmail,
             user_id: user.id,
-            message_id: email.message_id,
+            message_id: messageId,
             message: email.body,
             conversation_id: conversationId,
           };
@@ -616,12 +618,14 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let endpoint;
 
       if (platform === "linkedin") {
+        const messageId = thread[thread.length - 1].id;
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
           user_id: user.id,
           message: body,
-          conversation_id: conversationId
+          conversation_id: conversationId,
+          message_id: messageId
         };
         endpoint = "/v2/linkedin/send-message";
       } else {
@@ -809,10 +813,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
                   onClick={() => handleSendNow(emails)}
-                  disabled={
-                    isLoadingButton ||
-                    (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
-                  }
+                // disabled={
+                //   isLoadingButton ||
+                //   (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
+                // }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}
                 </Button>

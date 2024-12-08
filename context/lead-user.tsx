@@ -151,6 +151,8 @@ interface LeadsContextState {
   setLeads: (leads: Lead[] | Contact[]) => void;
   existingLeads: Contact[];
   setExistingLeads: (leads: Contact[]) => void;
+  selectedLeadIds: any[];
+  setSelectedLeadIds: (id: any[]) => void;
 }
 
 // Default state with initial values
@@ -159,6 +161,8 @@ const defaultState: LeadsContextState = {
   setLeads: () => {},
   existingLeads: [],
   setExistingLeads: () => {},
+  selectedLeadIds: [],
+  setSelectedLeadIds: () => {},
 };
 
 // Creating the context
@@ -174,6 +178,7 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
   const [existingLeads, setExistingLeads] = useState<Contact[]>(
     defaultState.existingLeads
   );
+  const [selectedLeadIds, setSelectedLeadIds] = useState<any[]>([]);
 
   const contextValue = useMemo(
     () => ({
@@ -181,8 +186,10 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
       setLeads,
       existingLeads,
       setExistingLeads,
+      selectedLeadIds,
+      setSelectedLeadIds,
     }),
-    [leads, existingLeads]
+    [leads, existingLeads, selectedLeadIds]
   );
 
   return (

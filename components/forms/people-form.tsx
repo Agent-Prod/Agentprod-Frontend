@@ -190,7 +190,7 @@ export default function PeopleForm(): JSX.Element {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
-  const { leads, setLeads } = useLeads();
+  const { leads, setLeads, selectedLeadIds } = useLeads();
   const { isSubscribed } = useSubscription();
   const [tab, setTab] = useState("tab1");
   const [isTableLoading, setIsTableLoading] = useState(false);
@@ -770,7 +770,6 @@ export default function PeopleForm(): JSX.Element {
               ...person,
               type: "prospective",
               campaign_id: params.campaignId,
-              id: uuid(),
             }));
           setLeads(processedLeads);
           console.log("Processed new leads:", processedLeads);
@@ -970,6 +969,7 @@ export default function PeopleForm(): JSX.Element {
         {
           user_id: user.id,
           campaign_id: params.campaignId,
+          leads: selectedLeadIds
         }
       );
       const data = response.data;
@@ -1373,6 +1373,7 @@ export default function PeopleForm(): JSX.Element {
       await axiosInstance.post(`v2/lead/bulk/update`, {
         user_id: user.id,
         campaign_id: params.campaignId,
+        leads: selectedLeadIds
       });
       const getRecData = await axios.get(
         `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
@@ -1654,58 +1655,6 @@ export default function PeopleForm(): JSX.Element {
     }
   };
 
-  const saveFilters = async () => {
-    setIsGettingAudience(true);
-    try {
-      const formData = form.getValues();
-        const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : formData.contact_email_status_v2;
-        const postBody = {
-          campaign_id: params.campaignId,
-          audience_type: "prospective",
-          filters_applied: {
-            q_organization_domains: formData.q_organization_domains,
-            organization_industry_tag_ids:
-              formData.organization_industry_tag_ids,
-            currently_using_technologies: formData.currently_using_technologies,
-            q_organization_keyword_tags: formData.q_organization_keyword_tags,
-            job_posting_titles: formData.job_posting_titles,
-            job_posting_locations: formData.job_posting_locations,
-            organization_locations: formData.organization_locations,
-            company_headcount: checkedCompanyHeadcount,
-            organization_latest_funding_stage_cd: checkedFundingRounds,
-            search_signals: checkedSearchSignal,
-            revenue_range: {
-              min: formData.minimum_company_funding?.text,
-              max: formData.maximum_company_funding?.text,
-            },
-            person_titles: formData.person_titles,
-            per_page: formData.per_page,
-            email_status: formData.email_status,
-            organization_job_locations: formData.organization_job_locations,
-            q_organization_job_titles: formData.q_organization_job_titles,
-            contact_email_status_v2: linkedinCheck
-          },
-          apollo_url: apolloUrl,
-        };
-      if(type === "create") {
-        const audienceResponse = await axiosInstance.post(
-          "v2/audience/",
-          postBody
-        );
-        console.log("filters to audience: ", audienceResponse.data);
-        toast.success("Audience Filters Saved successfully");
-      } else {
-        const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
-        console.log("updated filters: ", updateFilters.data);
-        toast.success("Audience Filters Saved successfully");
-      }
-    } catch (error) {
-      console.error("Error getting audience:", error);
-      toast.error("Failed to get audience");
-    } finally {
-      setIsGettingAudience(false);
-    }
-  }
 
   useEffect(() => {
     console.log("Form values changed:", form.getValues());
@@ -2039,21 +1988,6 @@ export default function PeopleForm(): JSX.Element {
                         </div>
                       ) : (
                         "Calculate Leads"
-                      )}
-                    </Button>
-                    <Button
-                      onClick={saveFilters}
-                      disabled={isGettingAudience}
-                      variant="outline"
-                      className="min-w-[120px]"
-                    >
-                      {isGettingAudience ? (
-                        <div className="flex items-center space-x-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Loading</span>
-                        </div>
-                      ) : (
-                        "Get Audience"
                       )}
                     </Button>
                   </div>

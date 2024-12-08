@@ -14,22 +14,29 @@ import { NameAction } from "../tables/user-tables/name-action";
 import { useLeadSheetSidebar } from "@/context/lead-sheet-sidebar";
 
 function AudienceTable() {
-  const { leads, setLeads } = useLeads();
+  const { leads, setLeads, selectedLeadIds, setSelectedLeadIds } = useLeads();
   const { toggleSidebar, setItemId } = useLeadSheetSidebar();
 
   const [deselectedLeads, setDeselectedLeads] = useState<any[]>([]);
   const [activeLeadId, setActiveLeadId] = useState(null);
+
+  useEffect(() => {
+    const allLeadIds = leads.map(lead => lead.id);
+    setSelectedLeadIds(allLeadIds);
+  }, [leads]);
 
   const handleCheckboxChange = (lead: Lead | Contact) => {
     if (deselectedLeads.some(deselectedLead => deselectedLead.id === lead.id)) {
       // Re-select the lead
       setDeselectedLeads(deselectedLeads.filter(deselectedLead => deselectedLead.id !== lead.id));
       setLeads([...leads, lead] as Lead[] | Contact[]);
+      setSelectedLeadIds([...selectedLeadIds, lead.id]);
     } else {
       // Deselect the lead
       setDeselectedLeads([...deselectedLeads, lead]);
       //@ts-ignore
       setLeads((prevLeads: Lead[] | Contact[]) => prevLeads.filter((l: Lead | Contact) => l.id !== lead.id));
+      setSelectedLeadIds(selectedLeadIds.filter(id => id !== lead.id));
     }
   };
 
@@ -43,7 +50,6 @@ function AudienceTable() {
 
   return (
     <div className="">
-      {JSON.stringify(!deselectedLeads.map((lead) => lead.id))}
       <div className="h-96 overflow-y-scroll border rounded-lg my-10">
         <Table>
           <TableHeader>

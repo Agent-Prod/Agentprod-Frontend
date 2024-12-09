@@ -363,7 +363,7 @@ export default function Page() {
   } = useDashboardContext();
 
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
-  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(false);
+  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();

@@ -55,7 +55,7 @@ export const ImportAudience = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [error, setError] = useState("");
-  const { leads, setLeads } = useLeads();
+  const { leads, setLeads,selectedLeadIds } = useLeads();
   const [isLeadsTableActive, setIsLeadsTableActive] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
   const { user } = useUserContext();
@@ -202,15 +202,15 @@ export const ImportAudience = () => {
       // Prepare the data for the new endpoint, excluding empty fields
       const enrichmentData = leadsToEnrich.map(lead => {
         const enrichmentEntry: any = {};
-        
+
         if (lead.first_name || (lead.name && lead.name.split(" ")[0])) {
           enrichmentEntry.first_name = lead.first_name || lead.name.split(" ")[0];
         }
-        
+
         if (lead.last_name || (lead.name && lead.name.split(" ")[1])) {
           enrichmentEntry.last_name = lead.last_name || lead.name.split(" ")[1];
         }
-        
+
         if (lead.email) enrichmentEntry.email = lead.email;
         if (lead.organization_website_url) enrichmentEntry.organization_website_url = lead.organization_website_url;
         if (lead.organization_name) enrichmentEntry.organization_name = lead.organization_name;
@@ -222,7 +222,7 @@ export const ImportAudience = () => {
       // Call the new endpoint
       const response = await axiosInstance.post(
         'v2/apollo/leads/bulk_enrich',
-        {details: enrichmentData}
+        { user_id: user?.id, campaign_id: params?.campaignId, apollo_url: "", details: enrichmentData }
       );
 
       const enrichedLeads = response.data;
@@ -356,6 +356,7 @@ export const ImportAudience = () => {
         {
           user_id: user.id,
           campaign_id: params.campaignId,
+          leads: selectedLeadIds
         }
       );
       const contactsData = contactsResponse.data;

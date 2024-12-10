@@ -1,7 +1,7 @@
 name: Test Server CI/CD
 on:
   push:
-    branches: [main]
+    branches: [6dec]
 jobs:
   deploy:
     runs-on: [self-hosted, Linux, X64, test]

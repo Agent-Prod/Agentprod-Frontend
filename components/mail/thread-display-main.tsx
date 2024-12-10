@@ -43,6 +43,7 @@ import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
 
+
 interface ThreadDisplayMainProps {
   ownerEmail: string;
   updateMailStatus: (mailId: string, status: string) => void;
@@ -184,9 +185,9 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           const messageId = thread[thread.length - 1].id;
           payload = {
             receiver: recipientEmail,
-            message_id: messageId,
             sender: senderEmail,
-            user_id: user?.id,
+            user_id: user.id,
+            message_id: messageId,
             message: email.body,
             conversation_id: conversationId,
           };
@@ -495,7 +496,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    if (thread?.[0]?.channel !== "LinkedIn") return null;
+    if (leads[0]?.type !== "Linkedin") return null;
 
     return (
       <div className="m-4">
@@ -610,7 +611,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       refreshThread,
     ]);
 
-    const handleSendNow = useCallback(() => {
+    const handleSendNow = useCallback((thread: EmailMessage[]) => {
       setIsLoadingButton(true);
 
       let payload;
@@ -624,7 +625,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           user_id: user?.id,
           message: body,
           conversation_id: conversationId,
-          message_id: messageId,
+          message_id: messageId
         };
         endpoint = "/v2/linkedin/send-message";
       } else {
@@ -811,13 +812,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <Button
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
-                  onClick={handleSendNow}
-                  disabled={
-                    isLoadingButton ||
-                    (platform === "linkedin" &&
-                      (!leads[0]?.connected_on_linkedin ||
-                        leads[0]?.connected_on_linkedin === "Not Connected"))
-                  }
+                  onClick={() => handleSendNow(emails)}
+                // disabled={
+                //   isLoadingButton ||
+                //   (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
+                // }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}
                 </Button>

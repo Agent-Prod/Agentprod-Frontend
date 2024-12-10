@@ -277,7 +277,13 @@ export default function Page() {
     try {
       const payload = {
         code: captchaToken,
-        account_id: captchaAccountId
+        account_id: captchaAccountId,
+        username: linkedInEmail,
+        linkedin_url: linkedInUrl,
+        user_id: user.id,
+        country: linkedInCountry,
+        name: linkedInName,
+        designation: linkedInDesignation
       };
 
       const response = await axiosInstance.post('/v2/linkedin/solve', payload);
@@ -312,39 +318,17 @@ export default function Page() {
     }
   };
 
-  const handleFinalLinkedInConnect = async () => {
-    try {
-      const payload = {
-        user_id: user?.id,
-        linkedin_url: linkedInUrl,
-        username: linkedInEmail,
-        password: linkedInPassword,
-        captcha_token: captchaToken,
-        account_id: captchaAccountId
-      };
-
-      const response = await axiosInstance.post('/v2/linkedin/solve', payload);
-
-      if (response.status === 200) {
-        toast.success("LinkedIn account connected successfully!");
-        setIsLinkedInMailboxOpen(false);
-        // Reset the LinkedIn connection state
-        setLinkedInStep(1);
-
-      } else {
-        toast.error("Failed to connect LinkedIn account. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error connecting LinkedIn account:", error);
-      toast.error("An error occurred while connecting your LinkedIn account. Please try again later.");
-    }
-  };
-
   const handleOTPVerification = async () => {
     try {
       const payload = {
         code: otpValue,
-        account_id: captchaAccountId
+        account_id: captchaAccountId,
+        username: linkedInEmail,
+        linkedin_url: linkedInUrl,
+        user_id: user.id,
+        country: linkedInCountry,
+        name: linkedInName,
+        designation: linkedInDesignation
       };
 
       const response = await axiosInstance.post('/v2/linkedin/solve', payload);
@@ -496,7 +480,6 @@ export default function Page() {
           <CardDescription>
             Used to interact with the AgentProd and receive notifications.
           </CardDescription>
-          
         </CardContent>
       </Card>
       {/*------------------ Slack Card Ended Here------------------- */}

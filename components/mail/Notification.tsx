@@ -768,7 +768,27 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
+      
 
+      {email?.status &&
+        !email.is_reply &&
+        (email?.status?.toLowerCase() === "opened" || email.open_datetime) && (
+          <div className="flex items-center gap-3">
+            <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+              <Clock3 className="h-4 w-4 text-gray-400" />
+            </div>
+            <p className=" ml-1 text-xs ">
+              Recipient opened the mail.
+            </p>
+            <span className="text-gray-400 text-xs">
+              {email.open_datetime && (
+                <span className="text-gray-400 text-xs">
+                  {formatDate(email.open_datetime)}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
 
 
       {(email?.status &&
@@ -789,25 +809,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             </span>
           </div>
         ))}
-      {email?.status &&
-        !email.is_reply &&
-        email?.status?.toLowerCase() === "opened" && (
-          <div className="flex items-center gap-3">
-            <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-              <Clock3 className="h-4 w-4 text-gray-400" />
-            </div>
-            <p className=" ml-1 text-xs ">
-              Recipient opened the mail.
-            </p>
-            <span className="text-gray-400 text-xs">
-              {email.open_datetime && (
-                <span className="text-gray-400 text-xs">
-                  {formatDate(email.open_datetime)}
-                </span>
-              )}
-            </span>
-          </div>
-        )}
+
 
       {email?.status &&
         !email.is_reply &&

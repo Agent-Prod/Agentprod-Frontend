@@ -754,7 +754,8 @@ export default function PeopleForm(): JSX.Element {
         const apolloResponse = await axiosInstance.post('/v2/apify/apify/run-actor', {
           apollo_url: apolloUrl,
           page_no: 1,
-          user_id: user?.id,
+          user_id: user.id,
+          campaign_id: params.campaignId,
           per_page: data.per_page
         });
         clearInterval(countdownInterval);

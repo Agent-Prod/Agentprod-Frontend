@@ -190,7 +190,7 @@ export default function PeopleForm(): JSX.Element {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
-  const { leads, setLeads } = useLeads();
+  const { leads, setLeads, selectedLeadIds } = useLeads();
   const { isSubscribed } = useSubscription();
   const [tab, setTab] = useState("tab1");
   const [isTableLoading, setIsTableLoading] = useState(false);
@@ -296,6 +296,7 @@ export default function PeopleForm(): JSX.Element {
 
   const [totalLeads, setTotalLeads] = useState<number | null>(null);
   const [isLoadingTotalLeads, setIsLoadingTotalLeads] = useState(false);
+  const [isGettingAudience, setIsGettingAudience] = useState(false);
 
   const [locationDropdownIsOpen, setLocationDropdownIsOpen] = useState(false);
   const [filteredLocations, setFilteredLocations] = useState(orgLocations);
@@ -769,7 +770,6 @@ export default function PeopleForm(): JSX.Element {
               ...person,
               type: "prospective",
               campaign_id: params.campaignId,
-              id: uuid(),
             }));
           setLeads(processedLeads);
           console.log("Processed new leads:", processedLeads);
@@ -962,14 +962,15 @@ export default function PeopleForm(): JSX.Element {
   }
 
   const createAudience = async () => {
-    const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
-    console.log("data = " + audienceBody);
-
     setIsCreateBtnLoading(true);
     try {
-      const response = await axiosInstance.post<Contact[]>(
+      const response = await axiosInstance.post(
         `v2/lead/bulk/`,
-        audienceBody
+        {
+          user_id: user.id,
+          campaign_id: params.campaignId,
+          leads: selectedLeadIds
+        }
       );
       const data = response.data;
       console.log("DATA from contacts: ", data);
@@ -1010,6 +1011,7 @@ export default function PeopleForm(): JSX.Element {
             q_organization_job_titles: formData.q_organization_job_titles,
             contact_email_status_v2: linkedinCheck
           },
+          apollo_url: apolloUrl,
         };
 
         const audienceResponse = await axiosInstance.post(
@@ -1364,11 +1366,15 @@ export default function PeopleForm(): JSX.Element {
           q_organization_job_titles: formData.q_organization_job_titles,
           contact_email_status_v2: linkedinCheck
         },
+        apollo_url: apolloUrl,
       };
       const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
-      const audienceBody = mapLeadsToBodies(leads as Lead[], params.campaignId);
 
-      await axiosInstance.post(`v2/lead/bulk/update`, audienceBody);
+      await axiosInstance.post(`v2/lead/bulk/update`, {
+        user_id: user.id,
+        campaign_id: params.campaignId,
+        leads: selectedLeadIds
+      });
       const getRecData = await axios.get(
         `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
       );
@@ -1648,6 +1654,7 @@ export default function PeopleForm(): JSX.Element {
       setIsLoadingTotalLeads(false);
     }
   };
+
 
   useEffect(() => {
     console.log("Form values changed:", form.getValues());
@@ -1967,7 +1974,7 @@ export default function PeopleForm(): JSX.Element {
                 />
 
 
-                <div className="flex flex-col space-y-2 mt-4">
+                <div className="flex flex-col space-y-4 mt-4">
                   <div className="flex items-center space-x-3">
                     <Button
                       onClick={handleTotalLeadsClick}
@@ -1983,16 +1990,16 @@ export default function PeopleForm(): JSX.Element {
                         "Calculate Leads"
                       )}
                     </Button>
-                    {totalLeads !== null && (
-                      <div className="flex items-center bg-secondary/20 px-4 py-2 rounded-md">
-                        <span className="text-sm font-medium mr-2">Total Available:</span>
-                        <span className="text-lg font-bold tabular-nums">
-                          {totalLeads.toLocaleString('en-US')}
-                        </span>
-                      </div>
-                    )}
                   </div>
 
+                  {totalLeads !== null && (
+                    <div className="flex items-center bg-secondary/20 px-4 py-2 rounded-md">
+                      <span className="text-sm font-medium mr-2">Total Available:</span>
+                      <span className="text-lg font-bold tabular-nums">
+                        {totalLeads.toLocaleString('en-US')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-1/2 flex flex-col gap-4">

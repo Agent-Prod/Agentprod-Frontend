@@ -175,7 +175,6 @@ export function SchedulingForm() {
 
   return (
     <Form {...form}>
-      {/* {JSON.stringify(campaignData)} */}
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mb-5">
         <FormField
           control={form.control}
@@ -203,17 +202,23 @@ export function SchedulingForm() {
                   value={field.value || campaignData?.campaign_type}
                   className="flex flex-col space-y-1"
                 >
-                  {campaignTypes.map((type) => (
+                  {campaignTypes.map((campaignType) => (
                     <FormItem
-                      key={type}
+                      key={campaignType}
                       className="flex items-center space-x-3 space-y-0"
                     >
                       <FormControl>
-                        <RadioGroupItem value={type} />
+                        <RadioGroupItem
+                          value={campaignType}
+                          disabled={type === "edit"}
+                          className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                        />
                       </FormControl>
-                      <FormLabel className="font-normal">
-                        {type}
-                        {(type === "Inbound" || type === "Nurturing") && (
+                      <FormLabel
+                        className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                      >
+                        {campaignType}
+                        {(campaignType === "Inbound" || campaignType === "Nurturing") && (
                           <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
                             Beta
                           </span>
@@ -277,17 +282,29 @@ export function SchedulingForm() {
                 >
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="mail" />
+                      <RadioGroupItem
+                        value="mail"
+                        disabled={type === "edit"}
+                        className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                      />
                     </FormControl>
-                    <FormLabel className="font-normal">
+                    <FormLabel
+                      className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                    >
                       Email
                     </FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="Linkedin" />
+                      <RadioGroupItem
+                        value="Linkedin"
+                        disabled={type === "edit"}
+                        className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                      />
                     </FormControl>
-                    <FormLabel className="font-normal">
+                    <FormLabel
+                      className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                    >
                       Linkedin
                     </FormLabel>
                   </FormItem>

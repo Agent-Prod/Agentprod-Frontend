@@ -362,6 +362,7 @@ export default function Page() {
     fetchAnalyticsDataIfNeeded
   } = useDashboardContext();
 
+
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
 

@@ -11,8 +11,8 @@ import React, {
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "./user-context";
 import { Ole } from "next/font/google";
+import { useAuth } from "./auth-provider";
 
 export interface CampaignFormData {
   [key: string]: any;
@@ -172,7 +172,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
   const router = useRouter();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");

@@ -36,7 +36,6 @@ import { Contact, Lead, useLeads } from "@/context/lead-user";
 import { AudienceTableClient } from "../tables/audience-table/client";
 import { v4 as uuid } from "uuid";
 import { toast } from "sonner";
-import { useUserContext } from "@/context/user-context";
 import { useParams, useRouter } from "next/navigation";
 import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
@@ -44,6 +43,7 @@ import AudienceTable from "../ui/AudienceTable";
 import { Card, CardHeader } from "@/components/ui/card";
 import { CardTitle } from "../ui/card";
 import { CardDescription } from "../ui/card";
+import { useAuth } from "@/context/auth-provider";
 
 interface FileData {
   [key: string]: string;
@@ -58,7 +58,7 @@ export const ImportAudience = () => {
   const { leads, setLeads,selectedLeadIds } = useLeads();
   const [isLeadsTableActive, setIsLeadsTableActive] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
   const [type, setType] = useState<"create" | "edit">("create");
@@ -357,7 +357,7 @@ export const ImportAudience = () => {
       const contactsResponse = await axiosInstance.post(
         `v2/lead/bulk/`,
         {
-          user_id: user.id,
+          user_id: user?.id,
           campaign_id: params.campaignId,
           leads: selectedLeadIds
         }

@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUserContext } from "@/context/user-context";
 import { useRouter } from "next/navigation";
 import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/context/auth-provider";
@@ -19,7 +18,7 @@ import Link from "next/link";
 
 export function UserNav() {
   const router = useRouter();
-  const { user, setUser } = useUserContext();
+  const { user, setUser } = useAuth();
   const { logout } = useAuth();
 
   const [isClient, setIsClient] = useState(false);

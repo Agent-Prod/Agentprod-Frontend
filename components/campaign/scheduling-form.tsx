@@ -20,11 +20,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import React, { useEffect, useState } from "react";
-import { useUserContext } from "@/context/user-context";
 import { CampaignEntry } from "@/context/campaign-provider";
 import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/auth-provider";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
@@ -65,7 +65,7 @@ export function SchedulingForm() {
     defaultValues,
   });
 
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [campaignData, setCampaignData] = useState<CampaignEntry>();
   const { setPageCompletion } = useButtonStatus();
   const [type, setType] = useState<"create" | "edit">("create");

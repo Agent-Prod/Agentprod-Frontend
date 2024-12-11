@@ -35,13 +35,13 @@ import { useMailbox, EmailMessage } from "@/context/mailbox-provider";
 import { Lead, useLeads } from "@/context/lead-user";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
-import { useUserContext } from "@/context/user-context";
 import { Badge } from "../ui/badge";
 import { parseActionDraft } from "./parse-draft";
 import Image from "next/image";
 import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
+import { useAuth } from "@/context/auth-provider";
 
 
 interface ThreadDisplayMainProps {
@@ -173,7 +173,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       const [isLoadingButton, setIsLoadingButton] = useState(false);
       const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
 
-      const { user } = useUserContext();
+      const { user } = useAuth();
 
       const handleSendNow = useCallback(() => {
         setIsLoadingButton(true);
@@ -186,7 +186,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           payload = {
             receiver: recipientEmail,
             sender: senderEmail,
-            user_id: user.id,
+            user_id: user?.id,
             message_id: messageId,
             message: email.body,
             conversation_id: conversationId,
@@ -534,7 +534,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
     const [emails, setEmails] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { user } = useUserContext();
+    const { user } = useAuth();
     const internalScrollRef = useRef<HTMLDivElement>(null);
     const [platform, setPlatform] = useState("");
 

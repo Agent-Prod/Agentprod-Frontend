@@ -9,8 +9,8 @@ import React, {
   ReactNode,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "./user-context";
 import { DashboardData } from "@/types/dashboard";
+import { useAuth } from "./auth-provider";
 
 type HotLead = {
   id: string;
@@ -120,7 +120,7 @@ interface Props {
 export const DashboardProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData>(
     defaultDashboardState.dashboardData
   );

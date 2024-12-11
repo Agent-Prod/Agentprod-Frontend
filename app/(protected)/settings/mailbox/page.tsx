@@ -44,7 +44,6 @@ import { Icons } from "@/components/icons";
 import { GmailIcon, LoadingCircle } from "@/app/icons";
 import { Switch } from "@/components/ui/switch";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
@@ -52,6 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaLinkedin } from 'react-icons/fa';
+import { useAuth } from "@/context/auth-provider";
 
 interface MailData {
   id: number;
@@ -130,7 +130,7 @@ export default function Page() {
     useState(false);
   const [isLoadingMailboxes, setIsLoadingMailboxes] = useState(false); // Shimmer UI Prep
   const [isApppasswordLoading, setIsApppassowrdLoading] = useState(false);
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const verificationAttemptsRef = useRef(0);

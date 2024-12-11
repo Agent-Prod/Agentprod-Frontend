@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '../ui/scroll-area';
 import axiosInstance from '@/utils/axiosInstance';
-import { useUserContext } from '@/context/user-context';
 import { Button } from '../ui/button';
 import { useMailbox } from '@/context/mailbox-provider';
 import { Contact, useLeads } from '@/context/lead-user';
@@ -35,6 +34,7 @@ import axios, { CancelTokenSource } from 'axios';
 import MailList from "./mail-list";
 import ThreadDisplayMain from "./thread-display-main";
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-provider';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -251,7 +251,7 @@ export function Mail({
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isInitialLoading, setIsInitialLoading] = React.useState(true);
 
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const {
     setSenderEmail,
     isContextBarOpen,
@@ -494,18 +494,6 @@ export function Mail({
       setConversationId(initialMail.id);
       setRecipientEmail(initialMail.recipient);
       setInitialMailIdSet(true);
-
-      // Fetch lead info for the first mail
-      if (initialMail.recipient) {
-        axiosInstance
-          .get(`v2/lead/info/${initialMail.recipient}`)
-          .then((response) => {
-            setLeads([response.data]);
-          })
-          .catch((error) => {
-            console.error('Error fetching lead data:', error);
-          });
-      }
     }
   }, [mails, initialMailIdSet, setSenderEmail, setConversationId, setRecipientEmail, setLeads]);
 

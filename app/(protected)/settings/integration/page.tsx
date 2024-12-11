@@ -48,7 +48,6 @@ import { z } from "zod";
 // import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { hubspotLogin, salesforceLogin, slackLogin } from ".";
-import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 
 import { toast } from "sonner";
@@ -61,6 +60,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { useAuth } from "@/context/auth-provider";
 
 const FormSchema = z.object({
   type: z.enum(["all", "engaged"], {
@@ -82,7 +82,7 @@ export default function Page() {
   const [loading, setLoading] = React.useState(false);
   const [selectedHubspotLeadType, setSelectedHubspotLeadType] =
     React.useState("all");
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [linkedInName, setLinkedInName] = React.useState('');
   const [linkedInDesignation, setLinkedInDesignation] = React.useState('');
   const [linkedInCountry, setLinkedInCountry] = React.useState('');
@@ -280,7 +280,7 @@ export default function Page() {
         account_id: captchaAccountId,
         username: linkedInEmail,
         linkedin_url: linkedInUrl,
-        user_id: user.id,
+        user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
         designation: linkedInDesignation
@@ -325,7 +325,7 @@ export default function Page() {
         account_id: captchaAccountId,
         username: linkedInEmail,
         linkedin_url: linkedInUrl,
-        user_id: user.id,
+        user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
         designation: linkedInDesignation

@@ -8,8 +8,8 @@ import axiosInstance from "@/utils/axiosInstance";
 import { Button } from "@/components/ui/button";
 import { LoadingCircle } from "@/app/icons";
 import { v4 as uuid } from "uuid";
-import { useUserContext } from "@/context/user-context";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-provider";
 
 export const SelectFromExisting = () => {
   const { setLeads, existingLeads } = useLeads();
@@ -25,7 +25,7 @@ export const SelectFromExisting = () => {
   const [searchFilter, setSearchFilter] = useState("");
   const size = 10;
 
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
   const [type, setType] = useState<"create" | "edit">("create");

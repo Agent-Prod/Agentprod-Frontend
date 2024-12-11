@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { resetPasswordMain } from "../actions";
-import { useUserContext } from "@/context/user-context";
+import { useAuth } from "@/context/auth-provider";
 
 function Page() {
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -66,13 +65,13 @@ function Page() {
         return;
       }
 
-      const res = await resetPasswordMain(password, accessToken);
-      if (!res) {
-        toast.error("Password reset failed");
-      } else {
-        toast.success("Password reset successful");
-        router.push("/");
-      }
+      // const res = await resetPasswordMain(password, accessToken);
+      // if (!res) {
+      //   toast.error("Password reset failed");
+      // } else {
+      //   toast.success("Password reset successful");
+      //   router.push("/");
+      // }
     } catch (err) {
       toast.error("err.message");
     }

@@ -29,7 +29,6 @@ import { v4 as uuid } from "uuid";
 import { orgLocations, jobTitles, seniorities, InputType, companyDomains, technologies } from "./formUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { useParams } from "next/navigation";
 import { getAudienceFiltersById } from "../campaign/camapign.api";
 import { keywords } from "./formUtils";
@@ -42,6 +41,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react"
 import { FormDropdown } from "./utils/dropdown";
+import { useAuth } from "@/context/auth-provider";
 
 enum DropdownSection {
   CurrentEmployment = 'currentEmployment',
@@ -183,7 +183,7 @@ const FormSchema = z.object({
 
 export default function PeopleForm(): JSX.Element {
   const params = useParams<{ campaignId: string }>();
-  const { user } = useUserContext();
+  const { user } = useAuth();
 
   const router = useRouter();
 

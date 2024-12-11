@@ -37,10 +37,10 @@ import {
 import { GoalDataWithId, getGoalById } from "./camapign.api";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { useButtonStatus } from "@/context/button-status";
 import Link from "next/link";
 import axios from "axios";
+import { useAuth } from "@/context/auth-provider";
 
 const goalFormSchema = z.object({
   success_metric: z.string(),
@@ -96,7 +96,7 @@ export function GoalForm() {
 
   const { createGoal, editGoal } = useCampaignContext();
   const [goalData, setGoalData] = useState<GoalDataWithId>();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [mailboxes, setMailboxes] =
     useState<{ mailbox: string; sender_name: string; id: number }[]>();
   const [originalData, setOriginalData] = useState<GoalFormData>();

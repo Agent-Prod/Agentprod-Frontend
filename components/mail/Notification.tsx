@@ -41,13 +41,13 @@ import {
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { useLeads } from "@/context/lead-user";
-import { useUserContext } from "@/context/user-context";
 import { Button } from "../ui/button";
 import { useMailbox } from "@/context/mailbox-provider";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
 import { parseActionDraft } from "./parse-draft";
+import { useAuth } from "@/context/auth-provider";
 
 interface EmailMessage {
   id: any;
@@ -95,7 +95,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const [answers, setAnswers] = React.useState<string[]>([]);
   const [answerLoading, setAnswerLoading] = React.useState(false);
   const { leads } = useLeads();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const internalScrollRef = React.useRef<HTMLDivElement>(null);
 
   console.log(email)

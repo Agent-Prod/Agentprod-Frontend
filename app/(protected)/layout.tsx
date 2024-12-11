@@ -20,7 +20,6 @@ import { PageHeaderProvider } from "@/context/page-header";
 import axios from "axios";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 
 export default function ParentLayout({
     children,
@@ -29,7 +28,7 @@ export default function ParentLayout({
 }) {
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const { width } = useWindowSize();
-    const { user } = useUserContext();
+    const { user } = useAuth();
 
     const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const verificationAttemptsRef = useRef(0);

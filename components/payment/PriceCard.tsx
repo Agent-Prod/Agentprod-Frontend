@@ -9,11 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
 import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/auth-provider";
 
 declare global {
   interface Window {
@@ -62,7 +62,7 @@ function PriceCard({
   onClose: () => void;
   onCheckoutComplete: () => void;
 }) {
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
   const { fetchSubscriptionStatus } = useSubscription();

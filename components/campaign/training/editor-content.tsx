@@ -35,8 +35,8 @@ import { FieldType, VariableType, allFieldsListType } from "./types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingCircle } from "@/app/icons";
 import { toast } from "sonner";
-import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/auth-provider";
 
 interface Variable {
   id: string;
@@ -46,7 +46,7 @@ interface Variable {
 }
 
 export default function EditorContent() {
-  const { user } = useUserContext();
+  const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [showAdditionalTextArea, setShowAdditionalTextArea] = useState(false);

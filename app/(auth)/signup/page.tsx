@@ -5,14 +5,14 @@ import UserAuthForm from "@/components/forms/auth/user-auth-form";
 // import { buttonVariants } from "@/components/ui/button";
 // import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { useUserContext } from "@/context/user-context";
+import { useAuth } from "@/context/auth-provider";
 // import { SignIn } from "@clerk/nextjs";
 // export const metadata: Metadata = {
 //   title: "Authentication",
 //   description: "Authentication forms built using the components.",
 // };
 export default function AuthenticationPage() {
-  const { user } = useUserContext();
+  const { user } = useAuth();
   if (user) {
     redirect("/dashboard");
   }

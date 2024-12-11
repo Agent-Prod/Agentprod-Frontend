@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-provider";
 
 interface Message {
   id: string;
@@ -27,7 +27,7 @@ export default function Home() {
   // const internalScrollRef = useRef<HTMLDivElement>(null);  // for auto scrolling to bottom
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [loader, setLoader] = useState(true);
   const [userEmail] = useState(user?.email);
   const [userId] = useState(user?.id);

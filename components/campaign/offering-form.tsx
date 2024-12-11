@@ -25,13 +25,13 @@ import {
   getPersonaByCampaignId,
   editPersona,
 } from "./camapign.api";
-import { useUserContext } from "@/context/user-context";
 import { CompanyProfile } from "@/components/campaign/company-profile";
 import { toast } from "sonner";
 import { Label } from "../ui/label";
 import axiosInstance from "@/utils/axiosInstance";
 import { useButtonStatus } from "@/context/button-status";
 import { LoadingCircle } from "@/app/icons";
+import { useAuth } from "@/context/auth-provider";
 
 const profileFormSchema = z.object({
   product_offering: z.string(),
@@ -46,7 +46,7 @@ type OfferingFormValues = z.infer<typeof profileFormSchema>;
 
 export function OfferingForm() {
   const params = useParams<{ campaignId: string }>();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const { createOffering, editOffering } = useCampaignContext();
   const [isUploading, setIsUploading] = useState(false);
   const { setPageCompletion } = useButtonStatus();

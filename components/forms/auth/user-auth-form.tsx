@@ -17,7 +17,6 @@ import * as z from "zod";
 import { setCookie } from "cookies-next";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
-import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 
 const formSchema = z.object({
@@ -35,7 +34,7 @@ export default function UserAuthForm({
   formType: "signin" | "signup";
 }) {
   const { login } = useAuth();
-  const { setUser, setToken } = useUserContext();
+  const { setUser, setToken } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormValue>({
@@ -62,10 +61,7 @@ export default function UserAuthForm({
           setToken(userData.session.access_token);
           
           // Set user data in context
-          setUser({
-            id: userData.user.id,
-            email: userData.user.email,
-          });
+          setUser(userData.user);
 
 
           toast.success("Sign-in Successful!");

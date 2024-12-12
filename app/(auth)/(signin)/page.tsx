@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UserAuthForm from "@/components/forms/auth/user-auth-form";
 import { useAuth } from "@/context/auth-provider";
 import { redirect } from "next/navigation";
@@ -15,11 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { deleteCookie } from "cookies-next";
 
 export default function AuthenticationPage() {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      deleteCookie("auth-token");
+      deleteCookie("user");
+    }
+  }, [user]);
 
   if (user) {
     redirect("/dashboard");

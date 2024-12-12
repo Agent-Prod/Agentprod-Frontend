@@ -46,12 +46,14 @@ export async function signup(formData: { email: string; password: string }) {
     throw new Error(error.message);
   }
 
-
   // revalidatePath("/", "layout");
   // redirect("/");
 }
 
-export async function signupAppsumo(formData: { email: string; password: string }) {
+export async function signupAppsumo(formData: {
+  email: string;
+  password: string;
+}) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -82,14 +84,11 @@ export async function logout() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-
-
+  const { error } = await supabase.auth.signOut({ scope: "local" });
 
   if (error) {
     throw new Error(error.message);
   } else {
-
     // Ideally, you might want to also revalidate or clear any cache that depends on the user session
     // This step depends on your application's structure and how it handles cache
     // redirect("/");
@@ -114,22 +113,25 @@ export async function resetPassword(formData: { email: string }) {
   }
 }
 
-export async function resetPasswordMain(newPassword: string, accessToken: string) {
+export async function resetPasswordMain(
+  newPassword: string,
+  accessToken: string
+) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
   // Authenticate the user using the token
-  const { error: sessionError } = await supabase.auth.exchangeCodeForSession(
-    accessToken,
-  );
+  const { error: sessionError } =
+    await supabase.auth.exchangeCodeForSession(accessToken);
 
   if (sessionError) {
-    console.log("Session error: " + sessionError.message);
     throw new Error(sessionError.message);
   }
 
   // Update the password
-  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
 
   if (error) {
     console.log("Update error: " + error.message);

@@ -9,7 +9,6 @@ import { useMail } from "@/hooks/useMail";
 import { Conversations } from "./mail";
 import { useMailbox } from "@/context/mailbox-provider";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,6 +28,7 @@ import {
 import { MdForwardToInbox } from "react-icons/md";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
+import { useAuth } from "@/context/auth-provider";
 
 
 interface MailListProps {
@@ -72,7 +72,7 @@ const MailList: React.FC<MailListProps> = ({
   const [mail, setMail] = useMail();
   const [hoveredMailId, setHoveredMailId] = React.useState<string | null>(null);
   const { setConversationId, setRecipientEmail, setSenderEmail } = useMailbox();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const { ref, inView } = useInView({
     threshold: 0,
   });
@@ -88,7 +88,7 @@ const MailList: React.FC<MailListProps> = ({
   useEffect(() => {
     if (user?.id) {
       axiosInstance
-        .get(`/v2/mailbox/${user.id}`)
+        .get(`/v2/mailbox/`)
         .then((response) => {
           console.log("Mailbox data fetched:", response.data);
         })

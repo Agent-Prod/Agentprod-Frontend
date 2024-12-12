@@ -37,10 +37,10 @@ import {
 import { GoalDataWithId, getGoalById } from "./camapign.api";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { useButtonStatus } from "@/context/button-status";
 import Link from "next/link";
 import axios from "axios";
+import { useAuth } from "@/context/auth-provider";
 
 const goalFormSchema = z.object({
   success_metric: z.string(),
@@ -96,7 +96,7 @@ export function GoalForm() {
 
   const { createGoal, editGoal } = useCampaignContext();
   const [goalData, setGoalData] = useState<GoalDataWithId>();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [mailboxes, setMailboxes] =
     useState<{ mailbox: string; sender_name: string; id: number }[]>();
   const [originalData, setOriginalData] = useState<GoalFormData>();
@@ -126,10 +126,10 @@ export function GoalForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/goals/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/goals/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "Goal not found") {
             setType("create");
           } else {
@@ -182,25 +182,9 @@ export function GoalForm() {
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
-        const changes = {
-          ...Object.keys(data).reduce((acc, key) => {
-            const propertyKey = key as keyof GoalFormValues;
-            if (
-              JSON.stringify(data[propertyKey]) !==
-              JSON.stringify(originalData?.[propertyKey])
-            ) {
-              acc = { ...acc, [propertyKey]: data[propertyKey] };
-            }
-            return acc;
-          }, {} as GoalFormValues),
-          linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
-            ? selectedLinkedInId
-            : null
-        };
-
-        if (Object.keys(changes).length > 0 && goalData) {
-          await editGoal(changes as GoalFormData, goalData.id, params.campaignId);
-        }
+        
+          await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
+        
       }
       const updatedFormsTracker = {
         schedulingBudget: true,
@@ -209,12 +193,11 @@ export function GoalForm() {
         audience: true,
       };
       localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
-      setPageCompletion("goal", true); // Set the page completion to true
+      setPageCompletion("goal", true);
       toast.success("Goal added successfully");
     } catch (error) {
       console.error("Form submission error:", error);
       toast.error("Failed to save goal");
-      return;
     }
   };
 
@@ -271,11 +254,11 @@ export function GoalForm() {
 
   useEffect(() => {
     const fetchMailboxes = async () => {
-      if (user.id) {
+      if (user?.id) {
         await axiosInstance
-          .get(`v2/settings/mailboxes/${user.id}`)
+          .get(`v2/settings/mailboxes/`)
           .then((response) => {
-            const userMailboxes = response.data.map(
+            const userMailboxes = response.data.mailboxes.map(
               (mailbox: { mailbox: string; sender_name: string; id: number }) => {
                 return {
                   mailbox: mailbox.mailbox,
@@ -300,8 +283,8 @@ export function GoalForm() {
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+        const response = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
         );
         setCampaignChannel(response.data.channel);
       } catch (error) {

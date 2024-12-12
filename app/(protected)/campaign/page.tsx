@@ -17,7 +17,6 @@ import { useCampaignContext } from "@/context/campaign-provider";
 import { Icons } from "@/components/icons";
 import "react-circular-progressbar/dist/styles.css";
 import { UKFlag, USAFlag } from "@/app/icons";
-import { useUserContext } from "@/context/user-context";
 import { v4 as uuid } from "uuid";
 import { Skeleton } from "@/components/ui/skeleton";
 import axiosInstance from "@/utils/axiosInstance";
@@ -28,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/auth-provider";
 
 
 interface CampaignEntry {
@@ -101,7 +101,7 @@ export default function CampaignPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
   const [recurringCampaignData, setRecurringCampaignData] = useState<any[]>([]);
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [localLoading, setLocalLoading] = useState(true);
@@ -224,7 +224,7 @@ export default function CampaignPage() {
       setLocalLoading(true);
       try {
         const response = await axiosInstance.get(
-          `v2/campaigns/all/${user.id}?limit=${LIMIT}&offset=${offset}`
+          `v2/campaigns/all/?limit=${LIMIT}&offset=${offset}`
         );
 
         const newCampaigns = response.data.campaigns;
@@ -243,7 +243,7 @@ export default function CampaignPage() {
     }
     fetchCampaigns();
     localStorage.removeItem("formsTracker");
-  }, [setCampaigns, offset]);
+  }, [setCampaigns, user?.id, offset]);
 
   const handleLoadMore = () => {
     setOffset(prevOffset => prevOffset + LIMIT);

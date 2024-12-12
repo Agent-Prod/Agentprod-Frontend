@@ -41,13 +41,13 @@ import {
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { useLeads } from "@/context/lead-user";
-import { useUserContext } from "@/context/user-context";
 import { Button } from "../ui/button";
 import { useMailbox } from "@/context/mailbox-provider";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
 import { parseActionDraft } from "./parse-draft";
+import { useAuth } from "@/context/auth-provider";
 
 interface EmailMessage {
   id: any;
@@ -95,7 +95,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const [answers, setAnswers] = React.useState<string[]>([]);
   const [answerLoading, setAnswerLoading] = React.useState(false);
   const { leads } = useLeads();
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const internalScrollRef = React.useRef<HTMLDivElement>(null);
 
   console.log(email)
@@ -217,7 +217,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
     setAnswerLoading(true);
     axiosInstance
       .post("/v2/answers", {
-        user_id: user.id,
+        user_id: user?.id,
         questions,
         answers,
       })
@@ -246,7 +246,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
   const regenrate = React.useCallback(() => {
     const payload = {
       follow_up_number: 3,
-      user_id: user.id,
+      user_id: user?.id,
       previous_emails: [
         {
           subject: title,
@@ -269,7 +269,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
       .catch((error) => {
         console.error("Error fetching followup data:", error);
       });
-  }, [user.id, title, body]);
+  }, [user?.id, title, body]);
 
   const cleanedCategory = email?.category?.trim();
 
@@ -1013,6 +1013,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
     </div>
+
   );
 };
 

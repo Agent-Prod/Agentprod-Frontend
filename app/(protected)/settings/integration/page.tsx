@@ -48,7 +48,6 @@ import { z } from "zod";
 // import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { hubspotLogin, salesforceLogin, slackLogin } from ".";
-import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 
 import { toast } from "sonner";
@@ -61,6 +60,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { useAuth } from "@/context/auth-provider";
 
 const FormSchema = z.object({
   type: z.enum(["all", "engaged"], {
@@ -82,7 +82,7 @@ export default function Page() {
   const [loading, setLoading] = React.useState(false);
   const [selectedHubspotLeadType, setSelectedHubspotLeadType] =
     React.useState("all");
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [linkedInName, setLinkedInName] = React.useState('');
   const [linkedInDesignation, setLinkedInDesignation] = React.useState('');
   const [linkedInCountry, setLinkedInCountry] = React.useState('');
@@ -100,7 +100,7 @@ export default function Page() {
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.id,
     };
     console.log("Payload:", payload);
     try {
@@ -118,7 +118,7 @@ export default function Page() {
   const updateSaleforceLeadType = async () => {
     setLoading(true);
     const payload = {
-      user_id: user.id,
+      user_id: user?.id,
     };
     console.log("Payload:", payload);
     try {
@@ -143,7 +143,7 @@ export default function Page() {
 
   useEffect(() => {
     const fetchConnectedAccounts = async () => {
-      const response = await axiosInstance.get(`v2/linkedin/active-account/${user.id}`);
+      const response = await axiosInstance.get(`v2/linkedin/active-account/`);
       setConnectedAccounts(response.data.total_count);
     };
     fetchConnectedAccounts();
@@ -153,7 +153,7 @@ export default function Page() {
     const fetchHubSpotStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.id,
           platform: "hubspot",
         });
         setIsConnectedToHubspot(response.data.message);
@@ -166,7 +166,7 @@ export default function Page() {
     const fetchSalesforceStatus = async (): Promise<any> => {
       try {
         const response = await axiosInstance.post(`v2/hubspot/status/`, {
-          user_id: user.id,
+          user_id: user?.id,
           platform: "salesforce",
         });
         setIsConnectedToSalesforce(response.data.message);
@@ -184,7 +184,7 @@ export default function Page() {
     if (isConnectedToHubspot) {
       setIsHubspotMailboxOpen(true);
     } else {
-      hubspotLogin(user.id);
+      hubspotLogin(user?.id);
     }
   };
 
@@ -192,7 +192,7 @@ export default function Page() {
     if (isConnectedToSalesforce) {
       setIsSalesforceMailboxOpen(true);
     } else {
-      salesforceLogin(user.id);
+      salesforceLogin(user?.id);
     }
   };
 
@@ -203,7 +203,7 @@ export default function Page() {
   const handleLinkedInConnect = async () => {
     try {
       const payload = {
-        user_id: user.id,
+        user_id: user?.id,
         linkedin_url: linkedInUrl,
         username: linkedInEmail,
         password: linkedInPassword,
@@ -280,7 +280,7 @@ export default function Page() {
         account_id: captchaAccountId,
         username: linkedInEmail,
         linkedin_url: linkedInUrl,
-        user_id: user.id,
+        user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
         designation: linkedInDesignation
@@ -325,7 +325,7 @@ export default function Page() {
         account_id: captchaAccountId,
         username: linkedInEmail,
         linkedin_url: linkedInUrl,
-        user_id: user.id,
+        user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
         designation: linkedInDesignation

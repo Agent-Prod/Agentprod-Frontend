@@ -1,70 +1,199 @@
 "use client";
 
-import { redirect } from "next/navigation";
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
+import { setCookie, getCookie, deleteCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
+import axiosInstance from "@/utils/axiosInstance";
 
-// Define the shape of the context state
-export interface AuthStateInterface {
-  user: { [key: string]: any } | null; // Assuming user data is an object; adjust as necessary
-  login: (userData: { [key: string]: any }) => void;
-  logout: () => void;
+interface UserMetadata {
+  email: string;
+  email_verified: boolean;
+  phone_verified: boolean;
+  sub: string;
 }
 
-// Define the default state
-const defaultAuthState: AuthStateInterface = {
-  user: null, // User is not authenticated by default
-  login: () => {},
-  logout: () => {},
+interface UserSession {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at: number;
+  token_type: string;
+  user: User;
+}
+
+interface User {
+  id: string;
+  email: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  app_metadata: {
+    provider: string;
+    providers: string[];
+  };
+  user_metadata: UserMetadata;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  session: UserSession | null;
+  loading: boolean;
+  token: string | null;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
+  login: (userData: { user_id: { user: User; session: UserSession } }) => void;
+  logout: () => void;
+  updateUser: (updatedFields: Partial<User>) => void;
+}
+
+const defaultState: AuthState = {
+  user: null,
+  session: null,
+  loading: true,
+  token: null,
+  setUser: () => { },
+  setToken: () => { },
+  login: () => { },
+  logout: () => { },
+  updateUser: () => { },
 };
 
-// Create the context
-const AuthContext = createContext<AuthStateInterface>(defaultAuthState);
+const AuthContext = createContext<AuthState | undefined>(undefined);
 
-// Define the provider props type
-interface AuthProviderProps {
-  userData: AuthStateInterface["user"];
-  children: ReactNode;
+// Cookie keys
+const USER_KEY = "user";
+const TOKEN_KEY = "auth-token";
+const SESSION_KEY = "auth-session";
+
+// Helper functions for cookie management
+function getUserFromCookies(): User | null {
+  const cookie = getCookie(USER_KEY);
+  return cookie ? JSON.parse(cookie as string) : null;
 }
 
-// AuthProvider component
-export const AuthProvider: React.FC<AuthProviderProps> = ({
-  userData,
-  children,
-}: AuthProviderProps) => {
-  const [userAuthData, setUserAuthData] =
-    useState<AuthStateInterface["user"]>(userData);
+function getSessionFromCookies(): UserSession | null {
+  const cookie = getCookie(SESSION_KEY);
+  return cookie ? JSON.parse(cookie as string) : null;
+}
 
-  const login = (userData: { [key: string]: any }) => {
-    setUserAuthData(userData);
-    redirect("/dashboard");
-    // Optionally save the user data to localStorage/sessionStorage for persistence
+function getTokenFromCookies(): string | null {
+  const token = getCookie(TOKEN_KEY);
+  return token ? (token as string) : null;
+}
+
+function setUserInCookies(user: User | null) {
+  if (user) {
+    console.log("user" + user)
+    setCookie(USER_KEY, JSON.stringify(user), { maxAge: 3600 }); // 1 hour
+  } else {
+    deleteCookie(USER_KEY);
+  }
+}
+
+function setSessionInCookies(session: UserSession | null) {
+  if (session) {
+    setCookie(SESSION_KEY, JSON.stringify(session), { maxAge: 3600 }); // 1 hour
+  } else {
+    deleteCookie(SESSION_KEY);
+  }
+}
+
+function setTokenInCookies(token: string | null) {
+  if (token) {
+    setCookie(TOKEN_KEY, token, { maxAge: 3600 }); // 1 hour
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    deleteCookie(TOKEN_KEY);
+    delete axiosInstance.defaults.headers.common['Authorization'];
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(getUserFromCookies());
+  const [session, setSession] = useState<UserSession | null>(getSessionFromCookies());
+  const [token, setToken] = useState<string | null>(getTokenFromCookies());
+  const [loading, setLoading] = useState(true);
+
+  // Update cookies when states change
+  useEffect(() => {
+    setUserInCookies(user);
+  }, [user]);
+
+  useEffect(() => {
+    setSessionInCookies(session);
+  }, [session]);
+
+  useEffect(() => {
+    setTokenInCookies(token);
+  }, [token]);
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      axiosInstance.interceptors.request.use((config) => {
+        config.headers = config.headers || {};
+        config.headers['user_id'] = user.id;
+        return config;
+      });
+    } else {
+      axiosInstance.interceptors.request.clear();
+    }
+  }, [user?.id]);
+
+  const login = (userData: { user_id: { user: User; session: UserSession } }) => {
+    const { user: newUser, session: newSession } = userData.user_id;
+    const newToken = newSession.access_token;
+
+    setUser(newUser);
+    setSession(newSession);
+    setToken(newToken);
+    router.push("/dashboard");
   };
 
   const logout = () => {
-    setUserAuthData(null);
-    redirect("/");
-    // Optionally clear the user data from localStorage/sessionStorage
+    setUser(null);
+    setSession(null);
+    setToken(null);
+    router.push("/");
   };
 
-  const contextValue = useMemo(
+  const updateUser = (updatedFields: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+  };
+
+  const value = useMemo(
     () => ({
-      user: userAuthData,
+      user,
+      session,
+      loading,
+      token,
+      setUser,
+      setToken,
       login,
       logout,
+      updateUser,
     }),
-    [userAuthData]
+    [user, session, loading, token]
   );
 
   return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
   );
-};
+}
 
-// Hook to use auth context
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

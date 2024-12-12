@@ -8,8 +8,8 @@ import axiosInstance from "@/utils/axiosInstance";
 import { Button } from "@/components/ui/button";
 import { LoadingCircle } from "@/app/icons";
 import { v4 as uuid } from "uuid";
-import { useUserContext } from "@/context/user-context";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-provider";
 
 export const SelectFromExisting = () => {
   const { setLeads, existingLeads } = useLeads();
@@ -25,7 +25,7 @@ export const SelectFromExisting = () => {
   const [searchFilter, setSearchFilter] = useState("");
   const size = 10;
 
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
   const [type, setType] = useState<"create" | "edit">("create");
@@ -37,7 +37,7 @@ export const SelectFromExisting = () => {
     if (!user?.id) return;
 
     try {
-      const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+      const response = await axiosInstance.get(`v2/lead/all/`, {
         params: {
           page: pageToFetch,
           size,
@@ -66,10 +66,10 @@ export const SelectFromExisting = () => {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
@@ -121,6 +121,7 @@ export const SelectFromExisting = () => {
   };
 
   function mapLeadsToBodies(leads: Contact[], campaignId: string): Contact[] {
+    if (!user) return [];
     return leads.map((lead) => ({
       id: uuid(),
       user_id: user.id,

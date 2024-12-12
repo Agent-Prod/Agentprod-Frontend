@@ -9,10 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 import axios from "axios";
 import { useSubscription } from "@/hooks/userSubscription";
+import axiosInstance from "@/utils/axiosInstance";
+import { useAuth } from "@/context/auth-provider";
 
 declare global {
   interface Window {
@@ -61,7 +62,7 @@ function PriceCard({
   onClose: () => void;
   onCheckoutComplete: () => void;
 }) {
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
   const { fetchSubscriptionStatus } = useSubscription();
@@ -111,15 +112,15 @@ function PriceCard({
         description: `Plan: ${title}`,
         order_id: data.orderId,
         handler: async function (response: any) {
-          const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/`,
+          const res = await axiosInstance.post(
+            `v2/pricing-plans/`,
             {
-              user_id: user.id,
+              user_id: user?.id,
               subscription_mode: "Razorpay",
               order_id: response.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
               amount: price.toString(),
-              email: user.email,
+              email: user?.email || "",
               start_time: new Date().toISOString(),
               subscribed: true,
             }
@@ -130,7 +131,7 @@ function PriceCard({
           onCheckoutComplete();
         },
         prefill: {
-          name: user.firstName,
+          name: user?.firstName || "",
           email: user?.email || "",
         },
         theme: {

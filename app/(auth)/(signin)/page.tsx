@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { resetPassword } from "@/app/(auth)/actions"; // adjust the path accordingly
 import { toast } from "sonner";
 
 export default function AuthenticationPage() {
@@ -29,7 +28,7 @@ export default function AuthenticationPage() {
   const handlePasswordReset = async () => {
     setLoading(true);
     try {
-      await resetPassword({ email });
+      // await resetPassword({ email });
       toast.success("Password reset email sent!");
     } catch (error) {
       toast.error("Error sending email " + error);

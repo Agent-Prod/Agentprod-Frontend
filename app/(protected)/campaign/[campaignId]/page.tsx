@@ -55,65 +55,69 @@ export default function Page() {
 
   useEffect(() => {
     async function fetchCampaign() {
+      // Keep isCampaignFound as null to show skeleton loader
       try {
-        const [
-          campaignResponse,
-          goalResponse,
-          offeringResponse,
-          audienceResponse,
-          AutopilotResponse,
-          qualificationResponse,
-        ] = await Promise.all([
-          axiosInstance.get(`v2/campaigns/${params.campaignId}`),
-          axiosInstance.get(`v2/goals/${params.campaignId}`),
-          axiosInstance.get(`v2/offerings/${params.campaignId}`),
-          axiosInstance.get(`v2/lead/campaign/${params.campaignId}`),
-          axiosInstance.get(`v2/autopilot/${params.campaignId}`),
-          axiosInstance.get(`v2/qualifications/${params.campaignId}`),
-        ]);
+        // Fetch all data in parallel
+        try {
+          const [
+            campaignResponse,
+            goalResponse,
+            offeringResponse,
+            audienceResponse,
+            AutopilotResponse,
+            qualificationResponse,
+          ] = await Promise.all([
+            axiosInstance.get(`v2/campaigns/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/goals/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/offerings/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/lead/campaign/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/autopilot/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/qualifications/${params.campaignId}`).catch(e => ({ data: null })),
+          ]);
 
-        const campaignData = campaignResponse.data;
-        const goalData = goalResponse.data;
-        const offeringData = offeringResponse.data;
-        const audienceData = audienceResponse.data;
-        const AutopilotData = AutopilotResponse.data;
-        const qualificationData = qualificationResponse.data;
+          const campaignData = campaignResponse.data;
+          const goalData = goalResponse.data;
+          const offeringData = offeringResponse.data;
+          const audienceData = audienceResponse.data;
+          const AutopilotData = AutopilotResponse.data;
+          const qualificationData = qualificationResponse.data;
 
-        if (
-          campaignData.detail === "Campaign not found" &&
-          goalData.detail === "Goal not found" &&
-          offeringData.detail === "Offering not found" &&
-          audienceData.detail === "No Contacts found" &&
-          AutopilotData === null &&
-          qualificationData.detail === "Qualification not found"
-        ) {
-          setIsCampaignFound(false);
-        } else {
-          setIsCampaignFound(true);
+          // If campaign exists, set as found
+          setIsCampaignFound(!!campaignData && !campaignData.detail);
+          
+          // Update forms tracker based on successful data
           const updatedFormsTracker = {
             schedulingBudget: true,
-            offering: campaignData.detail !== "Campaign not found",
-            goal: offeringData.detail !== "Offering not found",
-            qualification: goalData.detail !== "Goal not found",
-            audience: qualificationData.detail !== "Qualification not found",
-            autoPilot: audienceData.detail !== "No Contacts found",
-            training: AutopilotData !== null,
+            offering: !!campaignData && !campaignData.detail,
+            goal: !!offeringData && !offeringData.detail,
+            qualification: !!goalData && !goalData.detail,
+            audience: !!qualificationData && !qualificationData.detail,
+            autoPilot: !!audienceData && !audienceData.detail,
+            training: !!AutopilotData,
           };
+
           localStorage.setItem(
             "formsTracker",
             JSON.stringify(updatedFormsTracker)
           );
+          
           setFormsTracker((prevFormsTracker) => ({
             ...prevFormsTracker,
             ...updatedFormsTracker,
           }));
+
+        } catch (error) {
+          console.error("Error in Promise.all:", error);
+          setIsCampaignFound(false);
         }
+
       } catch (error) {
-        console.error("Error fetching campaign:", error);
+        console.error("Error fetching campaign data:", error);
         setIsCampaignFound(false);
       }
     }
 
+    // Don't set isCampaignFound to false initially, let it stay null
     fetchCampaign();
   }, [params.campaignId]);
 

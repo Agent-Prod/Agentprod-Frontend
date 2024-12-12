@@ -478,7 +478,6 @@ export default function PeopleForm(): JSX.Element {
           }
         } catch (error) {
           console.error("Error fetching campaign:", error);
-          toast.error("An error occurred while submitting the form");
         }
       }
     };

@@ -136,7 +136,7 @@ interface CampaignContextType {
   editCampaign: (data: CampaignFormData, campaignId: string) => void;
   deleteCampaign: (campaignId: string) => void;
   createOffering: (data: OfferingFormData, campaignId: string) => void;
-  editOffering: (data: OfferingFormData, campaignId: string) => void;
+  editOffering: (data: OfferingFormData, offering:string, campaignId: string) => void;
   createGoal: (data: GoalFormData, campaignId: string) => void;
   editGoal: (data: GoalFormData, goalId: string, campaignId: string) => void;
   toggleCampaignIsActive: (campaignId: string) => void;
@@ -318,9 +318,9 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       });
   };
 
-  const editOffering = (data: OfferingFormData, campaignId: string) => {
+  const editOffering = (data: OfferingFormData,offering:string, campaignId: string) => {
     axiosInstance
-      .put(`v2/offerings/${campaignId}`, data)
+      .put(`v2/offerings/${offering}`, data)
       .then((response) => {
         console.log("Offering edited successfully:", response.data);
         router.push(`/campaign/${campaignId}`);

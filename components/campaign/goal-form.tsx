@@ -182,25 +182,9 @@ export function GoalForm() {
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
-        const changes = {
-          ...Object.keys(data).reduce((acc, key) => {
-            const propertyKey = key as keyof GoalFormValues;
-            if (
-              JSON.stringify(data[propertyKey]) !==
-              JSON.stringify(originalData?.[propertyKey])
-            ) {
-              acc = { ...acc, [propertyKey]: data[propertyKey] };
-            }
-            return acc;
-          }, {} as GoalFormValues),
-          linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
-            ? selectedLinkedInId
-            : null
-        };
-
-        if (Object.keys(changes).length > 0 && goalData) {
-          await editGoal(changes as GoalFormData, goalData.id, params.campaignId);
-        }
+        
+          await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
+        
       }
       const updatedFormsTracker = {
         schedulingBudget: true,
@@ -209,12 +193,11 @@ export function GoalForm() {
         audience: true,
       };
       localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
-      setPageCompletion("goal", true); // Set the page completion to true
+      setPageCompletion("goal", true);
       toast.success("Goal added successfully");
     } catch (error) {
       console.error("Form submission error:", error);
       toast.error("Failed to save goal");
-      return;
     }
   };
 
@@ -275,7 +258,7 @@ export function GoalForm() {
         await axiosInstance
           .get(`v2/settings/mailboxes/`)
           .then((response) => {
-            const userMailboxes = response.data.map(
+            const userMailboxes = response.data.mailboxes.map(
               (mailbox: { mailbox: string; sender_name: string; id: number }) => {
                 return {
                   mailbox: mailbox.mailbox,

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -53,6 +53,7 @@ export function OfferingForm() {
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignType, setCampaignType] = useState("");
   const [offeringId, setOfferingId] = useState<string | null>(null);
+  const router = useRouter();
 
   const form = useForm<OfferingFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -80,19 +81,28 @@ export function OfferingForm() {
           if (campaignResponse.status === 200) {
             setCampaignType(campaignData.campaign_type);
 
-            const offeringResponse = await axiosInstance.get(
-              `v2/offerings/${id}`
-            );
-            const offeringData = offeringResponse.data;
-
-            if (offeringData.detail === "Offering not found") {
-              setType("create");
-            } else {
-              setType("edit");
-              setOfferingId(offeringData.id);
+            let offeringData = { name: "", id: null };
+            try {
+              const offeringResponse = await axiosInstance.get(
+                `v2/offerings/${id}`
+              );
+              offeringData = offeringResponse.data;
+              if(offeringResponse.status === 200){
+                setType("edit");
+                setOfferingId(offeringData.id);
+              }
+            } catch (error: any) {
+              // If offering is not found, continue with empty offering data
+              if (error.response?.status === 404) {
+                console.log("No offering found, creating new one");
+                setType("create");
+              } else {
+                throw error; // Re-throw other errors
+              }
             }
 
             // Fetch persona data
+            console.log("Fetching persona data for campaign ID:", id);
             const persona = await getPersonaByCampaignId(id);
             if (persona) {
               form.reset({
@@ -107,8 +117,10 @@ export function OfferingForm() {
                 company_features: persona.company_features || [],
               });
             } else {
+              console.log("No persona found for campaign ID, fetching user persona");
               const userPersona = await getPersonaByUserId();
               if (userPersona) {
+                console.log("User persona found:", userPersona);
                 form.reset({
                   product_offering: offeringData.name || "",
                   pain_point: userPersona.pain_point,
@@ -119,6 +131,8 @@ export function OfferingForm() {
                     userPersona.detailed_product_description,
                   company_features: userPersona.company_features || [],
                 });
+              } else {
+                console.log("No user persona found");
               }
             }
           } else {
@@ -168,17 +182,11 @@ export function OfferingForm() {
         toast.success("Offering created successfully.");
       } else {
         await editPersona(postData);
-        await editOffering(offeringData, offeringId!);
+        await editOffering(offeringData, offeringId! , params.campaignId);
         toast.success("Offering updated successfully.");
       }
 
       setPageCompletion("offering", true);
-      const updatedFormsTracker = {
-        schedulingBudget: true,
-        offering: true,
-        goal: true,
-      };
-      localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
     } catch (error) {
       console.error("Error handling offering:", error);
       toast.error("Failed to handle offering.");

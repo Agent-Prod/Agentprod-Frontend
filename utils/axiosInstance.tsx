@@ -1,6 +1,6 @@
 // utils/axiosInstance.js
 import axios from "axios";
-import { getCookie } from "cookies-next";
+import { getCookie, deleteCookie } from "cookies-next";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
@@ -20,20 +20,26 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 403) {
+    console.log('Axios Error:', error);
+
+    if (error.response) {
+      if (error.response.status === 403) {
+        handleForbiddenError();
+      }
+    }
+    else if (error.code === 'ERR_NETWORK') {
       handleForbiddenError();
     }
+
     return Promise.reject(error);
   }
 );
 
 const handleForbiddenError = () => {
-  document.cookie.split(";").forEach((cookie) => {
-    document.cookie = cookie
-      .replace(/^ +/, "")
-      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
-  });
-  
+
+  deleteCookie('auth-token');
+  deleteCookie('user');
+
   window.location.href = "/";
 };
 

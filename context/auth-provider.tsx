@@ -54,11 +54,11 @@ const defaultState: AuthState = {
   session: null,
   loading: true,
   token: null,
-  setUser: () => {},
-  setToken: () => {},
-  login: () => {},
-  logout: () => {},
-  updateUser: () => {},
+  setUser: () => { },
+  setToken: () => { },
+  login: () => { },
+  logout: () => { },
+  updateUser: () => { },
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);

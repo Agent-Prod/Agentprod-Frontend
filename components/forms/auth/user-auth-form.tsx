@@ -54,25 +54,25 @@ export default function UserAuthForm({
           password: data.password
         });
 
-        const { user_id: userData } = response.data;
-        
+        const userData = response.data.user_id;
+
         if (userData?.session?.access_token) {
-          // Set the JWT token in cookies and context
           setToken(userData.session.access_token);
-          
-          // Set user data in context
+
           setUser(userData.user);
 
-          window.location.href = "/dashboard";
           toast.success("Sign-in Successful!");
-          login(userData.user);
+          login({ user_id: userData });
+          window.location.href = "/dashboard";
+        } else {
+          throw new Error("Invalid response structure");
         }
       } else if (formType === "signup") {
         const response = await axiosInstance.post('/v2/users/signup', {
           email: data.email,
           password: data.password,
         });
-        
+
         toast.success("Verification email sent!");
       }
     } catch (error: any) {

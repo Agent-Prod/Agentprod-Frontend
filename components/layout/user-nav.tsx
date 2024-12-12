@@ -29,14 +29,9 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      // Delete all cookies
-      document.cookie.split(";").forEach((cookie) => {
-        document.cookie = cookie
-          .replace(/^ +/, "")
-          .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
-      });
-      
-      // Hard refresh and redirect
+      deleteCookie('auth-token');
+      deleteCookie('user');
+
       window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);

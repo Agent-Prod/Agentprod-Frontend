@@ -319,7 +319,7 @@ export default function Page() {
       const response = await axiosInstance.get(`/v2/settings/mailboxes`);
 
       // Map the mailboxes with their corresponding health values
-      const updatedMailboxes = response.data.map((mailbox: any) => ({
+      const updatedMailboxes = response.data.mailboxes.map((mailbox: any) => ({
         ...mailbox,
         dns: mailbox.dns ? JSON.parse(mailbox.dns) : [],
         health: healthResponse[mailbox.mailbox] || 0

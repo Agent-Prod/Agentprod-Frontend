@@ -63,7 +63,7 @@ export default function UserAuthForm({
           // Set user data in context
           setUser(userData.user);
 
-
+          window.location.href = "/dashboard";
           toast.success("Sign-in Successful!");
           login(userData.user);
         }

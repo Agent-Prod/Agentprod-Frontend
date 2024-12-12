@@ -17,4 +17,24 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 403) {
+      handleForbiddenError();
+    }
+    return Promise.reject(error);
+  }
+);
+
+const handleForbiddenError = () => {
+  document.cookie.split(";").forEach((cookie) => {
+    document.cookie = cookie
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+  });
+  
+  window.location.href = "/";
+};
+
 export default axiosInstance;

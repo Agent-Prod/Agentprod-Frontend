@@ -48,7 +48,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
 
       if (user && window.Tawk_API?.setAttributes) {
         window.Tawk_API.setAttributes({
-          name: user.email,
+          name: user.name,
           email: user.email,
           id: user.id,
           hash: 'fb93e0d85c0a682dc54f0af7adaf6ae853a51743', // Use environment variable in production
@@ -59,7 +59,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
 
       if (user && window.Tawk_API?.addEvent) {
         window.Tawk_API.addEvent('user_logged_in', {
-          username: user.email,
+          username: user.name,
           email: user.email,
         }, function(error) {
           if (error) console.error('Tawk addEvent error:', error);

@@ -19,7 +19,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import axiosInstance from "@/utils/axiosInstance";
 
 const autopilotFormSchema = z.object({
   all_messages_actions: z.boolean().optional(),
@@ -112,8 +111,8 @@ export function AutopilotForm() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await axiosInstance.get(
-          `v2/autopilot/${params.campaignId}`
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot/${params.campaignId}`
         );
         const data = res.data;
         if (data) {
@@ -137,14 +136,14 @@ export function AutopilotForm() {
 
   async function onSubmit(data: AutopilotFormValues) {
     try {
-      const url = `v2/autopilot`;
+      const url = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/autopilot`;
       const payload = { campaign_id: params.campaignId, ...data };
 
       if (type === "create") {
-        await axiosInstance.post(url, payload);
+        await axios.post(url, payload);
         toast.success("Autopilot settings created successfully.");
       } else {
-        await axiosInstance.put(url, payload);
+        await axios.put(url, payload);
         toast.success("Autopilot settings updated successfully.");
       }
       setTimeout(() => {

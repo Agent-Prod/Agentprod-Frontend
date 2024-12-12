@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "@/context/user-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/auth-provider";
 
 interface Message {
   id: string;
@@ -27,17 +27,70 @@ export default function Home() {
   // const internalScrollRef = useRef<HTMLDivElement>(null);  // for auto scrolling to bottom
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [loader, setLoader] = useState(true);
   const [userEmail] = useState(user?.email);
   const [userId] = useState(user?.id);
   const [loading, setLoading] = useState(true);
   const [sallyLoad, setSallyLoad] = useState(false);
   const [allMessages, setAllMessages] = useState<Message[]>([
-    
+    // {
+    //   id: Math.random().toString(),
+    //   role: "assistant",
+    //   content: `Hello! I'm Sally, your Sales Rep. I accelerate outbound sales with access to 250 million contacts and manage bespoke email campaigns to thousands. I also reply to queries and schedule meetings. Can I help you start your sales outreach?`,
+    // },
   ]);
 
- 
+  // console.log("Id: ", userId);
+
+  // console.log(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  // const fetchUserIdFromEmail = async (email_id: string) => {
+  //   const supabase = createClient(
+  //     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  //     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  //   );
+
+  //   let { data: allUsers } = await supabase
+  //     .from("Users")
+  //     .select("id")
+  //     .eq("email", email_id);
+  //   // console.log(allUsers);
+
+  //   if (!allUsers?.length) {
+  //     let { data: createdUser, error } = await supabase
+  //       .from("Users")
+  //       .insert([
+  //         {
+  //           email: email_id,
+  //           user_info: {
+  //             email: email_id,
+  //             timezone: null,
+  //             real_name: null,
+  //             profession: null,
+  //             display_name: null,
+  //             profile_image: null,
+  //           },
+  //           source: "web",
+  //         },
+  //       ])
+  //       .select("id");
+
+  //     if (error) {
+  //       console.error(error);
+  //     } else if (createdUser && createdUser[0].id) {
+  //       setUserId(createdUser[0].id);
+  //       let { data: tokenUsers, error: tokenTableError } = await supabase
+  //         .from("UserTokens")
+  //         .insert([{ user_id: createdUser[0].id }]);
+
+  //       if (tokenTableError) {
+  //         console.error(tokenTableError);
+  //       }
+  //     }
+  //   }
+
+  //   if (allUsers && allUsers[0].id) setUserId(allUsers[0].id);
+  // };
 
   function formatDate(created_at: any) {
     // Ensure createdAt is a valid date
@@ -75,7 +128,7 @@ export default function Home() {
     if (!userId) return;
     const fetchMessages = () => {
       axiosInstance
-        .get(`v2/conversation/`)
+        .get(`v2/conversation/${userId}`)
         .then((response) => {
           const adaptedMessages = response.data.map((msg: any) => ({
             ...msg,

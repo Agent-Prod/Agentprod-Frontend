@@ -20,11 +20,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import React, { useEffect, useState } from "react";
+import { useUserContext } from "@/context/user-context";
 import { CampaignEntry } from "@/context/campaign-provider";
 import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
-import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/auth-provider";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
@@ -65,13 +64,12 @@ export function SchedulingForm() {
     defaultValues,
   });
 
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [campaignData, setCampaignData] = useState<CampaignEntry>();
   const { setPageCompletion } = useButtonStatus();
   const [type, setType] = useState<"create" | "edit">("create");
 
   const onSubmit = async (data: CampaignFormValues) => {
-    if (!user) return;
     const campaignData = {
       user_id: user.id,
       campaign_name: data.campaignName,
@@ -94,15 +92,15 @@ export function SchedulingForm() {
 
     try {
       if (type === "create") {
-        const response = await axiosInstance.post(
-          `v2/campaigns/`,
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/`,
           campaignData
         );
         router.push(`/campaign/${response.data.id}`);
         toast.success("Campaign is scheduled successfully!");
       } else {
-        await axiosInstance.put(
-          `v2/campaigns/${params.campaignId}`,
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`,
           campaignData
         );
         router.push(`/campaign/${params.campaignId}`);
@@ -126,10 +124,10 @@ export function SchedulingForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await axiosInstance.get(
-            `v2/campaigns/${params.campaignId}`
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
           );
-          const data = response.data;
+          const data = await response.json();
           if (data.detail === "Campaign not found") {
             setType("create");
           } else {

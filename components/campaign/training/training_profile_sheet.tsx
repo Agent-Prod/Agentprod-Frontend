@@ -15,12 +15,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserContext } from "@/context/user-context";
 import { Loading } from "./Loader";
 import axiosInstance from "@/utils/axiosInstance";
 
 
 import { useParams } from "next/navigation";
-import { useAuth } from "@/context/auth-provider";
 
 interface PhoneNumber {
   type?: string;
@@ -138,7 +138,7 @@ export const TrainingPeopleProfileSheet = ({
   newData: any;
   newPreviews: any;
 }) => {
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [data, setData] = useState<Data | null>(null);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
   const [addressCollapsibleOpen, setAddressCollapsibleOpen] = useState(false);
@@ -171,7 +171,7 @@ export const TrainingPeopleProfileSheet = ({
       try {
         const response = await axiosInstance.post("/v2/training/preview", {
           campaign_id: params.campaignId,
-          user_id: user?.id,
+          user_id: user.id,
         });
 
         setData(response.data);
@@ -181,7 +181,7 @@ export const TrainingPeopleProfileSheet = ({
     };
 
     fetchData();
-  }, [params.campaignId, user?.id]);
+  }, [params.campaignId, user.id]);
 
   // useEffect(() => {
   //   const fetchData = async () => {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,13 +25,13 @@ import {
   getPersonaByCampaignId,
   editPersona,
 } from "./camapign.api";
+import { useUserContext } from "@/context/user-context";
 import { CompanyProfile } from "@/components/campaign/company-profile";
 import { toast } from "sonner";
 import { Label } from "../ui/label";
 import axiosInstance from "@/utils/axiosInstance";
 import { useButtonStatus } from "@/context/button-status";
 import { LoadingCircle } from "@/app/icons";
-import { useAuth } from "@/context/auth-provider";
 
 const profileFormSchema = z.object({
   product_offering: z.string(),
@@ -46,14 +46,13 @@ type OfferingFormValues = z.infer<typeof profileFormSchema>;
 
 export function OfferingForm() {
   const params = useParams<{ campaignId: string }>();
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const { createOffering, editOffering } = useCampaignContext();
   const [isUploading, setIsUploading] = useState(false);
   const { setPageCompletion } = useButtonStatus();
   const [type, setType] = useState<"create" | "edit">("create");
   const [campaignType, setCampaignType] = useState("");
   const [offeringId, setOfferingId] = useState<string | null>(null);
-  const router = useRouter();
 
   const form = useForm<OfferingFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -73,36 +72,27 @@ export function OfferingForm() {
       const id = params.campaignId;
       if (id) {
         try {
-          const campaignResponse = await axiosInstance.get(
-            `v2/campaigns/${id}`
+          const campaignResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
           );
-          const campaignData = campaignResponse.data;
+          const campaignData = await campaignResponse.json();
 
-          if (campaignResponse.status === 200) {
+          if (campaignResponse.ok) {
             setCampaignType(campaignData.campaign_type);
 
-            let offeringData = { name: "", id: null };
-            try {
-              const offeringResponse = await axiosInstance.get(
-                `v2/offerings/${id}`
-              );
-              offeringData = offeringResponse.data;
-              if(offeringResponse.status === 200){
-                setType("edit");
-                setOfferingId(offeringData.id);
-              }
-            } catch (error: any) {
-              // If offering is not found, continue with empty offering data
-              if (error.response?.status === 404) {
-                console.log("No offering found, creating new one");
-                setType("create");
-              } else {
-                throw error; // Re-throw other errors
-              }
+            const offeringResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/offerings/${id}`
+            );
+            const offeringData = await offeringResponse.json();
+
+            if (offeringData.detail === "Offering not found") {
+              setType("create");
+            } else {
+              setType("edit");
+              setOfferingId(offeringData.id);
             }
 
             // Fetch persona data
-            console.log("Fetching persona data for campaign ID:", id);
             const persona = await getPersonaByCampaignId(id);
             if (persona) {
               form.reset({
@@ -117,10 +107,8 @@ export function OfferingForm() {
                 company_features: persona.company_features || [],
               });
             } else {
-              console.log("No persona found for campaign ID, fetching user persona");
-              const userPersona = await getPersonaByUserId();
+              const userPersona = await getPersonaByUserId(user.id);
               if (userPersona) {
-                console.log("User persona found:", userPersona);
                 form.reset({
                   product_offering: offeringData.name || "",
                   pain_point: userPersona.pain_point,
@@ -131,8 +119,6 @@ export function OfferingForm() {
                     userPersona.detailed_product_description,
                   company_features: userPersona.company_features || [],
                 });
-              } else {
-                console.log("No user persona found");
               }
             }
           } else {
@@ -146,7 +132,7 @@ export function OfferingForm() {
     };
 
     fetchCampaignAndOffering();
-  }, [params.campaignId, user?.id, form]);
+  }, [params.campaignId, user.id, form]);
 
   const onSubmit = async (data: OfferingFormValues) => {
     let offeringData;
@@ -182,11 +168,17 @@ export function OfferingForm() {
         toast.success("Offering created successfully.");
       } else {
         await editPersona(postData);
-        await editOffering(offeringData, offeringId! , params.campaignId);
+        await editOffering(offeringData, offeringId!);
         toast.success("Offering updated successfully.");
       }
 
       setPageCompletion("offering", true);
+      const updatedFormsTracker = {
+        schedulingBudget: true,
+        offering: true,
+        goal: true,
+      };
+      localStorage.setItem("formsTracker", JSON.stringify(updatedFormsTracker));
     } catch (error) {
       console.error("Error handling offering:", error);
       toast.error("Failed to handle offering.");

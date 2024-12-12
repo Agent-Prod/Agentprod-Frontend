@@ -110,9 +110,9 @@ export const getAudienceFiltersById = async (
   return response;
 };
 
-export const getPersonaByUserId = async (): Promise<any> => {
+export const getPersonaByUserId = async (userId: string): Promise<any> => {
   const response = await axiosInstance
-    .get(`v2/personas/`)
+    .get(`v2/personas/${userId}`)
     .then((response) => {
       const data = response.data;
       console.log("persona fetched successfully:", data);

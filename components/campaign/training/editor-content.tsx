@@ -35,8 +35,7 @@ import { FieldType, VariableType, allFieldsListType } from "./types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingCircle } from "@/app/icons";
 import { toast } from "sonner";
-import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/auth-provider";
+import { useUserContext } from "@/context/user-context";
 
 interface Variable {
   id: string;
@@ -46,7 +45,7 @@ interface Variable {
 }
 
 export default function EditorContent() {
-  const { user } = useAuth();
+  const { user } = useUserContext();
 
   const [isOpen, setIsOpen] = useState(false);
   const [showAdditionalTextArea, setShowAdditionalTextArea] = useState(false);
@@ -142,13 +141,13 @@ export default function EditorContent() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await axiosInstance.get(
-            `v2/campaigns/${id}`
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${id}`
           );
-          const data = response.data;
-          console.log(data,"ress")
-          if (response.status === 200) {
 
+          const data = await response.json();
+          console.log(data, "ress")
+          if (response.ok) {
             setCampaignType(data.campaign_type);
           } else {
             toast.error("Failed to fetch campaign data");
@@ -168,10 +167,10 @@ export default function EditorContent() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await axiosInstance.get(
-            `v2/training/${params.campaignId}`
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/training/${params.campaignId}`
           );
-          const data = response.data;
+          const data = await response.json();
           if (data.detail === "Training information not found") {
           } else {
             const template = data.template;

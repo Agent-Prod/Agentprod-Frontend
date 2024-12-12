@@ -8,7 +8,7 @@ import React, {
   useMemo,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "./auth-provider";
+import { useUserContext } from "./user-context";
 
 interface MailGraphData {
   id: string;
@@ -45,7 +45,7 @@ const MailGraphContext = createContext<MailGraphContextType>(defaultMailGraphSta
 export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [mailGraphData, setMailGraphData] = useState<MailGraphData[]>([]);
   const [contactsData, setContactsData] = useState<ContactData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +60,7 @@ export const MailGraphProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axiosInstance.get<{
         mailgraph: MailGraphData[];
         contacts: ContactData[];
-      }>(`/v2/mailgraph/`);
+      }>(`/v2/mailgraph/${user?.id}`);
 
       setMailGraphData(response.data.mailgraph);
       setContactsData(response.data.contacts);

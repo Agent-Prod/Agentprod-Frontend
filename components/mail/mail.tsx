@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '../ui/scroll-area';
 import axiosInstance from '@/utils/axiosInstance';
+import { useUserContext } from '@/context/user-context';
 import { Button } from '../ui/button';
 import { useMailbox } from '@/context/mailbox-provider';
 import { Contact, useLeads } from '@/context/lead-user';
@@ -34,7 +35,6 @@ import axios, { CancelTokenSource } from 'axios';
 import MailList from "./mail-list";
 import ThreadDisplayMain from "./thread-display-main";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-provider';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -251,7 +251,7 @@ export function Mail({
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isInitialLoading, setIsInitialLoading] = React.useState(true);
 
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const {
     setSenderEmail,
     isContextBarOpen,
@@ -273,7 +273,7 @@ export function Mail({
   const fetchCampaigns = React.useCallback(async () => {
     setIsCampaignsLoading(true);
     try {
-      const response = await axiosInstance.get(`v2/campaigns/names/`);
+      const response = await axiosInstance.get(`v2/campaigns/names/${user?.id}`);
       const campaignData = response.data.campaigns || response.data;
       if (Array.isArray(campaignData)) {
         const formattedCampaigns = campaignData.map(campaign => ({
@@ -336,10 +336,10 @@ export function Mail({
       }
 
       try {
-        let url = `v2/mailbox/`;
+        let url = `v2/mailbox/${user?.id}`;
 
         if (campaignId) {
-          url = `v2/mailbox/campaign/${campaignId}/`;
+          url = `v2/mailbox/campaign/${campaignId}/${user?.id}`;
         }
 
         // Set ITEMS_PER_PAGE to 100 if the status is "replied"
@@ -366,8 +366,8 @@ export function Mail({
 
         console.log('Fetching conversations with URL:', url);
 
-        const response = await axiosInstance.get(
-          url,
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`,
           {
             signal
           }
@@ -494,6 +494,18 @@ export function Mail({
       setConversationId(initialMail.id);
       setRecipientEmail(initialMail.recipient);
       setInitialMailIdSet(true);
+
+      // Fetch lead info for the first mail
+      if (initialMail.recipient) {
+        axiosInstance
+          .get(`v2/lead/info/${initialMail.recipient}`)
+          .then((response) => {
+            setLeads([response.data]);
+          })
+          .catch((error) => {
+            console.error('Error fetching lead data:', error);
+          });
+      }
     }
   }, [mails, initialMailIdSet, setSenderEmail, setConversationId, setRecipientEmail, setLeads]);
 

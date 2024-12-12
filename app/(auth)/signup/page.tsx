@@ -4,8 +4,8 @@ import Link from "next/link";
 import UserAuthForm from "@/components/forms/auth/user-auth-form";
 // import { buttonVariants } from "@/components/ui/button";
 // import { cn } from "@/lib/utils";
-import { redirect } from "next/navigation";
 import { useAuth } from "@/context/auth-provider";
+import { redirect } from "next/navigation";
 // import { SignIn } from "@clerk/nextjs";
 // export const metadata: Metadata = {
 //   title: "Authentication",

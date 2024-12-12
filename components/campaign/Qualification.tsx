@@ -19,7 +19,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import axiosInstance from "@/utils/axiosInstance";
 
 function Qualification() {
   const router = useRouter();
@@ -33,10 +32,10 @@ function Qualification() {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await axiosInstance.get(
-            `v2/qualifications/${params.campaignId}`
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${params.campaignId}`
           );
-          const data = response.data;
+          const data = await response.json();
           if (data.detail === "Qualification not found") {
             setType("create");
           } else {
@@ -68,14 +67,14 @@ function Qualification() {
   async function submitButton() {
     try {
       if (type === "create") {
-        await axiosInstance.post(
-          `v2/qualifications/`,
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/`,
           { campaign_id: params.campaignId, details: criteria }
         );
         toast.success("Qualification added successfully");
       } else if (type === "edit") {
-        await axiosInstance.put(
-          `v2/qualifications/${qua_id}`,
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/qualifications/${qua_id}`,
           { details: criteria }
         );
         toast.success("Qualification updated successfully");

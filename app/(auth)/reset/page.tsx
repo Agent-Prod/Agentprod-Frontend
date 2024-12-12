@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAuth } from "@/context/auth-provider";
+import { resetPasswordMain } from "../actions";
 
 function Page() {
   const { user } = useAuth();
@@ -65,13 +66,13 @@ function Page() {
         return;
       }
 
-      // const res = await resetPasswordMain(password, accessToken);
-      // if (!res) {
-      //   toast.error("Password reset failed");
-      // } else {
-      //   toast.success("Password reset successful");
-      //   router.push("/");
-      // }
+      const res = await resetPasswordMain(password, accessToken);
+      if (!res) {
+        toast.error("Password reset failed");
+      } else {
+        toast.success("Password reset successful");
+        router.push("/");
+      }
     } catch (err) {
       toast.error("err.message");
     }

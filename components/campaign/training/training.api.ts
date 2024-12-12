@@ -123,7 +123,7 @@ export async function getAutogenerateTrainingEmail(
 ): Promise<any> {
   try {
     const response = await axiosInstance
-      .get<any>(`v2/training/autogenerate/preview/${campaignId}/`)
+      .get<any>(`v2/training/autogenerate/preview/${campaignId}/${userId}`)
       .then((response) => {
         const data = response.data;
         return data;

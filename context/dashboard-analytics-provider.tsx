@@ -9,8 +9,8 @@ import React, {
   ReactNode,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "./user-context";
 import { DashboardData } from "@/types/dashboard";
-import { useAuth } from "./auth-provider";
 
 type HotLead = {
   id: string;
@@ -120,7 +120,7 @@ interface Props {
 export const DashboardProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [dashboardData, setDashboardData] = useState<DashboardData>(
     defaultDashboardState.dashboardData
   );
@@ -137,7 +137,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     setIsLoading(true);
     try {
       const dashboardResponse = await axiosInstance.get<DashboardData>(
-        `v2/dashboard/`
+        `v2/dashboard/${user.id}`
       );
 
       if (dashboardResponse.data) {
@@ -158,7 +158,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     setIsAnalyticsLoading(true);
     try {
       const analyticsResponse = await axiosInstance.get<AnalyticsData>(
-        `v2/campaign/analytics/`
+        `v2/campaign/analytics/${user.id}`
       );
 
       if (analyticsResponse.data) {

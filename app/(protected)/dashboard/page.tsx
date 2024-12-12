@@ -45,7 +45,7 @@ const LinkedinCampaignsTable = memo(() => {
   const fetchLinkedInAnalytics = async () => {
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get(`v2/campaign/linkedin/`);
+      const response = await axiosInstance.get(`v2/campaign/linkedin/${user?.id}`);
       const data = await response.data;
       setCampaigns(data);
     } catch (error) {

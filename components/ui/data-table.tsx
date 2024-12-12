@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { CampaignEntry, useCampaignContext } from "@/context/campaign-provider";
 import axiosInstance from "@/utils/axiosInstance";
-import { useAuth } from "@/context/auth-provider";
+import { useUserContext } from "@/context/user-context";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -81,11 +81,11 @@ export function DataTable<TData extends { id: string }, TValue>({
     return selection;
   }, [data, selectedLeadIds]);
 
-  const { user } = useAuth();
+  const { user } = useUserContext();
 
   useEffect(() => {
     const fetchCampaigns = async () => {
-      const campaigns = await axiosInstance.get(`v2/campaigns/names/`);
+      const campaigns = await axiosInstance.get(`v2/campaigns/names/${user.id}`);
       setCampaigns(campaigns.data.campaigns);
     };
     fetchCampaigns();

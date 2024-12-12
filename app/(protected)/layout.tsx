@@ -1,7 +1,5 @@
 "use client";
-
 import React, { useEffect, useRef } from "react";
-
 import Header from "@/components/layout/header";
 import {
     ResizableHandle,
@@ -19,7 +17,6 @@ import { redirect } from "next/navigation";
 import { PageHeaderProvider } from "@/context/page-header";
 import axios from "axios";
 import { toast } from "sonner";
-import axiosInstance from "@/utils/axiosInstance";
 
 export default function ParentLayout({
     children,
@@ -40,7 +37,7 @@ export default function ParentLayout({
             redirect("/");
             return;
         }
-        console.log("user", user);
+
         if (!hasInitializedRef.current) {
             const storedVerificationState = localStorage.getItem('verificationInProgress');
             if (storedVerificationState === 'true') {
@@ -77,7 +74,7 @@ export default function ParentLayout({
             verificationAttemptsRef.current++;
 
             try {
-                const response = await axiosInstance.get(`v2/user/${domain}/authenticate`);
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`);
 
                 if (!response.data.error) {
                     clearInterval(verificationIntervalRef.current!);
@@ -98,9 +95,7 @@ export default function ParentLayout({
     return (
         <>
             <Header />
-
             <div className="flex flex-col min-h-screen overflow-hidden md:pt-16">
-
                 <TooltipProvider delayDuration={0}>
                     <ResizablePanelGroup
                         direction="horizontal"

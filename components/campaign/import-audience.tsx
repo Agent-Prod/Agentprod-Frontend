@@ -36,6 +36,7 @@ import { Contact, Lead, useLeads } from "@/context/lead-user";
 import { AudienceTableClient } from "../tables/audience-table/client";
 import { v4 as uuid } from "uuid";
 import { toast } from "sonner";
+import { useUserContext } from "@/context/user-context";
 import { useParams, useRouter } from "next/navigation";
 import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
@@ -43,7 +44,6 @@ import AudienceTable from "../ui/AudienceTable";
 import { Card, CardHeader } from "@/components/ui/card";
 import { CardTitle } from "../ui/card";
 import { CardDescription } from "../ui/card";
-import { useAuth } from "@/context/auth-provider";
 
 interface FileData {
   [key: string]: string;
@@ -58,7 +58,7 @@ export const ImportAudience = () => {
   const { leads, setLeads,selectedLeadIds } = useLeads();
   const [isLeadsTableActive, setIsLeadsTableActive] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
   const [type, setType] = useState<"create" | "edit">("create");
@@ -128,10 +128,10 @@ export const ImportAudience = () => {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await axiosInstance.get(
-            `v2/lead/campaign/${params.campaignId}`
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
           );
-          const data = response.data;
+          const data = await response.json();
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
@@ -295,9 +295,6 @@ export const ImportAudience = () => {
   };
 
   function mapLeadsToBodies(leads: Lead[]): Contact[] {
-    if (!user) {
-      return [];
-    }
     return leads.map((lead: any) => ({
       id: lead.id,
       user_id: user.id,
@@ -357,7 +354,7 @@ export const ImportAudience = () => {
       const contactsResponse = await axiosInstance.post(
         `v2/lead/bulk/`,
         {
-          user_id: user?.id,
+          user_id: user.id,
           campaign_id: params.campaignId,
           leads: selectedLeadIds
         }
@@ -390,8 +387,8 @@ export const ImportAudience = () => {
 
       const checkLeads = async () => {
         try {
-          const response = await axiosInstance.get(
-            `v2/lead/campaign/${params.campaignId}`
+          const response = await axios.get(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
           );
           if (Array.isArray(response.data) && response.data.length >= 1) {
             setIsCreateBtnLoading(false);

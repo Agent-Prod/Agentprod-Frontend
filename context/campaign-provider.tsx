@@ -11,8 +11,8 @@ import React, {
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "./user-context";
 import { Ole } from "next/font/google";
-import { useAuth } from "./auth-provider";
 
 export interface CampaignFormData {
   [key: string]: any;
@@ -136,7 +136,7 @@ interface CampaignContextType {
   editCampaign: (data: CampaignFormData, campaignId: string) => void;
   deleteCampaign: (campaignId: string) => void;
   createOffering: (data: OfferingFormData, campaignId: string) => void;
-  editOffering: (data: OfferingFormData, offering:string, campaignId: string) => void;
+  editOffering: (data: OfferingFormData, campaignId: string) => void;
   createGoal: (data: GoalFormData, campaignId: string) => void;
   editGoal: (data: GoalFormData, goalId: string, campaignId: string) => void;
   toggleCampaignIsActive: (campaignId: string) => void;
@@ -172,7 +172,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
   children,
 }) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -190,7 +190,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
 
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get<CampaignEntry[]>(`v2/campaigns/all/`);
+      const response = await axiosInstance.get<CampaignEntry[]>(`v2/campaigns/all/${userId}`);
       const sortedCampaigns = response.data.sort((a: any, b: any) => {
         const dateA = new Date(a.created_at).getTime();
         const dateB = new Date(b.created_at).getTime();
@@ -318,9 +318,9 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       });
   };
 
-  const editOffering = (data: OfferingFormData,offering:string, campaignId: string) => {
+  const editOffering = (data: OfferingFormData, campaignId: string) => {
     axiosInstance
-      .put(`v2/offerings/${offering}`, data)
+      .put(`v2/offerings/${campaignId}`, data)
       .then((response) => {
         console.log("Offering edited successfully:", response.data);
         router.push(`/campaign/${campaignId}`);

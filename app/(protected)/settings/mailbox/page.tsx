@@ -44,6 +44,7 @@ import { Icons } from "@/components/icons";
 import { GmailIcon, LoadingCircle } from "@/app/icons";
 import { Switch } from "@/components/ui/switch";
 import axiosInstance from "@/utils/axiosInstance";
+import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
@@ -51,7 +52,6 @@ import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaLinkedin } from 'react-icons/fa';
-import { useAuth } from "@/context/auth-provider";
 
 interface MailData {
   id: number;
@@ -130,7 +130,7 @@ export default function Page() {
     useState(false);
   const [isLoadingMailboxes, setIsLoadingMailboxes] = useState(false); // Shimmer UI Prep
   const [isApppasswordLoading, setIsApppassowrdLoading] = useState(false);
-  const { user } = useAuth();
+  const { user } = useUserContext();
   const [isVerifying, setIsVerifying] = useState(false);
   const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const verificationAttemptsRef = useRef(0);
@@ -172,7 +172,7 @@ export default function Page() {
       verificationAttemptsRef.current++;
 
       try {
-        const response = await axiosInstance.get(`v2/user/${domain}/authenticate`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/user/${domain}/authenticate`);
 
         if (!response.data.error) {
           clearInterval(verificationIntervalRef.current!);
@@ -204,7 +204,7 @@ export default function Page() {
     setIsChooseServiceOpen(false);
 
     if (user?.id) {
-      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/`;
+      window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/google/authorize/${user.id}`;
     } else {
       toast.error("User ID is missing. Please try again.");
     }
@@ -212,7 +212,7 @@ export default function Page() {
 
   const fetchHealthData = async (userId: any) => {
     try {
-      const response = await axiosInstance.get(`/v2/settings/health`);
+      const response = await axiosInstance.get(`/v2/settings/health/${userId}`);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch health data:", error);
@@ -260,7 +260,7 @@ export default function Page() {
       appKey: inputAppPassword,
     };
     try {
-      const response = await axiosInstance.post(
+      const response = await axios.post(
         `https://warmup.agentprod.com/add-email`,
         payload
       );
@@ -315,11 +315,11 @@ export default function Page() {
     setIsLoadingMailboxes(true);
     try {
       // First fetch health data
-      const healthResponse = await fetchHealthData(user?.id);
-      const response = await axiosInstance.get(`/v2/settings/mailboxes`);
+      const healthResponse = await fetchHealthData(user.id);
+      const response = await axiosInstance.get(`/v2/settings/mailboxes/${user.id}`);
 
       // Map the mailboxes with their corresponding health values
-      const updatedMailboxes = response.data.mailboxes.map((mailbox: any) => ({
+      const updatedMailboxes = response.data.map((mailbox: any) => ({
         ...mailbox,
         dns: mailbox.dns ? JSON.parse(mailbox.dns) : [],
         health: healthResponse[mailbox.mailbox] || 0
@@ -411,7 +411,7 @@ export default function Page() {
 
       const postData1 = {
         senders: senders,
-        user_id: user?.id,
+        user_id: user.id,
       };
 
       try {
@@ -495,7 +495,7 @@ export default function Page() {
       sender_id: String(senderID),
       otp: String(otpInput),
       mailbox: String(emailInput),
-      user_id: String(user?.id),
+      user_id: String(user.id),
       sender_name: String(nameInput),
     };
     try {

@@ -27,9 +27,9 @@ axiosInstance.interceptors.response.use(
         handleForbiddenError();
       }
     }
-    else if (error.code === 'ERR_NETWORK') {
-      handleForbiddenError();
-    }
+    // else if (error.code === 'ERR_NETWORK') {
+    //   handleForbiddenError();
+    // }
 
     return Promise.reject(error);
   }

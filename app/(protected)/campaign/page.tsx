@@ -180,36 +180,56 @@ export default function CampaignPage() {
   ) => {
     const campaign = campaigns.find((campaign) => campaign.id === campaignId);
     const campaignName = campaign ? campaign.campaign_name : "Unknown Campaign";
-
     try {
-      const response = await axiosInstance.put(
-        `/v2/campaigns/pause/${campaignId}`
-      );
-
-      if (response.status === 200) {
-        setCampaigns((currentCampaigns) =>
-          currentCampaigns.map((campaign) =>
-            campaign.id === campaignId
-              ? { ...campaign, is_active: !isActive }
-              : campaign
-          )
+      if (campaign?.schedule_type === "recurring") {
+        const response = await axiosInstance.put(
+          "https://backend.agentprod.com/v2/recurring_campaign_request",
+          {
+            campaign_id: campaignId,
+            is_active: !isActive,
+          }
         );
-
-        toast.success(`${campaignName} has been ${isActive ? "paused" : "resumed"} successfully`);
-
-        if (campaign?.schedule_type === "recurring") {
-          const recurringResponse = await axiosInstance.get(
-            `/v2/recurring_campaign_request/${campaignId}`
+        if (response.status === 200) {
+          setRecurringCampaignData((prevData) =>
+            prevData.map((item) =>
+              item.campaign_id === campaignId
+                ? { ...item, is_active: !isActive }
+                : item
+            )
           );
-
-          if (recurringResponse.data) {
-            setRecurringCampaignData((prevData) =>
-              prevData.map((item) =>
-                item.campaign_id === campaignId
-                  ? { ...item, is_active: recurringResponse.data.is_active }
-                  : item
+          toast.success(
+            `${campaignName} has been ${!isActive ? "resumed" : "paused"
+            } successfully`
+          );
+        }
+      } else {
+        if (isActive) {
+          const response = await axiosInstance.put(
+            `/v2/campaigns/pause/${campaignId}`
+          );
+          if (response.status === 200) {
+            setCampaigns((currentCampaigns) =>
+              currentCampaigns.map((campaign) =>
+                campaign.id === campaignId
+                  ? { ...campaign, is_active: false }
+                  : campaign
               )
             );
+            toast.success(`${campaignName} has been paused successfully`);
+          }
+        } else {
+          const response = await axiosInstance.put(
+            `/v2/campaigns/pause/${campaignId}`
+          );
+          if (response.status === 200) {
+            setCampaigns((currentCampaigns) =>
+              currentCampaigns.map((campaign) =>
+                campaign.id === campaignId
+                  ? { ...campaign, is_active: true }
+                  : campaign
+              )
+            );
+            toast.success(`${campaignName} has been resumed successfully`);
           }
         }
       }
@@ -264,25 +284,14 @@ export default function CampaignPage() {
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${campaignItem?.is_active
-              ? 'bg-green-500 animate-pulse'
-              : 'bg-red-500'
-              }`} />
-            <span className="text-sm font-medium">
-              {campaignItem?.is_active ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-          {campaignItem?.schedule_type === "recurring" &&
-            recurringCampaignData.find(item => item.campaign_id === campaignItem.id)?.is_active === false && (
-              <Badge
-                variant="completed"
-                className="px-2 py-1 text-xs font-medium flex items-center gap-1.5"
-              >
-                Completed
-              </Badge>
-            )}
+        <div className="flex items-center gap-2">
+          <span className={`h-2.5 w-2.5 rounded-full ${campaignItem?.is_active
+            ? 'bg-green-500 animate-pulse'
+            : 'bg-red-500'
+            }`} />
+          <span className="text-sm font-medium">
+            {campaignItem?.is_active ? 'Active' : 'Inactive'}
+          </span>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -346,14 +355,34 @@ export default function CampaignPage() {
         </div>
 
         <div className="flex gap-4 justify-between items-center">
-          <Switch
-            checked={campaignItem?.is_active}
-            onCheckedChange={() =>
-              campaignItem.id !== undefined &&
-              toggleCampaignIsActive(campaignItem.id, campaignItem.is_active)
-            }
-            className="flex-none"
-          />
+          {campaignItem?.schedule_type === "recurring" ? (
+            <Switch
+              checked={
+                recurringCampaignData.find(
+                  (item) => item.campaign_id === campaignItem.id
+                )?.is_active || false
+              }
+              onCheckedChange={() =>
+                campaignItem.id !== undefined &&
+                toggleCampaignIsActive(
+                  campaignItem.id,
+                  recurringCampaignData.find(
+                    (item) => item.campaign_id === campaignItem.id
+                  )?.is_active
+                )
+              }
+              className="flex-none"
+            />
+          ) : (
+            <Switch
+              checked={campaignItem?.is_active}
+              onCheckedChange={() =>
+                campaignItem.id !== undefined &&
+                toggleCampaignIsActive(campaignItem.id, campaignItem.is_active)
+              }
+              className="flex-none"
+            />
+          )}
 
           <div>
             <Button

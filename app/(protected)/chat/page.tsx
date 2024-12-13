@@ -16,6 +16,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import axiosInstance from "@/utils/axiosInstance";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-provider";
+import { getCookie } from "cookies-next";
 
 interface Message {
   id: string;
@@ -156,6 +157,10 @@ export default function Home() {
       body: {
         user_id: userId,
         content: inputRef.current?.value,
+      },
+      headers: {
+        'Authorization': `Bearer ${getCookie('auth-token')}`,
+        'Content-Type': 'application/json',
       },
 
       onResponse: async (response) => {

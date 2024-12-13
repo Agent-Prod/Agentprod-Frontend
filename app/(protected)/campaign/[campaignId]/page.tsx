@@ -84,12 +84,12 @@ export default function Page() {
 
         const updatedFormsTracker = {
           schedulingBudget: true,
-          offering: !!offeringData && !offeringData.detail,
-          goal: !!goalData && !goalData.detail,
-          qualification: !!qualificationData && !qualificationData.detail,
-          audience: !!audienceData && !audienceData.detail,
-          autoPilot: !!AutopilotData && !AutopilotData.detail,
-          training: !!AutopilotData && !AutopilotData.detail,
+          offering: !!campaignData && !campaignData.detail,
+          goal: !!offeringData && !offeringData.detail,
+          qualification: !!goalData && !goalData.detail,
+          audience: !!qualificationData && !qualificationData.detail,
+          autoPilot: !!audienceData && !audienceData.detail,
+          training: !!AutopilotData,
         };
 
         console.log('Updated forms tracker:', updatedFormsTracker);

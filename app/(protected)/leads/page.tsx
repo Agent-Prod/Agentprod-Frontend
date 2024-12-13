@@ -10,9 +10,8 @@ import { Button } from "@/components/ui/button";
 import { useLeads } from "@/context/lead-user";
 import { LucideUsers2 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { toast } from "sonner";
-
+import { useAuth } from "@/context/auth-provider";
 const DEBOUNCE_DELAY = 300;
 
 export default function Page() {
@@ -27,7 +26,7 @@ export default function Page() {
   );
   const size = 10;
 
-  const { user } = useUserContext();
+  const { user } = useAuth();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const fetchLeads = useCallback(
@@ -37,7 +36,7 @@ export default function Page() {
       setLoading(true);
       console.log(`Fetching page ${pageToFetch}`);
       try {
-        const response = await axiosInstance.get(`v2/lead/all/${user.id}`, {
+        const response = await axiosInstance.get(`v2/lead/all/`, {
           params: {
             page: pageToFetch,
             size,

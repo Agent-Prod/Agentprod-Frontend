@@ -6,10 +6,10 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { useUserContext } from "@/context/user-context";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import axios from "axios";
+import { useAuth } from "@/context/auth-provider";
 
 type Info = {
   id: string;
@@ -18,7 +18,7 @@ type Info = {
 };
 
 export default function Page() {
-  const { user, updateUser } = useUserContext();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [accountInfo, setAccountInfo] = useState<Info[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function Page() {
     if (user?.id) {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get(`/v2/settings/${user.id}`);
+        const response = await axiosInstance.get(`/v2/settings`);
         const data = response.data;
 
         const initialAccountInfo = [
@@ -64,8 +64,8 @@ export default function Page() {
 
   const fetchUserSubscription = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/pricing-plans/${user.id}`
+      const res = await axiosInstance.get(
+        `v2/pricing-plans`
       );
       const planValue = res.data.subscription_mode || "Unknown";
       updatePlanInfo(planValue);

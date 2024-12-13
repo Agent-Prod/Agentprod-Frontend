@@ -1,5 +1,4 @@
 "use client";
-import { logout as supabaseLogout } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUserContext } from "@/context/user-context";
 import { useRouter } from "next/navigation";
 import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/context/auth-provider";
@@ -20,7 +18,7 @@ import Link from "next/link";
 
 export function UserNav() {
   const router = useRouter();
-  const { user, setUser } = useUserContext();
+  const { user, setUser } = useAuth();
   const { logout } = useAuth();
 
   const [isClient, setIsClient] = useState(false);
@@ -31,16 +29,10 @@ export function UserNav() {
 
   const logoutUser = async () => {
     try {
-      await supabaseLogout();
-      deleteCookie("user");
-      setUser({
-        id: "",
-        username: "",
-        firstName: "",
-        email: "",
-      });
-      logout(); // Ensure logout state is cleared before redirect
-      router.push("/");
+      deleteCookie('auth-token');
+      deleteCookie('user');
+
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
     }

@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 
-export const hubspotLogin = (userid: string) => {
+export const hubspotLogin = (userid: any) => {
   window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/hubspot/login/${userid}`;
 };
 
-export const salesforceLogin = (userid: string) => {
+export const salesforceLogin = (userid: any) => {
   window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}v2/salesforce/login/${userid}`;
 };
 

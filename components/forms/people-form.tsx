@@ -29,7 +29,6 @@ import { v4 as uuid } from "uuid";
 import { orgLocations, jobTitles, seniorities, InputType, companyDomains, technologies } from "./formUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import axiosInstance from "@/utils/axiosInstance";
-import { useUserContext } from "@/context/user-context";
 import { useParams } from "next/navigation";
 import { getAudienceFiltersById } from "../campaign/camapign.api";
 import { keywords } from "./formUtils";
@@ -42,6 +41,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react"
 import { FormDropdown } from "./utils/dropdown";
+import { useAuth } from "@/context/auth-provider";
 
 enum DropdownSection {
   CurrentEmployment = 'currentEmployment',
@@ -183,7 +183,7 @@ const FormSchema = z.object({
 
 export default function PeopleForm(): JSX.Element {
   const params = useParams<{ campaignId: string }>();
-  const { user } = useUserContext();
+  const { user } = useAuth();
 
   const router = useRouter();
 
@@ -454,10 +454,10 @@ export default function PeopleForm(): JSX.Element {
       const id = params.campaignId;
       if (id) {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.detail === "No Contacts found") {
             setType("create");
           } else {
@@ -478,7 +478,6 @@ export default function PeopleForm(): JSX.Element {
           }
         } catch (error) {
           console.error("Error fetching campaign:", error);
-          toast.error("An error occurred while submitting the form");
         }
       }
     };
@@ -686,7 +685,7 @@ export default function PeopleForm(): JSX.Element {
 
 
     const existingLeadsResponse = await axiosInstance.get(
-      `v2/leads/${user?.id}`
+      `v2/leads/`
     );
     console.log("Existing leads:", existingLeadsResponse.data);
     if (existingLeadsResponse.data === null) {
@@ -755,7 +754,7 @@ export default function PeopleForm(): JSX.Element {
         const apolloResponse = await axiosInstance.post('/v2/apify/apify/run-actor', {
           apollo_url: apolloUrl,
           page_no: 1,
-          user_id: user.id,
+          user_id: user?.id,
           campaign_id: params.campaignId,
           per_page: data.per_page
         });
@@ -910,6 +909,7 @@ export default function PeopleForm(): JSX.Element {
   ];
 
   function mapLeadsToBodies(leads: Lead[], campaignId: string): Contact[] {
+    if(!user?.id) return [];
     return leads.map((lead) => ({
       id: lead.id,
       user_id: user.id,
@@ -967,7 +967,7 @@ export default function PeopleForm(): JSX.Element {
       const response = await axiosInstance.post(
         `v2/lead/bulk/`,
         {
-          user_id: user.id,
+          user_id: user?.id,
           campaign_id: params.campaignId,
           leads: selectedLeadIds
         }
@@ -1020,15 +1020,15 @@ export default function PeopleForm(): JSX.Element {
         );
         console.log("filters to audience: ", audienceResponse.data);
 
-        const getRecData = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+        const getRecData = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
         );
         if (getRecData.data.schedule_type === "recurring") {
           const recurringResponse = await axiosInstance.post(
             "v2/recurring_campaign_request",
             {
               campaign_id: params.campaignId,
-              user_id: user.id,
+              user_id: user?.id,
               apollo_url: apolloUrl,
               page: calculatedPages + 1,
               is_active: false,
@@ -1048,8 +1048,8 @@ export default function PeopleForm(): JSX.Element {
 
         const checkLeads = async () => {
           try {
-            const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_URL}v2/lead/campaign/${params.campaignId}`
+            const response = await axiosInstance.get(
+              `v2/lead/campaign/${params.campaignId}`
             );
             if (Array.isArray(response.data) && response.data.length >= 1) {
 
@@ -1371,12 +1371,12 @@ export default function PeopleForm(): JSX.Element {
       const updateFilters = await axiosInstance.put(`v2/audience/${audienceId}`, postBody);
 
       await axiosInstance.post(`v2/lead/bulk/update`, {
-        user_id: user.id,
+        user_id: user?.id,
         campaign_id: params.campaignId,
         leads: selectedLeadIds
       });
-      const getRecData = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}v2/campaigns/${params.campaignId}`
+      const getRecData = await axiosInstance.get(
+        `v2/campaigns/${params.campaignId}`
       );
       if (getRecData.data.schedule_type === "recurring") {
         const recurringResponse = await axiosInstance.put(
@@ -1643,7 +1643,7 @@ export default function PeopleForm(): JSX.Element {
         };
       }
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}v2/apollo/lead/search`, requestBody);
+      const response = await axiosInstance.post(`v2/apollo/lead/search`, requestBody);
 
       // Assuming the API returns the total count in the response
       setTotalLeads(response.data.total_leads);

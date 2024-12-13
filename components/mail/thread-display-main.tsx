@@ -35,13 +35,13 @@ import { useMailbox, EmailMessage } from "@/context/mailbox-provider";
 import { Lead, useLeads } from "@/context/lead-user";
 import { toast } from "sonner";
 import { LoadingCircle } from "@/app/icons";
-import { useUserContext } from "@/context/user-context";
 import { Badge } from "../ui/badge";
 import { parseActionDraft } from "./parse-draft";
 import Image from "next/image";
 import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
+import { useAuth } from "@/context/auth-provider";
 
 
 interface ThreadDisplayMainProps {
@@ -173,7 +173,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       const [isLoadingButton, setIsLoadingButton] = useState(false);
       const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
 
-      const { user } = useUserContext();
+      const { user } = useAuth();
 
       const handleSendNow = useCallback(() => {
         setIsLoadingButton(true);
@@ -186,7 +186,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           payload = {
             receiver: recipientEmail,
             sender: senderEmail,
-            user_id: user.id,
+            user_id: user?.id,
             message_id: messageId,
             message: email.body,
             conversation_id: conversationId,
@@ -227,7 +227,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         setSelectedMailId,
         setThread,
         updateMailStatus,
-        user.id,
+        user?.id,
       ]);
 
       const handleApproveEmail = useCallback(() => {
@@ -325,7 +325,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       const handleRegenerateDraft = useCallback(() => {
         const payload = {
-          user_id: user.id,
+          user_id: user?.id,
           conversation_id: conversationId,
           campaign_id: leads[0].campaign_id,
         };
@@ -341,7 +341,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             console.error("Failed to regenerate draft:", error);
             toast.error("Failed to regenerate the draft. Please try again.");
           });
-      }, [conversationId, leads, user.id]);
+      }, [conversationId, leads, user?.id]);
 
       if (email?.status === "TO-APPROVE") {
         return (
@@ -534,7 +534,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     const [loadingSmartSchedule, setLoadingSmartSchedule] = useState(false);
     const [emails, setEmails] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { user } = useUserContext();
+    const { user } = useAuth();
     const internalScrollRef = useRef<HTMLDivElement>(null);
     const [platform, setPlatform] = useState("");
 
@@ -622,7 +622,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         payload = {
           receiver: recipientEmail,
           sender: senderEmail,
-          user_id: user.id,
+          user_id: user?.id,
           message: body,
           conversation_id: conversationId,
           message_id: messageId
@@ -665,13 +665,13 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       setThread,
       title,
       updateMailStatus,
-      user.id,
+      user?.id,
       refreshThread,
     ]);
 
     const handleRegenerateDraft = useCallback(() => {
       const payload = {
-        user_id: user.id,
+        user_id: user?.id,
         conversation_id: conversationId,
         campaign_id: leads[0].campaign_id,
       };
@@ -687,7 +687,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           console.error("Failed to regenerate draft:", error);
           toast.error("Failed to regenerate the draft. Please try again.");
         });
-    }, [conversationId, leads, user.id]);
+    }, [conversationId, leads, user?.id]);
 
     const handleDeleteDraft = useCallback(
       (draft_id: any) => {

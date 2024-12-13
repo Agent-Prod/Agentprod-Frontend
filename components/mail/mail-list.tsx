@@ -233,12 +233,8 @@ const MailList: React.FC<MailListProps> = ({
                       : ""}
                   </AvatarFallback>
                 </Avatar>
-                <div className="font-medium text-sm w-72 truncate text-foreground/90">
-                  {`${item.name || "unknown"} `}
-                  <span className="text-muted-foreground/70">
-                    from {item.company_name || "unknown company"}
-                  </span>
-                </div>
+                <div className="font-semibold w-72 truncate">{`${item.name || "unknown"
+                  } from ${item.company_name || "unknown company"}`}</div>
                 <span className="text-xs">
                   {item.category && getCategoryBadge(item.category)}
                 </span>

@@ -92,7 +92,7 @@ const LinkedinCampaignsTable = memo(() => {
           </p>
         </div>
       ) : (
-        <Table className="border-collapse [&_tr:hover]:bg-accent/40 transition-colors">
+        <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Campaign Name</TableHead>
@@ -230,7 +230,7 @@ const TopPerformingCampaignsTable = memo(({ campaigns, isLoading }: TopPerformin
   ), [handleRowClick]);
 
   return (
-    <Table className="border-collapse [&_tr:hover]:bg-accent/40 transition-colors">
+    <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Campaign Name</TableHead>
@@ -293,10 +293,7 @@ const MailboxHealth = memo(({ healthData, isLoading }: MailboxHealthProps) => {
           <p className="text-sm">
             {email} - {health}%
           </p>
-          <Progress
-            value={health}
-            className="h-5 transition-all duration-200 hover:shadow-md [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-primary/80"
-          />
+          <Progress value={health} className="h-5" />
         </div>
       ))}
     </>
@@ -318,24 +315,24 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
     {
       title: "Engaged Leads",
       value: dashboardData?.engaged ?? 0,
-      icon: <Icons.users className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
+      icon: <Icons.users className="h-4 w-4 text-muted-foreground" />
     },
     {
       title: "People Reached",
       value: dashboardData?.total_leads ?? 0,
-      icon: <Icons.userPlus className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
+      icon: <Icons.userPlus className="h-4 w-4 text-muted-foreground" />
     },
     {
       title: "Response Rate",
       value: `${dashboardData?.response_rate ? Math.round(dashboardData.response_rate) : 0}%`,
-      icon: <Icons.percent className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
+      icon: <Icons.percent className="h-4 w-4 text-muted-foreground" />
     }
   ];
 
   return (
     <div className="grid gap-4 grid-cols-2 mt-4">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="transition-all duration-200 hover:shadow-lg border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-background via-background/90 to-background/80 backdrop-blur-sm">
+        <Card key={metric.title} className="hover:bg-accent/50 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs font-medium flex items-center gap-2">
               {metric.icon}
@@ -411,7 +408,7 @@ export default function Page() {
   return (
     <>
       <DashboardPageHeader />
-      <ScrollArea className="h-full scroll-my-36 bg-gradient-to-br from-background via-background/98 to-background/95">
+      <ScrollArea className="h-full scroll-my-36">
         <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
             <div className="flex flex-col col-span-2 gap-4">
@@ -446,7 +443,7 @@ export default function Page() {
                     {!shouldLoadAnalytics && (
                       <Button
                         onClick={() => setShouldLoadAnalytics(true)}
-                        className="bg-gradient-to-r from-primary to-primary/90 text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200"
+                        className="bg-gradient-to-r from-black to-black text-white"
                       >
                         Load Analytics
                       </Button>
@@ -528,7 +525,7 @@ export default function Page() {
                       dashboardData.hot_leads.map((lead: any) => (
                         <div
                           key={lead.name}
-                          className="flex items-center cursor-pointer transition-all duration-200 hover:bg-accent/40 p-2 rounded-md backdrop-blur-sm"
+                          className="flex items-center cursor-pointer hover:bg-gray-100/20 dark:hover:bg-gray-800/20 p-2 rounded-md"
                           onClick={() => {
                             const queryParams = new URLSearchParams({
                               search_filter: lead.name.split(' ')[0]
@@ -536,7 +533,7 @@ export default function Page() {
                             router.push(`/mail?${queryParams.toString()}`);
                           }}
                         >
-                          <Avatar className="h-9 w-9 ring-2 ring-primary/10 transition-all duration-200 hover:ring-primary/30">
+                          <Avatar className="h-9 w-9">
                             <AvatarImage src={lead.photo_url ?? lead?.organization?.logo_url} alt="Avatar" />
                             <AvatarFallback>
                               {lead.fallback ||

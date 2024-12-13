@@ -8,7 +8,7 @@ interface TimelineIndicatorProps {
 
 export function TimelineIndicator({ isCompleted, isLast = false }: TimelineIndicatorProps) {
     return (
-        <div className="absolute -left-[15px] top-[25px] z-10">
+        <div className="absolute -left-[15px] top-[35px] z-10">
             <div
                 className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full",

@@ -256,7 +256,7 @@ export function GoalForm() {
     const fetchMailboxes = async () => {
       if (user?.id) {
         await axiosInstance
-          .get(`v2/settings/mailboxes/`)
+          .get(`v2/settings/mailboxes`)
           .then((response) => {
             const userMailboxes = response.data.mailboxes.map(
               (mailbox: { mailbox: string; sender_name: string; id: number }) => {

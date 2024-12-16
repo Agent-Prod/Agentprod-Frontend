@@ -44,6 +44,10 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { CardTitle } from "../ui/card";
 import { CardDescription } from "../ui/card";
 import { useAuth } from "@/context/auth-provider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 
 interface FileData {
   [key: string]: string;
@@ -73,6 +77,10 @@ export const ImportAudience = () => {
   const [directImportData, setDirectImportData] = useState<FileData[]>();
 
   const [showImportCards, setShowImportCards] = useState(true);
+
+  const [showProviderDialog, setShowProviderDialog] = useState(false);
+
+  const [selectedProvider, setSelectedProvider] = useState<any | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -483,10 +491,7 @@ export const ImportAudience = () => {
   };
 
   const handleImportCardClick = () => {
-    if (fileInputRef.current) {
-      setImportMethod('direct');
-      fileInputRef.current.click();
-    }
+    setShowProviderDialog(true);
   };
 
   const handleDirectImport = async () => {
@@ -538,6 +543,7 @@ export const ImportAudience = () => {
           user_id: user?.id,
           campaign_id: params.campaignId,
           daily_limit: dailyLimit,
+          provider: selectedProvider,
           leads: filteredData.map(lead => ({
             ...lead,
           }))
@@ -656,20 +662,23 @@ export const ImportAudience = () => {
             htmlFor="dailyLimit"
             className="text-sm text-muted-foreground whitespace-nowrap"
           >
-            Leads per day:
+            Number of leads to be contacted per day:
           </label>
           <Input
             id="dailyLimit"
             type="number"
             min={1}
-            max={500}
+            max={200}
             value={dailyLimit}
             onChange={(e) => setDailyLimit(Number(e.target.value))}
             className="w-[100px] h-9"
             placeholder="50"
           />
         </div>
-        <div className="flex gap-3">
+        <div className="text-sm text-muted-foreground pb-4">
+          Your Campaign would be completed in {Math.ceil(filteredData.length / dailyLimit)} days
+        </div>
+        <div className="flex gap-3 ">
           <Button
             variant="outline"
             onClick={() => {
@@ -694,13 +703,162 @@ export const ImportAudience = () => {
               </>
             ) : (
               <>
-                <FileIcon className="mr-2 h-4 w-4" />
                 Save {filteredData.length} Contacts
               </>
             )}
           </Button>
         </div>
       </div>
+    );
+  };
+
+  const ProviderSelectionDialog = () => {
+    const [localProvider, setLocalProvider] = useState<any | null>(null);
+
+    const handleProviderChange = (value: string) => {
+      setLocalProvider(value as any);
+    };
+
+    const handleContinue = () => {
+      if (localProvider) {
+        setSelectedProvider(localProvider);
+        setShowProviderDialog(false);
+        setImportMethod('direct');
+        fileInputRef.current?.click();
+      }
+    };
+
+    return (
+      <Dialog open={showProviderDialog} onOpenChange={setShowProviderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Data Provider</DialogTitle>
+            <DialogDescription>
+              Choose your data source to import contacts
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <RadioGroup
+              value={localProvider || ''}
+              onValueChange={handleProviderChange}
+            >
+              <div className="space-y-2">
+                <Label
+                  htmlFor="apollo"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'apollo' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="apollo" id="apollo" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/apollo.svg"
+                      alt="Apollo"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">Apollo</div>
+                    <div className="text-sm text-muted-foreground">Import from Apollo contacts</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="rocketreach"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'rocketreach' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="rocketreach" id="rocketreach" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/rocketreach.png"
+                      alt="RocketReach"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">RocketReach</div>
+                    <div className="text-sm text-muted-foreground">Import from RocketReach</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="lusha"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'lusha' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="lusha" id="lusha" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/lusha.png"
+                      alt="lusha"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">Lusha</div>
+                    <div className="text-sm text-muted-foreground">Import from Lusha</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="zoominfo"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'zoominfo' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="zoominfo" id="zoominfo" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/zoominfo.png"
+                      alt="zoominfo"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">ZoomInfo</div>
+                    <div className="text-sm text-muted-foreground">Import from ZoomInfo</div>
+                  </div>
+                </Label>
+
+
+                <Label
+                  htmlFor="csv"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'csv' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="csv" id="csv" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <FileIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="font-medium">CSV/Excel File</div>
+                    <div className="text-sm text-muted-foreground">Upload your own contact list</div>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <DialogFooter className="gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowProviderDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleContinue}
+              disabled={!localProvider}
+            >
+              Continue with {localProvider || ''}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   };
 
@@ -763,6 +921,7 @@ export const ImportAudience = () => {
         </div>
       )}
 
+      <ProviderSelectionDialog />
       {!showImportCards && (
         <Button
           variant="outline"
@@ -778,7 +937,6 @@ export const ImportAudience = () => {
           ← Back to Import Options
         </Button>
       )}
-
       {error && <div className="text-red-500">{error}</div>}
       {isLoading && <LoadingCircle />}
       {importMethod === 'enhance' && fileData && (

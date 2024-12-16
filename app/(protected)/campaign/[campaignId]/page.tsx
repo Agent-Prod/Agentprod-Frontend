@@ -82,23 +82,25 @@ export default function Page() {
           const AutopilotData = AutopilotResponse.data;
           const qualificationData = qualificationResponse.data;
 
-        setIsCampaignFound(!!campaignData && !campaignData.detail);
+          // If campaign exists, set as found
+          setIsCampaignFound(!!campaignData && !campaignData.detail);
 
-        const updatedFormsTracker = {
-          schedulingBudget: true,
-          offering: !!offeringData && !offeringData.detail,
-          goal: !!goalData && !goalData.detail,
-          qualification: !!qualificationData && !qualificationData.detail,
-          audience: !!audienceData && !audienceData.detail,
-          autoPilot: !!AutopilotData && !AutopilotData.detail,
-          training: !!AutopilotData && !AutopilotData.detail,
-        };
+          // Update forms tracker based on successful data
+          const updatedFormsTracker = {
+            schedulingBudget: true,
+            offering: !!campaignData && !campaignData.detail,
+            goal: !!offeringData && !offeringData.detail,
+            qualification: !!goalData && !goalData.detail,
+            audience: !!qualificationData && !qualificationData.detail,
+            autoPilot: !!audienceData && !audienceData.detail,
+            training: !!AutopilotData,
+          };
 
           localStorage.setItem(
             "formsTracker",
             JSON.stringify(updatedFormsTracker)
           );
-          
+
           setFormsTracker((prevFormsTracker) => ({
             ...prevFormsTracker,
             ...updatedFormsTracker,
@@ -169,9 +171,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              isOfferingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isOfferingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Offering</CardTitle>
@@ -200,9 +201,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              isGoalDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isGoalDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Goal</CardTitle>
@@ -227,9 +227,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              qualification ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${qualification ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Qualification</CardTitle>
@@ -258,9 +257,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              isAudienceDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAudienceDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Audience</CardTitle>
@@ -287,9 +285,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              isAutoPilotDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAutoPilotDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Autopilot</CardTitle>
@@ -318,9 +315,8 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${
-              isTrainingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
-            }`}
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isTrainingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+              }`}
           >
             <CardHeader>
               <CardTitle>Training</CardTitle>

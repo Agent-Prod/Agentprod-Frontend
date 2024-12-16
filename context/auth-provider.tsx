@@ -87,7 +87,7 @@ function getTokenFromCookies(): string | null {
 function setUserInCookies(user: User | null) {
   if (user) {
     console.log("user" + user)
-    setCookie(USER_KEY, JSON.stringify(user), { maxAge: 3600 }); // 1 hour
+    setCookie(USER_KEY, JSON.stringify(user), { maxAge: 604800 }); // 1 week
   } else {
     deleteCookie(USER_KEY);
   }
@@ -95,7 +95,7 @@ function setUserInCookies(user: User | null) {
 
 function setSessionInCookies(session: UserSession | null) {
   if (session) {
-    setCookie(SESSION_KEY, JSON.stringify(session), { maxAge: 3600 }); // 1 hour
+    setCookie(SESSION_KEY, JSON.stringify(session), { maxAge: 604800 }); // 1 week
   } else {
     deleteCookie(SESSION_KEY);
   }
@@ -103,7 +103,7 @@ function setSessionInCookies(session: UserSession | null) {
 
 function setTokenInCookies(token: string | null) {
   if (token) {
-    setCookie(TOKEN_KEY, token, { maxAge: 3600 }); // 1 hour
+    setCookie(TOKEN_KEY, token, { maxAge: 604800 }); // 1 hour
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     deleteCookie(TOKEN_KEY);

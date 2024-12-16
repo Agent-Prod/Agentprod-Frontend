@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,10 +7,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardContent,
 } from "@/components/ui/card";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ContactStatusPieChart } from "@/components/charts/pie-chart";
 
 const defaultFormsTracker = {
   schedulingBudget: true,
@@ -27,6 +30,10 @@ export default function Page() {
   const params = useParams();
   const [isCampaignFound, setIsCampaignFound] = useState<boolean | null>(null);
   const [formsTracker, setFormsTracker] = useState(defaultFormsTracker);
+  const [analyticsData, setAnalyticsData] = useState<{
+    replies: number;
+    contacts_status_map: Record<string, number>;
+  } | null>(null);
 
   useEffect(() => {
     // Initialize forms tracker if not present
@@ -66,6 +73,7 @@ export default function Page() {
             audienceResponse,
             AutopilotResponse,
             qualificationResponse,
+            analyticsResponse,
           ] = await Promise.all([
             axiosInstance.get(`v2/campaigns/${params.campaignId}`).catch(e => ({ data: null })),
             axiosInstance.get(`v2/goals/${params.campaignId}`).catch(e => ({ data: null })),
@@ -73,6 +81,7 @@ export default function Page() {
             axiosInstance.get(`v2/lead/campaign/${params.campaignId}`).catch(e => ({ data: null })),
             axiosInstance.get(`v2/autopilot/${params.campaignId}`).catch(e => ({ data: null })),
             axiosInstance.get(`v2/qualifications/${params.campaignId}`).catch(e => ({ data: null })),
+            axiosInstance.get(`v2/campaigns/${params.campaignId}/analytics`).catch(e => ({ data: null })),
           ]);
 
           const campaignData = campaignResponse.data;
@@ -81,6 +90,7 @@ export default function Page() {
           const audienceData = audienceResponse.data;
           const AutopilotData = AutopilotResponse.data;
           const qualificationData = qualificationResponse.data;
+          const analyticsData = analyticsResponse.data;
 
           // If campaign exists, set as found
           setIsCampaignFound(!!campaignData && !campaignData.detail);
@@ -105,6 +115,16 @@ export default function Page() {
             ...prevFormsTracker,
             ...updatedFormsTracker,
           }));
+
+          const analyticsDataWithoutDiscarded = {
+            ...analyticsData,
+            contacts_status_map: {
+              ...analyticsData.contacts_status_map,
+              DISCARDED: 0,
+            },
+          };
+
+          setAnalyticsData(analyticsDataWithoutDiscarded);
 
         } catch (error) {
           console.error("Error in Promise.all:", error);
@@ -342,6 +362,31 @@ export default function Page() {
                 </Link>
               </Button>
             </CardFooter>
+          </Card>
+
+          <Card className="w-[95%] min-w-[330px] m-2">
+            <CardHeader>
+              <CardTitle>Contact Status Distribution</CardTitle>
+              <CardDescription>
+                Overview of your contacts' current status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsData ? (
+                <ContactStatusPieChart data={analyticsData} />
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <p className="text-muted-foreground">No analytics data available</p>
+                </div>
+              )}
+            </CardContent>
+            {/* {analyticsData && (
+              <CardFooter className="flex justify-center">
+                <p className="text-sm text-muted-foreground">
+                  Total Replies: {analyticsData.replies}
+                </p>
+              </CardFooter>
+            )} */}
           </Card>
         </>
       )}

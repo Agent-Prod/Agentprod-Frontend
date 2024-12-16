@@ -55,7 +55,7 @@ export const ImportAudience = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [error, setError] = useState("");
-  const { leads, setLeads,selectedLeadIds } = useLeads();
+  const { leads, setLeads, selectedLeadIds } = useLeads();
   const [isLeadsTableActive, setIsLeadsTableActive] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
   const { user } = useAuth();
@@ -500,7 +500,7 @@ export const ImportAudience = () => {
 
       toast.success("Contacts imported successfully");
       setPageCompletion("audience", true);
-      
+
     } catch (error) {
       console.error("Direct import error:", error);
       toast.error("Failed to import contacts");
@@ -510,11 +510,11 @@ export const ImportAudience = () => {
   };
 
   const DirectImportTable = ({ data }: { data: FileData[] }) => {
-    const filteredData = data.filter(row => 
-      Object.values(row).some(value => 
-        value !== null && 
-        value !== undefined && 
-        value !== '' && 
+    const filteredData = data.filter(row =>
+      Object.values(row).some(value =>
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
         value !== 'Empty'
       )
     );
@@ -528,6 +528,7 @@ export const ImportAudience = () => {
     const handleLoadMore = () => {
       setCurrentPage(prev => prev + 1);
     };
+    const [dailyLimit, setDailyLimit] = useState<number>(25); // Default value of 50
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveContacts = async () => {
@@ -536,16 +537,17 @@ export const ImportAudience = () => {
         const payload = {
           user_id: user?.id,
           campaign_id: params.campaignId,
+          daily_limit: dailyLimit,
           leads: filteredData.map(lead => ({
             ...lead,
           }))
         };
 
         const response = await axiosInstance.post('v2/contacts/bulk-import', payload);
-        
+
         toast.success("Contacts saved successfully!");
-        
-        
+
+
 
       } catch (error) {
         console.error("Error saving contacts:", error);
@@ -587,14 +589,14 @@ export const ImportAudience = () => {
           <div className="relative max-w-[calc(100vw-2rem)]">
             <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
             <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
-            
+
             <div className="overflow-x-auto">
               <div className="min-w-max">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       {Object.keys(filteredData[0]).map((header) => (
-                        <TableHead 
+                        <TableHead
                           key={header}
                           className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider whitespace-nowrap"
                         >
@@ -605,12 +607,12 @@ export const ImportAudience = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredData.slice(startIndex, endIndex).map((row, index) => (
-                      <TableRow 
+                      <TableRow
                         key={index}
                         className="hover:bg-muted/50 transition-colors border-b last:border-0"
                       >
                         {Object.values(row).map((value, i) => (
-                          <TableCell 
+                          <TableCell
                             key={i}
                             className="py-2.5 text-sm whitespace-nowrap px-4"
                           >
@@ -636,7 +638,7 @@ export const ImportAudience = () => {
           <div className="border-t bg-muted/50 p-4 flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               {hasMoreRecords ? (
-                <div 
+                <div
                   className="cursor-pointer hover:text-primary transition-colors"
                   onClick={handleLoadMore}
                 >
@@ -646,40 +648,58 @@ export const ImportAudience = () => {
                 `Showing all ${filteredData.length} records`
               )}
             </div>
-            
+
           </div>
         </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowImportCards(true);
-                  setFile(undefined);
-                  setFileData(undefined);
-                  setDirectImportData(undefined);
-                  setImportMethod(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveContacts}
-                disabled={isSaving || filteredData.length === 0}
-                className="min-w-[140px]"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FileIcon className="mr-2 h-4 w-4" />
-                    Save {filteredData.length} Contacts
-                  </>
-                )}
-              </Button>
-            </div>
+        <div className="flex items-center gap-2">
+          <label
+            htmlFor="dailyLimit"
+            className="text-sm text-muted-foreground whitespace-nowrap"
+          >
+            Leads per day:
+          </label>
+          <Input
+            id="dailyLimit"
+            type="number"
+            min={1}
+            max={500}
+            value={dailyLimit}
+            onChange={(e) => setDailyLimit(Number(e.target.value))}
+            className="w-[100px] h-9"
+            placeholder="50"
+          />
+        </div>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowImportCards(true);
+              setFile(undefined);
+              setFileData(undefined);
+              setDirectImportData(undefined);
+              setImportMethod(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveContacts}
+            disabled={isSaving || filteredData.length === 0}
+            className="min-w-[140px]"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <FileIcon className="mr-2 h-4 w-4" />
+                Save {filteredData.length} Contacts
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -780,7 +800,7 @@ export const ImportAudience = () => {
               </TableHeader>
               <TableBody>
                 {Object.keys(fileData[0]).map((column, index) => (
-                  <TableRow 
+                  <TableRow
                     key={index}
                     className="hover:bg-muted/50 transition-colors"
                   >

@@ -84,8 +84,15 @@ export const ImportAudience = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
+      const file = event.target.files[0];
+      
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("File size exceeds 50MB limit");
+        return;
+      }
+
       setIsLoading(true);
-      setFile(event.target.files[0]);
+      setFile(file);
       setShowImportCards(false);
     }
   };
@@ -494,27 +501,21 @@ export const ImportAudience = () => {
     setShowProviderDialog(true);
   };
 
-  const handleDirectImport = async () => {
-    setIsCreateBtnLoading(true);
-    try {
-      const response = await axiosInstance.post('v2/direct-import/', {
-        user_id: user?.id,
-        campaign_id: params.campaignId,
-        leads: directImportData
-      });
-
-      toast.success("Contacts imported successfully");
-      setPageCompletion("audience", true);
-
-    } catch (error) {
-      console.error("Direct import error:", error);
-      toast.error("Failed to import contacts");
-    } finally {
-      setIsCreateBtnLoading(false);
-    }
-  };
+  
 
   const DirectImportTable = ({ data }: { data: FileData[] }) => {
+    // Add record count check
+    useEffect(() => {
+      if (data.length > 2000) {
+        toast.error("File contains more than 2000 records. Please reduce the number of records.");
+        setShowImportCards(true);
+        setFile(undefined);
+        setFileData(undefined);
+        setDirectImportData(undefined);
+        setImportMethod(null);
+      }
+    }, [data]);
+
     const filteredData = data.filter(row =>
       Object.values(row).some(value =>
         value !== null &&
@@ -551,13 +552,74 @@ export const ImportAudience = () => {
 
         const response = await axiosInstance.post('v2/contacts/bulk-import', payload);
 
-        toast.success("Contacts saved successfully!");
+        const getRecData = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
+        );
+        
+        if (getRecData.data.schedule_type === "recurring") {
+          const recurringResponse = await axiosInstance.post(
+            "v2/recurring_campaign_request",
+            {
+              campaign_id: params.campaignId,
+              user_id: user?.id,
+              apollo_url: "",
+              page: dailyLimit,
+              is_active: false,
+              leads_count: dailyLimit,
+            }
+          );
+        }
+
+        toast.info("Updating user details, please wait...");
+
+        // Start polling for leads
+        let attempts = 0;
+        const maxAttempts = 15;
+        const pollInterval = 6000; // 7 seconds
+
+        const checkLeads = async () => {
+          try {
+            const response = await axiosInstance.get(
+              `v2/lead/campaign/${params.campaignId}`
+            );
+            if (Array.isArray(response.data) && response.data.length >= 1) {
+
+              setTimeout(() => {
+                router.push(`/campaign/${params.campaignId}`);
+              }, 4000);
+
+              return true;
+            }
+          } catch (error) {
+            console.error("Error checking leads:", error);
+          }
+          return false;
+        };
+
+        const poll = async () => {
+          const success = await checkLeads();
+          if (success) {
+            return;
+          }
+
+          attempts++;
+          if (attempts >= maxAttempts) {
+            console.log("Max attempts reached. Stopping polling.");
+            toast.error("Failed to update leads. Please try again later.");
+            setIsSaving(false);
+            return;
+          }
+
+          setTimeout(poll, pollInterval);
+        };
+
+        poll(); 
 
 
 
       } catch (error) {
         console.error("Error saving contacts:", error);
-        toast.error("Failed to save contacts. Please try again.");
+        toast.error("Failed to save contacts. Please try again.", { id: "import" });
       } finally {
         setIsSaving(false);
       }
@@ -572,23 +634,6 @@ export const ImportAudience = () => {
               Showing {Math.min(endIndex, filteredData.length)} of {filteredData.length} total records
             </p>
           </div>
-          <Button
-            onClick={handleDirectImport}
-            disabled={isCreateBtnLoading}
-            className="px-6"
-          >
-            {isCreateBtnLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <FileIcon className="mr-2 h-4 w-4" />
-                Import {filteredData.length} Contacts
-              </>
-            )}
-          </Button>
         </div>
 
         <div className="rounded-lg border bg-card">
@@ -688,6 +733,7 @@ export const ImportAudience = () => {
               setDirectImportData(undefined);
               setImportMethod(null);
             }}
+            disabled={isSaving}
           >
             Cancel
           </Button>
@@ -708,6 +754,18 @@ export const ImportAudience = () => {
             )}
           </Button>
         </div>
+
+        {isSaving && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-card p-6 rounded-lg shadow-lg text-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              <p className="text-lg font-medium">Processing your contacts...</p>
+              <p className="text-sm text-muted-foreground">
+                This may take a few moments. Please don't close this window.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -902,8 +960,8 @@ export const ImportAudience = () => {
                     <li>Upload your file (CSV, Excel, etc.)</li>
                     <li>Direct import of your contacts</li>
                     <li>No enrichment process</li>
-                    <li>Faster import process</li>
-                    <li>Use your existing data as-is</li>
+                    <li>Maximum file size: 50MB</li>
+                    <li>Maximum 2000 records per import</li>
                   </ul>
                 </CardDescription>
               </CardHeader>

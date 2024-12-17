@@ -70,8 +70,8 @@ export function ContactStatusPieChart({ data }: PieChartProps) {
     };
 
     return (
-        <div className="w-full h-[400px] p-4 bg-white rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Contact Status Distribution</h3>
+        <div className="w-full h-[400px] p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-4">Contact Status Distribution</h3>
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie

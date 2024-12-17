@@ -620,9 +620,7 @@ export const ImportAudience = () => {
       } catch (error) {
         console.error("Error saving contacts:", error);
         toast.error("Failed to save contacts. Please try again.", { id: "import" });
-      } finally {
-        setIsSaving(false);
-      }
+      } 
     };
 
     return (

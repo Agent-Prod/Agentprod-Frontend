@@ -639,7 +639,7 @@ export const PeopleProfileSheet = ({
 
             {data.social_monitoring_data && (
               <Collapsible
-                open={socialMonitoringOpen}
+                open={data.social_monitoring_data.length > 0}
                 onOpenChange={setSocialMonitoringOpen}
                 className="pt-4 space-y-2 text-muted-foreground w-full"
               >
@@ -730,69 +730,91 @@ export const PeopleProfileSheet = ({
                     );
                   })}
 
-                  {/* Personalized Social Info */}
-                  {data.personalized_social_info && (
-                    <Card className="p-4 bg-secondary/5">
-                      <CardHeader className="p-0 pb-3">
-                        <CardTitle className="text-sm">Personalized Insights</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0 space-y-4">
-                        {[
-                          {
-                            title: 'Brief Background',
-                            content: data.personalized_social_info
-                              .split('## Brief Background')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          },
-                          {
-                            title: 'Recent Professional Activities',
-                            content: data.personalized_social_info
-                              .split('## Recent Professional Activities')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          },
-                          {
-                            title: 'Current Role and Updates',
-                            content: data.personalized_social_info
-                              .split('## Current Role and Organizational Updates')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          },
-                          {
-                            title: 'Industry Contributions',
-                            content: data.personalized_social_info
-                              .split('## Notable Industry Contributions')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          },
-                          {
-                            title: 'Areas of Focus',
-                            content: data.personalized_social_info
-                              .split('## Key Areas of Focus')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          },
-                          {
-                            title: 'News and Mentions',
-                            content: data.personalized_social_info
-                              .split('## Relevant News')[1]
-                              ?.split('##')[0]
-                              ?.trim()
-                          }
-                        ].map((section, index) =>
-                          section.content && (
-                            <div key={index} className="space-y-2">
-                              <h3 className="text-xs font-medium">{section.title}</h3>
-                              <p className="text-xs text-muted-foreground">
-                                {section.content}
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Personalized Social Info */}
+            {data.personalized_social_info && (
+              <Collapsible
+                open={data.personalized_social_info.length > 0}
+                onOpenChange={setSocialMonitoringOpen}
+                className="pt-4 space-y-2 text-muted-foreground w-full"
+              >
+                <div className="flex items-center justify-between space-x-4 w-full">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    Lead Insights
+                  </h4>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-9 p-0">
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="sr-only">Toggle</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+
+                <CollapsibleContent className="space-y-3 w-full">
+                  <Card className="p-4 bg-secondary/5">
+                    <CardHeader className="p-0 pb-3">
+                      <CardTitle className="text-sm">Personalized Insights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 space-y-4">
+                      {[
+                        {
+                          title: 'Brief Background',
+                          content: data.personalized_social_info
+                            .split('## Brief Background')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        },
+                        {
+                          title: 'Recent Professional Activities',
+                          content: data.personalized_social_info
+                            .split('## Recent Professional Activities and Developments')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        },
+                        {
+                          title: 'Current Role and Updates',
+                          content: data.personalized_social_info
+                            .split('## Current Role and Organizational Updates ')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        },
+                        {
+                          title: 'Industry Contributions',
+                          content: data.personalized_social_info
+                            .split('## Notable Industry Contributions or Public Appearances')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        },
+                        {
+                          title: 'Areas of Focus',
+                          content: data.personalized_social_info
+                            .split('## Key Areas of Focus and Expertise')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        },
+                        {
+                          title: 'News and Mentions',
+                          content: data.personalized_social_info
+                            .split('## Relevant News or Public Mentions')[1]
+                            ?.split('##')[0]
+                            ?.trim()
+                        }
+                      ].map((section, index) =>
+                        section.content && (
+                          <div key={index} className="space-y-2">
+                            <h3 className="text-xs font-medium">{section.title}</h3>
+                            <p className="text-xs text-muted-foreground">
+                              {section.content}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </CardContent>
+                  </Card>
                 </CollapsibleContent>
               </Collapsible>
             )}

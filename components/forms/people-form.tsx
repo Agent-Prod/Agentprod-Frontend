@@ -959,6 +959,7 @@ export default function PeopleForm(): JSX.Element {
       linkedin_posts: lead.linkedin_posts,
       linkedin_bio: lead.linkedin_bio || "",
       social_monitoring_data: lead.social_monitoring_data || "",
+      personalized_social_info: lead.personalized_social_info || "",
     }));
   }
 

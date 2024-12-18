@@ -419,7 +419,7 @@ export default function Training() {
   };
 
   const handleTestCampaign = async () => {
-    toast.loading("Testing campaign...");
+    const loadingToast = toast.loading("Testing campaign...");
     setTestCampLoading(true);
     try {
       const res = await axiosInstance.post(
@@ -432,8 +432,10 @@ export default function Training() {
         }
       );
       setTestCamp(res.data[0]);
+      toast.dismiss(loadingToast);
       toast.success("Testing campaign complete");
     } catch (error) {
+      toast.dismiss(loadingToast);
       toast.error("Failed to test campaign");
     } finally {
       setTestCampLoading(false);

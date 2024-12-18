@@ -1901,6 +1901,12 @@ export default function PeopleForm(): JSX.Element {
                       value={likelyToEngage}
                     >
                       <div className="flex space-x-4">
+                      <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="" id="all" />
+                          <Label htmlFor="all" className="text-sm cursor-pointer">
+                            All
+                          </Label>
+                        </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="verified" id="verified" />
                           <Label htmlFor="verified" className="text-sm cursor-pointer">

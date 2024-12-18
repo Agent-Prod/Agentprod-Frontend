@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/jsx-no-comment-textnodes */
 import { useState, useEffect, useRef } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
@@ -55,7 +57,7 @@ export const ImportAudience = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [error, setError] = useState("");
-  const { leads, setLeads,selectedLeadIds } = useLeads();
+  const { leads, setLeads, selectedLeadIds } = useLeads();
   const [isLeadsTableActive, setIsLeadsTableActive] = useState(false);
   const [isCreateBtnLoading, setIsCreateBtnLoading] = useState(false);
   const { user } = useAuth();
@@ -276,6 +278,7 @@ export const ImportAudience = () => {
         linkedin_posts: [],
         linkedin_bio: lead.linkedin_bio || "",
         social_monitoring_data: lead.social_monitoring_data || "",
+        personalized_social_info: lead.personalized_social_info || "",
       }));
 
       setLeads(processedLeads);
@@ -346,6 +349,7 @@ export const ImportAudience = () => {
       linkedin_posts: lead.linkedin_posts || [],
       linkedin_bio: lead.linkedin_bio || "",
       social_monitoring_data: lead.social_monitoring_data || "",
+      personalized_social_info: lead.personalized_social_info || "",
     }));
   }
 

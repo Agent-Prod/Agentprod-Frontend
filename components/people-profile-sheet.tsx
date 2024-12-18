@@ -661,19 +661,20 @@ export const PeopleProfileSheet = ({
                   {data.social_monitoring_data.includes('Description') && (
                     <Card className="p-4 bg-secondary/5">
                       <CardHeader className="p-0 pb-3">
-                        <CardTitle className="text-sm">Company Description</CardTitle>
+                        <CardTitle className="text-sm">Company Overview</CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <p className="text-xs text-muted-foreground">
-                          {data.social_monitoring_data.split('### Recent Social Media Monitoring Data')[0]
-                            .replace('### Skycliff IT Company Description', '')
+                          {data.social_monitoring_data
+                            .split('### Recent Social')[0]
+                            .replace(/###.*Description/g, '')
                             .trim()}
                         </p>
                       </CardContent>
                     </Card>
                   )}
 
-                  {/* Platform Cards */}
+                  {/* Social Media Sections */}
                   {[
                     { name: 'Google News', icon: <Search className="h-4 w-4" /> },
                     { name: 'G2 Reviews', icon: <Star className="h-4 w-4" /> },
@@ -683,62 +684,45 @@ export const PeopleProfileSheet = ({
                     { name: 'Instagram', icon: <Instagram className="h-4 w-4" /> },
                     { name: 'Additional Sources', icon: <Link className="h-4 w-4" /> }
                   ].map((platform) => {
-                    // Extract platform-specific data
                     const platformData = data.social_monitoring_data
                       .split('####')
                       .find(section => section.includes(platform.name));
 
-                    // Only show platforms with actual data
-                    const hasData = platformData &&
-                      !platformData.includes('No data available') &&
-                      !platformData.includes('No relevant recent posts available');
+                    if (!platformData ||
+                      platformData.includes('No data available') ||
+                      platformData.includes('Not Available')) return null;
 
-                    // Skip rendering if no data
-                    if (!hasData) return null;
+                    const posts = platformData
+                      .split(/(?=-\s*\*\*Date)/)
+                      .filter(post => post.trim());
 
                     return (
-                      <Card key={platform.name} className="bg-secondary/5 border-border">
+                      <Card key={platform.name} className="bg-secondary/5">
                         <div className="p-4">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-3">
                             {platform.icon}
                             <h4 className="text-sm font-medium">{platform.name}</h4>
                           </div>
 
-                          <div className="space-y-2 ml-6">
-                            {platformData?.split('\n').map((line, index) => {
-                              if (line.includes('**Date:**')) {
-                                return (
-                                  <div key={index} className="text-xs">
-                                    <span className="font-medium">Date:</span>
-                                    {line.replace('**Date:**', '').trim()}
-                                  </div>
-                                );
-                              }
-                              if (line.includes('**Source/Author:**')) {
-                                return (
-                                  <div key={index} className="text-xs text-muted-foreground">
-                                    <span className="font-medium">Source:</span>
-                                    {line.replace('**Source/Author:**', '').trim()}
-                                  </div>
-                                );
-                              }
-                              if (line.includes('**Content Summary:**')) {
-                                return (
-                                  <div key={index} className="text-xs">
-                                    <span className="font-medium">Summary:</span>
-                                    {line.replace('**Content Summary:**', '').trim()}
-                                  </div>
-                                );
-                              }
-                              if (line.includes('**Key Themes:**')) {
-                                return (
-                                  <div key={index} className="text-xs text-muted-foreground">
-                                    <span className="font-medium">Themes:</span>
-                                    {line.replace('**Key Themes:**', '').trim()}
-                                  </div>
-                                );
-                              }
-                              return null;
+                          <div className="space-y-4">
+                            {posts.map((post, index) => {
+                              const date = post.match(/\*\*Date:\*\* ([^\n]*)/)?.[1];
+                              const source = post.match(/\*\*Source[^:]*:\*\* ([^\n]*)/)?.[1];
+                              const content = post.match(/\*\*Content Summary:\*\* ([^\n]*)/)?.[1];
+                              const themes = post.match(/\*\*Key Themes:\*\* ([^\n]*)/)?.[1];
+                              const headline = post.match(/\*\*Headline:\*\* ([^\n]*)/)?.[1];
+                              const metrics = post.match(/\*\*Engagement Metrics:\*\* ([^\n]*)/)?.[1];
+
+                              return (
+                                <div key={index} className="ml-6 space-y-1 text-xs">
+                                  {date && <div><span className="font-medium">Date:</span> {date}</div>}
+                                  {source && <div className="text-muted-foreground"><span className="font-medium">Source:</span> {source}</div>}
+                                  {headline && <div><span className="font-medium">Headline:</span> {headline}</div>}
+                                  {content && <div><span className="font-medium">Summary:</span> {content}</div>}
+                                  {themes && <div className="text-muted-foreground"><span className="font-medium">Themes:</span> {themes}</div>}
+                                  {metrics && <div className="text-muted-foreground"><span className="font-medium">Engagement:</span> {metrics}</div>}
+                                </div>
+                              );
                             })}
                           </div>
                         </div>
@@ -746,19 +730,66 @@ export const PeopleProfileSheet = ({
                     );
                   })}
 
-                  {/* Summary Section */}
-                  {data.social_monitoring_data.includes('In summary') && (
+                  {/* Personalized Social Info */}
+                  {data.personalized_social_info && (
                     <Card className="p-4 bg-secondary/5">
                       <CardHeader className="p-0 pb-3">
-                        <CardTitle className="text-sm">Summary</CardTitle>
+                        <CardTitle className="text-sm">Personalized Insights</CardTitle>
                       </CardHeader>
-                      <CardContent className="p-0">
-                        <p className="text-xs text-muted-foreground">
-                          {data.social_monitoring_data
-                            .split('In summary,')[1]
-                            .split('\n')[0]
-                            .trim()}
-                        </p>
+                      <CardContent className="p-0 space-y-4">
+                        {[
+                          {
+                            title: 'Brief Background',
+                            content: data.personalized_social_info
+                              .split('## Brief Background')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          },
+                          {
+                            title: 'Recent Professional Activities',
+                            content: data.personalized_social_info
+                              .split('## Recent Professional Activities')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          },
+                          {
+                            title: 'Current Role and Updates',
+                            content: data.personalized_social_info
+                              .split('## Current Role and Organizational Updates')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          },
+                          {
+                            title: 'Industry Contributions',
+                            content: data.personalized_social_info
+                              .split('## Notable Industry Contributions')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          },
+                          {
+                            title: 'Areas of Focus',
+                            content: data.personalized_social_info
+                              .split('## Key Areas of Focus')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          },
+                          {
+                            title: 'News and Mentions',
+                            content: data.personalized_social_info
+                              .split('## Relevant News')[1]
+                              ?.split('##')[0]
+                              ?.trim()
+                          }
+                        ].map((section, index) =>
+                          section.content && (
+                            <div key={index} className="space-y-2">
+                              <h3 className="text-xs font-medium">{section.title}</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {section.content}
+                              </p>
+                            </div>
+                          )
+                        )}
                       </CardContent>
                     </Card>
                   )}

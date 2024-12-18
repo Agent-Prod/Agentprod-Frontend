@@ -92,6 +92,7 @@ export interface Lead {
   linkedin_bio: string;
   connected_on_linkedin?: any;
   social_monitoring_data: string;
+  personalized_social_info?: string;
 }
 
 export interface Contact {
@@ -143,6 +144,7 @@ export interface Contact {
   linkedin_bio: string;
   connected_on_linkedin?: any;
   social_monitoring_data: string;
+  personalized_social_info?: string;
 }
 
 // Define the state structure for our context
@@ -158,11 +160,11 @@ interface LeadsContextState {
 // Default state with initial values
 const defaultState: LeadsContextState = {
   leads: [],
-  setLeads: () => {},
+  setLeads: () => { },
   existingLeads: [],
-  setExistingLeads: () => {},
+  setExistingLeads: () => { },
   selectedLeadIds: [],
-  setSelectedLeadIds: () => {},
+  setSelectedLeadIds: () => { },
 };
 
 // Creating the context

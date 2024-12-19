@@ -25,6 +25,14 @@ function Omni() {
     [setEdges]
   );
 
+  // Common node style
+  const nodeStyle = {
+    background: 'transparent',
+    border: '2px solid #6b7280',
+    borderRadius: '8px',
+    padding: '10px',
+  };
+
   const createInviteFlow = (baseX: number = 250, baseY: number = 100) => {
     const newNodes = [
       {
@@ -33,9 +41,11 @@ function Omni() {
         data: { 
           label: 'Send an invite',
           icon: '💌',
+          status: 'pending',
+          duration: '1 day'
         },
         position: { x: baseX, y: baseY },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'invite-pending',
@@ -46,7 +56,7 @@ function Omni() {
           duration: '1 day',
         },
         position: { x: baseX - 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'invite-accepted',
@@ -57,7 +67,7 @@ function Omni() {
           duration: '1 day',
         },
         position: { x: baseX + 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
     ];
 
@@ -92,7 +102,7 @@ function Omni() {
           icon: '✉️',
         },
         position: { x: baseX, y: baseY },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'message-sent',
@@ -103,7 +113,7 @@ function Omni() {
           duration: '2 days',
         },
         position: { x: baseX - 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'message-replied',
@@ -114,7 +124,7 @@ function Omni() {
           duration: '1 day',
         },
         position: { x: baseX + 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
     ];
 
@@ -149,7 +159,7 @@ function Omni() {
           icon: '👤',
         },
         position: { x: baseX, y: baseY },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'profile-viewed',
@@ -160,7 +170,7 @@ function Omni() {
           duration: '3 days',
         },
         position: { x: baseX, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       }
     ];
 
@@ -188,7 +198,7 @@ function Omni() {
           icon: '👍',
         },
         position: { x: baseX, y: baseY },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'endorse-pending',
@@ -199,7 +209,7 @@ function Omni() {
           duration: '2 days',
         },
         position: { x: baseX - 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       },
       {
         id: 'endorse-reciprocated',
@@ -210,7 +220,7 @@ function Omni() {
           duration: '1 day',
         },
         position: { x: baseX + 150, y: baseY + 100 },
-        style: { background: 'transparent' },
+        style: nodeStyle
       }
     ];
 
@@ -235,8 +245,126 @@ function Omni() {
     setEdges(newEdges);
   };
 
+  const createFollowFlow = (baseX: number = 250, baseY: number = 100) => {
+    const newNodes = [
+      {
+        id: 'follow-main',
+        type: 'default',
+        data: { 
+          label: 'Follow',
+          icon: '➡️',
+          status: 'pending',
+          duration: '1 day'
+        },
+        position: { x: baseX, y: baseY },
+        style: nodeStyle
+      },
+      {
+        id: 'follow-pending',
+        type: 'default',
+        data: { 
+          label: '2 days',
+          status: 'Not following back',
+          duration: '2 days',
+        },
+        position: { x: baseX - 150, y: baseY + 100 },
+        style: nodeStyle
+      },
+      {
+        id: 'follow-reciprocated',
+        type: 'default',
+        data: { 
+          label: '1 day',
+          status: 'Following back',
+          duration: '1 day',
+        },
+        position: { x: baseX + 150, y: baseY + 100 },
+        style: nodeStyle
+      }
+    ];
+
+    const newEdges = [
+      {
+        id: 'edge-follow-pending',
+        source: 'follow-main',
+        target: 'follow-pending',
+        label: 'Not following back',
+        type: 'smoothstep',
+      },
+      {
+        id: 'edge-follow-reciprocated',
+        source: 'follow-main',
+        target: 'follow-reciprocated',
+        label: 'Following back',
+        type: 'smoothstep',
+      }
+    ];
+
+    setNodes(newNodes);
+    setEdges(newEdges);
+  };
+
+  const createLikeFlow = (baseX: number = 250, baseY: number = 100) => {
+    const newNodes = [
+      {
+        id: 'like-main',
+        type: 'default',
+        data: { 
+          label: 'Like a post',
+          icon: '❤️',
+          status: 'pending',
+          duration: '1 day'
+        },
+        position: { x: baseX, y: baseY },
+        style: nodeStyle
+      },
+      {
+        id: 'like-pending',
+        type: 'default',
+        data: { 
+          label: '2 days',
+          status: 'Not liked back',
+          duration: '2 days',
+        },
+        position: { x: baseX - 150, y: baseY + 100 },
+        style: nodeStyle
+      },
+      {
+        id: 'like-reciprocated',
+        type: 'default',
+        data: { 
+          label: '1 day',
+          status: 'Liked back',
+          duration: '1 day',
+        },
+        position: { x: baseX + 150, y: baseY + 100 },
+        style: nodeStyle
+      }
+    ];
+
+    const newEdges = [
+      {
+        id: 'edge-like-pending',
+        source: 'like-main',
+        target: 'like-pending',
+        label: 'Not liked back',
+        type: 'smoothstep',
+      },
+      {
+        id: 'edge-like-reciprocated',
+        source: 'like-main',
+        target: 'like-reciprocated',
+        label: 'Liked back',
+        type: 'smoothstep',
+      }
+    ];
+
+    setNodes(newNodes);
+    setEdges(newEdges);
+  };
+
   const handleCreateNode = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'invite':
         createInviteFlow();
         break;
@@ -250,18 +378,65 @@ function Omni() {
         createEndorseFlow();
         break;
       case 'follow':
-
+        createFollowFlow();
         break;
       case 'like':
-
+        createLikeFlow();
         break;
       default:
-        break;
+        // Default node creation if needed
+        const newNode = {
+          id: `${type}-${Date.now()}`,
+          type: 'default',
+          position: { x: Math.random() * 500, y: Math.random() * 300 },
+          data: { 
+            label: type.charAt(0).toUpperCase() + type.slice(1),
+            status: 'pending',
+            duration: '1 day'
+          },
+          style: {
+            background: 'transparent',
+            border: '2px solid #6b7280',
+            borderRadius: '8px',
+            padding: '10px',
+          }
+        };
+        setNodes((nds) => [...nds, newNode]);
     }
   };
 
   const onNodeClick = (event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
+  };
+
+  const onNodeUpdate = (nodeId: string, newData: any) => {
+    if (newData.status === 'deleted') {
+      setEdges((eds) => 
+        eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+      );
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setSelectedNode(null);
+      return;
+    }
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          const updatedNode = {
+            ...node,
+            data: {
+              ...node.data,
+              ...newData
+            }
+          };
+          if (selectedNode?.id === nodeId) {
+            setSelectedNode(updatedNode);
+          }
+          return updatedNode;
+        }
+        return node;
+      })
+    );
   };
 
   return (
@@ -278,32 +453,21 @@ function Omni() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
-          // nodeTypes={}
           defaultViewport={{ x: 0, y: 0, zoom: 1.5 }}
           fitView
         >
-        
           <Background />
         </ReactFlow>
       </div>
 
-      {selectedNode && (
-        <div className='w-[300px]'>
-          <NodeDetailsSidebar 
-            node={selectedNode} 
-            onClose={() => setSelectedNode(null)}
-            onUpdate={(node) => {
-              const updatedNodes = nodes.map((n) => {
-                if (n.id === node.id) {
-                  return { ...n, data: { ...n.data, ...node.data } };
-                }
-                return n;
-              });
-              setNodes(updatedNodes);
-            }}
-          />
-        </div>
-      )}
+      <div className='w-[300px] border-l dark:border-white/20 border-zinc-800/30'>
+        <NodeDetailsSidebar 
+          node={selectedNode} 
+          onClose={() => setSelectedNode(null)}
+          onUpdate={onNodeUpdate}
+          onCreateNode={handleCreateNode}
+        />
+      </div>
     </div>
   );
 }

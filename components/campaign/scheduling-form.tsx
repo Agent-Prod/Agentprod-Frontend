@@ -43,7 +43,7 @@ const campaignFormSchema = z.object({
     weekdayStartTime: z.string().optional(),
     weekdayEndTime: z.string().optional(),
   }),
-  channelType: z.enum(["mail", "Linkedin"], {
+  channelType: z.enum(["mail", "Linkedin", "omni"], {
     required_error: "Please select a channel type.",
   }),
 });
@@ -308,6 +308,20 @@ export function SchedulingForm() {
                       className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
                     >
                       Linkedin
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem
+                        value="omni"
+                        disabled={type === "edit"}
+                        className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                      />
+                    </FormControl>
+                    <FormLabel
+                      className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                    >
+                      Omni
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>

@@ -41,6 +41,7 @@ import { useButtonStatus } from "@/context/button-status";
 import Link from "next/link";
 import axios from "axios";
 import { useAuth } from "@/context/auth-provider";
+import Omni from "./react-flow/omni";
 
 const goalFormSchema = z.object({
   success_metric: z.string(),
@@ -182,9 +183,9 @@ export function GoalForm() {
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
-        
-          await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
-        
+
+        await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
+
       }
       const updatedFormsTracker = {
         schedulingBudget: true,
@@ -325,320 +326,321 @@ export function GoalForm() {
     return `${emailFields.length} ${campaignChannel === 'Linkedin' ? 'accounts' : 'emails'} selected`;
   };
 
-  return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit, (errors) => {
-        console.log('Form validation errors:', errors);
-      })} className="space-y-8 mb-5">
-        <FormField
-          control={form.control}
-          name="success_metric"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <div>
-                <FormLabel>Goal</FormLabel>
-                <FormDescription>
-                  How success is measured for this campaign
-                </FormDescription>
-              </div>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  value={field.value || goalData?.success_metric}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Meeting scheduled" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Meeting scheduled
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Link clicked" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Link clicked</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Reply received" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Reply received
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Custom goal" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Custom goal</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {form.watch("success_metric") === "Meeting scheduled" && (
+  return (<>{
+    campaignChannel === 'omni' ? (<><Omni /></>) : (
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit, (errors) => {
+          console.log('Form validation errors:', errors);
+        })} className="space-y-8 mb-5">
           <FormField
             control={form.control}
-            name="scheduling_link"
+            name="success_metric"
             render={({ field }) => (
               <FormItem className="space-y-3">
                 <div>
-                  <FormLabel>Scheduling Link</FormLabel>
+                  <FormLabel>Goal</FormLabel>
+                  <FormDescription>
+                    How success is measured for this campaign
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    value={field.value || goalData?.success_metric}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Meeting scheduled" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Meeting scheduled
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Link clicked" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Link clicked</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Reply received" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Reply received
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Custom goal" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Custom goal</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.watch("success_metric") === "Meeting scheduled" && (
+            <FormField
+              control={form.control}
+              name="scheduling_link"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div>
+                    <FormLabel>Scheduling Link</FormLabel>
+                    <FormDescription>
+                      Where prospects can schedule a meeting with you
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://calendly.com/example"
+                      {...field}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+
+          <FormField
+            control={form.control}
+            name="emails"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
                   <FormDescription>
                     Where prospects can schedule a meeting with you
                   </FormDescription>
                 </div>
                 <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center justify-between w-1/4"
+                      >
+                        <span className="truncate">{getDisplayText()}</span>
+                        <ChevronDown size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[400px]" align="start">
+                      <ScrollArea className="h-auto">
+                        <DropdownMenuGroup className="p-2">
+                          {mailboxes &&
+                            mailboxes.length > 0 &&
+                            mailboxes[0].mailbox !== null ? (
+                            mailboxes
+                              .filter(mailbox => {
+                                if (campaignChannel === 'Linkedin') {
+                                  return mailbox.mailbox.toLowerCase().includes('linkedin');
+                                }
+                                return true;
+                              })
+                              .map((mailbox, index) => (
+                                <DropdownMenuItem
+                                  key={index}
+                                  className="p-0 focus:bg-transparent"
+                                >
+                                  <div
+                                    className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <Checkbox
+                                      checked={emailFields.some(
+                                        (emailField) =>
+                                          emailField.value === mailbox.mailbox
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          onEmailAppend(mailbox.mailbox, {
+                                            id: mailbox.id,
+                                            platform: campaignChannel
+                                          });
+                                        } else {
+                                          onEmailRemove(mailbox.mailbox);
+                                          if (campaignChannel === 'Linkedin') {
+                                            setSelectedLinkedInId([]);
+                                          }
+                                        }
+                                      }}
+                                    />
+                                    <label className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                      {mailbox.sender_name} - {mailbox.mailbox}
+                                    </label>
+                                  </div>
+                                </DropdownMenuItem>
+                              ))
+                          ) : (
+                            <div className="text-sm m-2 text-center">
+                              <p> No mailboxes connected.</p>
+                              <p>
+                                You can add a mailbox on the{" "}
+                                <Link
+                                  href="/settings/mailbox"
+                                  className="text-blue-600 underline"
+                                >
+                                  Settings
+                                </Link>{" "}
+                                page.
+                              </p>
+                            </div>
+                          )}
+                        </DropdownMenuGroup>
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {campaignChannel === 'Linkedin' && (<div>
+            <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
+
+            <div className="flex gap-4 items-center mt-3">
+              <FormField
+                control={form.control}
+                name="like_post"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <p className="text-sm mb-3">Like last posts (count)</p>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? 0 : Number(value));
+                        }}
+                        min="0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="withdraw_invite"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <p className="text-sm mb-3">Withdraw invite after (days)</p>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? 0 : Number(value));
+                        }}
+                        min="0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>)}
+
+          <div>
+            <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
+
+            <div className="flex gap-4 items-center mt-3">
+              <FormField
+                control={form.control}
+                name="follow_up_days"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <p className="text-sm mb-3">Days between follow-ups</p>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numberValue =
+                            value === "" ? undefined : Number(value);
+                          field.onChange(numberValue);
+                        }}
+                        min="0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="follow_up_times"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <p className="text-sm mb-3">Number of follow-ups</p>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numberValue =
+                            value === "" ? undefined : Number(value);
+                          field.onChange(numberValue);
+                        }}
+                        min="0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="mark_as_lost"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Mark as lost</FormLabel>
+                <FormControl>
                   <Input
-                    type="url"
-                    placeholder="https://calendly.com/example"
+                    type="number"
+                    placeholder="eg. 10 days"
                     {...field}
-                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numberValue =
+                        value === "" ? undefined : Number(value);
+                      field.onChange(numberValue);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        )}
 
-
-        <FormField
-          control={form.control}
-          name="emails"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <div>
-                <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
-                <FormDescription>
-                  Where prospects can schedule a meeting with you
-                </FormDescription>
-              </div>
-              <FormControl>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-between w-1/4"
-                    >
-                      <span className="truncate">{getDisplayText()}</span>
-                      <ChevronDown size={20} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[400px]" align="start">
-                    <ScrollArea className="h-auto">
-                      <DropdownMenuGroup className="p-2">
-                        {mailboxes &&
-                          mailboxes.length > 0 &&
-                          mailboxes[0].mailbox !== null ? (
-                          mailboxes
-                            .filter(mailbox => {
-                              if (campaignChannel === 'Linkedin') {
-                                return mailbox.mailbox.toLowerCase().includes('linkedin');
-                              }
-                              return true;
-                            })
-                            .map((mailbox, index) => (
-                              <DropdownMenuItem
-                                key={index}
-                                className="p-0 focus:bg-transparent"
-                              >
-                                <div
-                                  className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-                                  onClick={(event) => event.stopPropagation()}
-                                >
-                                  <Checkbox
-                                    checked={emailFields.some(
-                                      (emailField) =>
-                                        emailField.value === mailbox.mailbox
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        onEmailAppend(mailbox.mailbox, {
-                                          id: mailbox.id,
-                                          platform: campaignChannel
-                                        });
-                                      } else {
-                                        onEmailRemove(mailbox.mailbox);
-                                        if (campaignChannel === 'Linkedin') {
-                                          setSelectedLinkedInId([]);
-                                        }
-                                      }
-                                    }}
-                                  />
-                                  <label className="text-sm font-medium leading-none cursor-pointer flex-1">
-                                    {mailbox.sender_name} - {mailbox.mailbox}
-                                  </label>
-                                </div>
-                              </DropdownMenuItem>
-                            ))
-                        ) : (
-                          <div className="text-sm m-2 text-center">
-                            <p> No mailboxes connected.</p>
-                            <p>
-                              You can add a mailbox on the{" "}
-                              <Link
-                                href="/settings/mailbox"
-                                className="text-blue-600 underline"
-                              >
-                                Settings
-                              </Link>{" "}
-                              page.
-                            </p>
-                          </div>
-                        )}
-                      </DropdownMenuGroup>
-                    </ScrollArea>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          {type === "edit" ? (
+            <Button type="submit">Update Goal</Button>
+          ) : (
+            <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
           )}
-        />
-
-        {campaignChannel === 'Linkedin' && (<div>
-          <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
-
-          <div className="flex gap-4 items-center mt-3">
-            <FormField
-              control={form.control}
-              name="like_post"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <p className="text-sm mb-3">Like last posts (count)</p>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === '' ? 0 : Number(value));
-                      }}
-                      min="0"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="withdraw_invite"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <p className="text-sm mb-3">Withdraw invite after (days)</p>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === '' ? 0 : Number(value));
-                      }}
-                      min="0"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>)}
-
-        <div>
-          <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
-
-          <div className="flex gap-4 items-center mt-3">
-            <FormField
-              control={form.control}
-              name="follow_up_days"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <p className="text-sm mb-3">Days between follow-ups</p>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const numberValue =
-                          value === "" ? undefined : Number(value);
-                        field.onChange(numberValue);
-                      }}
-                      min="0"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="follow_up_times"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <p className="text-sm mb-3">Number of follow-ups</p>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const numberValue =
-                          value === "" ? undefined : Number(value);
-                        field.onChange(numberValue);
-                      }}
-                      min="0"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <FormField
-          control={form.control}
-          name="mark_as_lost"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Mark as lost</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="eg. 10 days"
-                  {...field}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const numberValue =
-                      value === "" ? undefined : Number(value);
-                    field.onChange(numberValue);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {type === "edit" ? (
-          <Button type="submit">Update Goal</Button>
-        ) : (
-          <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
-        )}
-      </form>
-    </Form>
+        </form>
+      </Form>)}</>
   );
 }

@@ -1,4 +1,4 @@
-export const nodeTemplates: Record<string, any> = {
+export const nodeTemplates: Record<string, NodeTemplate> = {
   send_email: {
     nodes: [
       {
@@ -45,6 +45,47 @@ export const nodeTemplates: Record<string, any> = {
           strokeWidth: 2,
           opacity: 0.8
         },
+      },
+    ]
+  },
+  email_followup: {
+    nodes: [
+      {
+        id: 'email-followup',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Send Email Follow-up' },
+      },
+      {
+        id: 'delay-followup',
+        type: 'delayNode',
+        position: { x: 0, y: 150 },
+        data: { 
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-followup',
+        type: 'actionNode',
+        position: { x: 0, y: 300 },
+        data: { },
+      },
+    ],
+    edges: [
+      {
+        id: 'ef1',
+        source: 'email-followup',
+        target: 'delay-followup',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'ef2',
+        source: 'delay-followup',
+        target: 'action-followup',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },
     ]
   },

@@ -2,7 +2,7 @@ import React from 'react'
 
 interface SideBarProps {
   isEnabled: boolean;
-  onActionSelect: (action: { label: string; type: string }) => void;
+  onActionSelect: (action: { type: string; label: string }) => void;
 }
 
 function SideBar({ isEnabled, onActionSelect }: SideBarProps) {
@@ -17,15 +17,16 @@ function SideBar({ isEnabled, onActionSelect }: SideBarProps) {
     { label: 'Send LinkedIn Follow-up Message', type: 'linkedin_followup' },
   ]
 
+
+
   return (
     <aside className="p-6 h-full">
       <h2 className="text-xl font-semibold mb-4 pl-2">Actions:</h2>
       <div className="flex flex-col gap-2">
         {actions.map((action) => (
           <button
-            key={action.label}
-            onClick={() => isEnabled && onActionSelect(action)}
-            disabled={!isEnabled}
+            key={action.type}
+            onClick={() => onActionSelect(action)}
             className={`w-full p-2 text-[13px] text-left rounded-lg 
             transition-all duration-200 font-medium tracking-wide
             border border-transparent

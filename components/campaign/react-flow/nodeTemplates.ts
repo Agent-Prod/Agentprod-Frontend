@@ -14,16 +14,10 @@ export const nodeTemplates: Record<string, any> = {
         data: { label: '1 day' },
       },
       {
-        id: 'add-action-1',
+        id: 'action-1',
         type: 'actionNode',
-        position: { x: 200, y: 300 },
-        data: { label: 'Add action' },
-      },
-      {
-        id: 'end-1',
-        type: 'actionNode',
-        position: { x: 300, y: 300 },
-        data: { label: 'End' },
+        position: { x: 250, y: 300 },
+        data: { },
       },
     ],
     edges: [
@@ -32,30 +26,14 @@ export const nodeTemplates: Record<string, any> = {
         source: 'email-1',
         target: 'delay-1',
         type: 'smoothstep',
-        style: { 
-          stroke: '#4f4f4f', 
-          strokeWidth: 2,
-        },
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },
       {
         id: 'e2-3',
         source: 'delay-1',
-        target: 'add-action-1',
+        target: 'action-1',
         type: 'smoothstep',
-        style: { 
-          stroke: '#4f4f4f', 
-          strokeWidth: 2,
-        },
-      },
-      {
-        id: 'e2-4',
-        source: 'delay-1',
-        target: 'end-1',
-        type: 'smoothstep',
-        style: { 
-          stroke: '#4f4f4f', 
-          strokeWidth: 2,
-        },
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },
     ]
   },

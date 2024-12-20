@@ -25,10 +25,30 @@ export function DelayNode({ data }: NodeProps) {
 
 export function ActionNode({ data }: NodeProps) {
   return (
-    <div className="px-6 py-2 rounded-lg border-2 border-dashed border-zinc-700
-                    text-zinc-400 hover:bg-zinc-800/50 cursor-pointer">
-      <Handle type="target" position={Position.Top} />
-      <span className="text-sm">{data.label as string}</span>
+    <div className="flex items-center">
+      <div 
+        onClick={() => data.onActionClick?.()}
+        className="px-6 py-2 rounded-l-lg border-2 border-dashed border-zinc-700
+                  text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
+      >
+        <Handle 
+          type="target" 
+          position={Position.Top} 
+          style={{ background: '#4f4f4f' }} 
+        />
+        <span className="text-sm">Add action</span>
+      </div>
+      
+      {/* Separator */}
+      <div className="h-[calc(100%-4px)] w-[2px] bg-zinc-700 mx-[-1px]" />
+      
+      <div 
+        onClick={() => data.onEndClick?.()}
+        className="px-6 py-2 rounded-r-lg border-2 border-dashed border-zinc-700
+                  text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
+      >
+        <span className="text-sm">End</span>
+      </div>
     </div>
   );
 }

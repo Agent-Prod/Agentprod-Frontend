@@ -28,8 +28,19 @@ function Omni() {
     actionNode: ActionNode,
   };
 
-  const handleAddActionClick = () => {
+  const handleActionClick = () => {
     setIsActionsEnabled(true);
+  };
+
+  const handleEndClick = (nodeId: string) => {
+    setNodes(nodes => nodes.map(node => 
+      node.id === nodeId 
+        ? {
+            ...node,
+            data: { ...node.data, isEnd: true },
+          }
+        : node
+    ));
   };
 
   const handleActionSelect = (action: { label: string; type: string }) => {
@@ -39,11 +50,6 @@ function Omni() {
       setEdges(template.edges);
       setIsActionsEnabled(false);
     }
-  };
-
-  const defaultEdgeOptions = {
-    style: { stroke: '#4f4f4f', strokeWidth: 2 },
-    type: 'smoothstep',
   };
 
   return (
@@ -57,22 +63,30 @@ function Omni() {
       
       <div className='w-full min-h-[700px] border dark:border-white/20 border-zinc-800/30 relative'>
         <ReactFlow
-          nodes={nodes}
+          nodes={nodes.map(node => ({
+            ...node,
+            data: {
+              ...node.data,
+              onActionClick: () => handleActionClick(),
+              onEndClick: () => handleEndClick(node.id),
+            },
+          }))}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
+          defaultEdgeOptions={{
+            style: { stroke: '#4f4f4f', strokeWidth: 2 },
+            type: 'smoothstep',
+          }}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
         >
           <Background />
         </ReactFlow>
-
         {nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div 
-              onClick={handleAddActionClick}
+              onClick={handleActionClick}
               className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 
                         rounded-lg px-8 py-3 text-zinc-500 dark:text-zinc-400
                         hover:bg-zinc-100 dark:hover:bg-zinc-800/50 

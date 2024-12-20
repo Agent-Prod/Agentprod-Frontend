@@ -1,4 +1,4 @@
-export const nodeTemplates: Record<string, NodeTemplate> = {
+export const nodeTemplates: Record<string, any> = {
   send_email: {
     nodes: [
       {
@@ -10,37 +10,19 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
       {
         id: 'delay-1',
         type: 'delayNode',
-        position: { x: 100, y: 150 },
+        position: { x: 250, y: 150 },
         data: { label: '1 day' },
       },
       {
         id: 'add-action-1',
         type: 'actionNode',
-        position: { x: 50, y: 300 },
+        position: { x: 200, y: 300 },
         data: { label: 'Add action' },
       },
       {
         id: 'end-1',
         type: 'actionNode',
-        position: { x: 150, y: 300 },
-        data: { label: 'End' },
-      },
-      {
-        id: 'delay-2',
-        type: 'delayNode',
-        position: { x: 400, y: 150 },
-        data: { label: '1 day' },
-      },
-      {
-        id: 'add-action-2',
-        type: 'actionNode',
-        position: { x: 350, y: 300 },
-        data: { label: 'Add action' },
-      },
-      {
-        id: 'end-2',
-        type: 'actionNode',
-        position: { x: 450, y: 300 },
+        position: { x: 300, y: 300 },
         data: { label: 'End' },
       },
     ],
@@ -49,51 +31,31 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
         id: 'e1-2',
         source: 'email-1',
         target: 'delay-1',
-        label: 'Still not accepted',
         type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
-        labelStyle: { fill: '#9f9f9f', fontSize: 12 },
-        labelBgStyle: { fill: '#18181b' },
+        style: { 
+          stroke: '#4f4f4f', 
+          strokeWidth: 2,
+        },
       },
       {
-        id: 'e1-3',
+        id: 'e2-3',
         source: 'delay-1',
         target: 'add-action-1',
         type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+        style: { 
+          stroke: '#4f4f4f', 
+          strokeWidth: 2,
+        },
       },
       {
-        id: 'e1-4',
+        id: 'e2-4',
         source: 'delay-1',
         target: 'end-1',
         type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
-      },
-      {
-        id: 'e1-5',
-        source: 'email-1',
-        target: 'delay-2',
-        label: 'Accepted',
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
-        labelStyle: { fill: '#9f9f9f', fontSize: 12 },
-        labelBgStyle: { fill: '#18181b' },
-      },
-      {
-        id: 'e1-6',
-        source: 'delay-2',
-        target: 'add-action-2',
-        type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
-      },
-      {
-        id: 'e1-7',
-        source: 'delay-2',
-        target: 'end-2',
-        type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+        style: { 
+          stroke: '#4f4f4f', 
+          strokeWidth: 2,
+        },
       },
     ]
   },

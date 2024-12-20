@@ -115,3 +115,7 @@ a[href]:active {
   text-decoration: none;
   color: inherit;
 }
+
+.react-flow__attribution {
+  display: none;
+}

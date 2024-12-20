@@ -11,7 +11,10 @@ export const nodeTemplates: Record<string, any> = {
         id: 'delay-1',
         type: 'delayNode',
         position: { x: 250, y: 150 },
-        data: { label: '1 day' },
+        data: { 
+          label: '1 day',
+          days: 1
+        },
       },
       {
         id: 'action-1',
@@ -26,14 +29,22 @@ export const nodeTemplates: Record<string, any> = {
         source: 'email-1',
         target: 'delay-1',
         type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+        style: { 
+          stroke: '#4f4f4f', 
+          strokeWidth: 2,
+          opacity: 0.8
+        },
       },
       {
         id: 'e2-3',
         source: 'delay-1',
         target: 'action-1',
         type: 'smoothstep',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+        style: { 
+          stroke: '#4f4f4f', 
+          strokeWidth: 2,
+          opacity: 0.8
+        },
       },
     ]
   },

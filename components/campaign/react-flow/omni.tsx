@@ -52,6 +52,21 @@ function Omni() {
     }
   };
 
+  const handleDelayChange = (nodeId: string, days: number) => {
+    setNodes(nodes => nodes.map(node => 
+      node.id === nodeId 
+        ? {
+            ...node,
+            data: { 
+              ...node.data, 
+              label: `${days} day${days > 1 ? 's' : ''}`,
+              days 
+            }
+          }
+        : node
+    ));
+  };
+
   return (
     <div className='w-full flex'>
       <div className='w-[300px]'>
@@ -69,6 +84,7 @@ function Omni() {
               ...node.data,
               onActionClick: () => handleActionClick(),
               onEndClick: () => handleEndClick(node.id),
+              onChange: handleDelayChange,
             },
           }))}
           edges={edges}

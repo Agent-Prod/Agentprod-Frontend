@@ -1,4 +1,4 @@
-export const nodeTemplates: Record<string, NodeTemplate> = {
+export const nodeTemplates: Record<string, any> = {
   send_email: {
     nodes: [
       {

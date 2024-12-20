@@ -62,7 +62,11 @@ function Omni() {
   };
 
   const handleActionSelect = (action: { type: string; label: string }) => {
-    if (!activeNodeId) return;
+    if (!activeNodeId) {
+      // Handle initial node creation
+      handleInitialActionSelect(action);
+      return;
+    }
 
     // Find the parent delay node
     const parentNode = nodes.find(node => 
@@ -78,45 +82,49 @@ function Omni() {
     // Calculate new positions based on parent node
     const newNodes = template.nodes.map((node, index) => ({
       ...node,
-      id: `${node.id}-${Date.now()}`, // Ensure unique IDs
+      id: `${node.id}-${Date.now()}-${index}`, // Ensure unique IDs
       position: {
         x: parentNode.position.x,
         y: parentNode.position.y + 150 + (index * 150), // Stack vertically
       },
     }));
 
-    // Create new edges
-    const newEdges = [
-      // Connect parent delay to new email node
-      {
-        id: `e-${Date.now()}-1`,
-        source: parentNode.id,
-        target: newNodes[0].id,
-        type: 'smoothstep',
-        label: 'Still not accepted',
-        style: { stroke: '#4f4f4f', strokeWidth: 2 },
-        labelStyle: { fill: '#9f9f9f', fontSize: 12 },
-        labelBgStyle: { fill: '#18181b' },
+    // Create connecting edge from parent to new email node
+    const connectingEdge = {
+      id: `e-connecting-${Date.now()}`,
+      source: parentNode.id,
+      target: newNodes[0].id, // Connect to first node (email node)
+      type: 'smoothstep',
+      style: { 
+        stroke: '#4f4f4f', 
+        strokeWidth: 2,
+        opacity: 0.8
       },
-      // Connect template nodes
-      ...template.edges.map(edge => ({
-        ...edge,
-        id: `${edge.id}-${Date.now()}`,
-        source: newNodes.find(n => n.id.includes(edge.source.split('-')[0]))?.id,
-        target: newNodes.find(n => n.id.includes(edge.target.split('-')[0]))?.id,
-      })),
-    ];
+    };
 
-    // Remove the original action node
+    // Create edges between new nodes
+    const newEdges = template.edges.map(edge => ({
+      ...edge,
+      id: `${edge.id}-${Date.now()}`,
+      source: newNodes.find(n => n.id.includes(edge.source.split('-')[0]))?.id,
+      target: newNodes.find(n => n.id.includes(edge.target.split('-')[0]))?.id,
+      style: { 
+        stroke: '#4f4f4f', 
+        strokeWidth: 2,
+        opacity: 0.8
+      },
+    }));
+
+    // Remove the original action node and its incoming edge
     setNodes(nodes => nodes
       .filter(node => node.id !== activeNodeId)
       .concat(newNodes)
     );
 
-    // Remove edges to the original action node and add new edges
+    // Remove old edges and add new ones including the connecting edge
     setEdges(edges => edges
       .filter(edge => edge.target !== activeNodeId)
-      .concat(newEdges)
+      .concat([connectingEdge, ...newEdges])
     );
 
     setIsActionsEnabled(false);

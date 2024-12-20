@@ -1,10 +1,19 @@
 import { NodeProps, Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
 
-export function EmailNode({ data }: NodeProps) {
+export function EmailNode({ data, id }: NodeProps) {
+  const isChildNode = id.includes('followup'); // Check if it's a follow-up/child node
+
   return (
     <div className="px-16 py-4 rounded-full bg-zinc-900 text-white border border-zinc-800
                     flex items-center justify-center min-w-[200px]">
+      {isChildNode && (
+        <Handle 
+          type="target" 
+          position={Position.Top} 
+          style={{ background: '#4f4f4f', width: '8px', height: '8px' }} 
+        />
+      )}
       <span className="text-lg font-medium">{data.label as string}</span>
       <Handle 
         type="source" 

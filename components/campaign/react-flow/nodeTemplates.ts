@@ -1,4 +1,26 @@
-export const nodeTemplates: Record<string, any> = {
+interface NodeData {
+  label: string;
+  days?: number;
+}
+
+interface Template {
+  nodes: Array<{
+    id: string;
+    type: string;
+    position: { x: number; y: number };
+    data: NodeData;
+  }>;
+  edges: Array<{
+    id: string;
+    source: string;
+    target: string;
+    type?: string;
+    sourceHandle?: string;
+    style?: Record<string, any>;
+  }>;
+}
+
+export const nodeTemplates: Record<string, Template> = {
   send_email: {
     nodes: [
       {
@@ -11,7 +33,7 @@ export const nodeTemplates: Record<string, any> = {
         id: 'delay-1',
         type: 'delayNode',
         position: { x: 250, y: 150 },
-        data: { 
+        data: {
           label: '1 day',
           days: 1
         },
@@ -20,7 +42,7 @@ export const nodeTemplates: Record<string, any> = {
         id: 'action-1',
         type: 'actionNode',
         position: { x: 250, y: 300 },
-        data: { },
+        data: {},
       },
     ],
     edges: [
@@ -29,8 +51,8 @@ export const nodeTemplates: Record<string, any> = {
         source: 'email-1',
         target: 'delay-1',
         type: 'smoothstep',
-        style: { 
-          stroke: '#4f4f4f', 
+        style: {
+          stroke: '#4f4f4f',
           strokeWidth: 2,
           opacity: 0.8
         },
@@ -40,8 +62,8 @@ export const nodeTemplates: Record<string, any> = {
         source: 'delay-1',
         target: 'action-1',
         type: 'smoothstep',
-        style: { 
-          stroke: '#4f4f4f', 
+        style: {
+          stroke: '#4f4f4f',
           strokeWidth: 2,
           opacity: 0.8
         },
@@ -60,7 +82,7 @@ export const nodeTemplates: Record<string, any> = {
         id: 'delay-followup',
         type: 'delayNode',
         position: { x: 0, y: 150 },
-        data: { 
+        data: {
           label: '1 day',
           days: 1
         },
@@ -69,7 +91,7 @@ export const nodeTemplates: Record<string, any> = {
         id: 'action-followup',
         type: 'actionNode',
         position: { x: 0, y: 300 },
-        data: { },
+        data: {},
       },
     ],
     edges: [
@@ -86,6 +108,94 @@ export const nodeTemplates: Record<string, any> = {
         target: 'action-followup',
         type: 'smoothstep',
         style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+    ]
+  },
+  linkedin_invite: {
+    nodes: [
+      {
+        id: 'linkedin-invite',
+        type: 'linkedInNode',
+        position: { x: 250, y: 0 },
+        data: { label: 'Send Linkedin Invite' },
+      },
+      {
+        id: 'delay-linkedin-invite-left',
+        type: 'delayNode',
+        position: { x: 150, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-linkedin-invite-left',
+        type: 'actionNode',
+        position: { x: 150, y: 200 },
+        data: {},
+      },
+      {
+        id: 'delay-linkedin-invite-right',
+        type: 'delayNode',
+        position: { x: 450, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-linkedin-invite-right',
+        type: 'actionNode',
+        position: { x: 500, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'linkedin-left-1',
+        source: 'linkedin-invite',
+        sourceHandle: 'source-left',
+        target: 'delay-linkedin-invite-left',
+        type: 'smoothstep',
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
+      },
+      {
+        id: 'linkedin-left-2',
+        source: 'delay-linkedin-invite-left',
+        target: 'action-linkedin-invite-left',
+        type: 'smoothstep',
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
+      },
+      {
+        id: 'linkedin-right-1',
+        source: 'linkedin-invite',
+        sourceHandle: 'source-right',
+        target: 'delay-linkedin-invite-right',
+        type: 'smoothstep',
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
+      },
+      {
+        id: 'linkedin-right-2',
+        source: 'delay-linkedin-invite-right',
+        target: 'action-linkedin-invite-right',
+        type: 'smoothstep',
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
       },
     ]
   },

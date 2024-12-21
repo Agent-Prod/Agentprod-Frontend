@@ -34,8 +34,9 @@ export function EmailNode({ data, id }: NodeProps<any>) {
 export function DelayNode({ data, id }: NodeProps<any>) {
   const [isEditing, setIsEditing] = useState(false);
   const [days, setDays] = useState(() => {
-    const initialDays = data.label?.split(' ')[0];
-    return initialDays ? parseInt(initialDays) : 1;
+    const isParentNode = !id.includes('-') || id.split('-').length === 2;
+    const initialDays = isParentNode ? 0 : (data.label?.split(' ')[0] || 1);
+    return typeof initialDays === 'number' ? initialDays : parseInt(initialDays);
   });
 
   const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +68,7 @@ export function DelayNode({ data, id }: NodeProps<any>) {
             onBlur={() => setIsEditing(false)}
             onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
             autoFocus
-            min="1"
+            min="0"
             className="w-12 bg-zinc-800 text-white text-lg font-medium 
                       rounded px-1 outline-none border border-zinc-700"
             onClick={(e) => e.stopPropagation()}
@@ -77,7 +78,7 @@ export function DelayNode({ data, id }: NodeProps<any>) {
             {days}
           </span>
         )}
-        <span className="text-lg font-medium">day{days > 1 ? 's' : ''}</span>
+        <span className="text-lg font-medium">day{days !== 1 ? 's' : ''}</span>
       </div>
       <Handle
         type="source"

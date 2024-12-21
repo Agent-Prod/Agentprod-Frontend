@@ -333,8 +333,10 @@ function Omni() {
 
       sortedNodes.forEach((node, index) => {
         const outgoingEdges = edges.filter(edge => edge.source === node.id);
+        const incomingEdges = edges.filter(edge => edge.target === node.id);
         const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-        const delay = nextNode?.data?.days || 0;
+        
+        const delay = incomingEdges.length === 0 ? 0 : (nextNode?.data?.days || 0);
 
         if (node.type === 'linkedInNode') {
           const leftEdge = edges.find(e => e.sourceHandle === 'source-left' && e.source === node.id);
@@ -361,7 +363,6 @@ function Omni() {
               default: notAcceptedPath[0] || null
             },
             delay: `${delay}d`,
-            
           };
         } else {
           let nextStepIndex = null;

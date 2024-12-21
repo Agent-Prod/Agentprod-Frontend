@@ -183,7 +183,6 @@ export function ActionNode({ data }: NodeProps<any>) {
         <span className="text-lg">Add action</span>
       </div>
 
-      {/* Separator */}
       <div className="h-[calc(100%-4px)] w-[2px] bg-zinc-700 mx-[-1px]" />
 
       <div

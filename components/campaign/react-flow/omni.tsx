@@ -16,13 +16,13 @@ import SideBar from './SideBar';
 import { PlusCircle } from 'lucide-react';
 import { nodeTemplates } from './nodeTemplates';
 import { EmailNode, DelayNode, ActionNode, LinkedInNode, DelayNode1 } from './CustomNodes';
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-// Define the edge type with sourceHandle
 interface CustomEdge extends Edge {
   sourceHandle?: string;
 }
 
-// Update NodeData interface to extend Record<string, unknown>
 interface NodeData extends Record<string, unknown> {
   label?: string;
   days?: number;
@@ -30,6 +30,11 @@ interface NodeData extends Record<string, unknown> {
   onChange?: (id: string, days: number) => void;
   onActionClick?: () => void;
   onEndClick?: () => void;
+}
+
+interface FlowData {
+  nodes: Node<NodeData>[];
+  edges: CustomEdge[];
 }
 
 function Omni() {
@@ -66,27 +71,23 @@ function Omni() {
     let newEdges;
 
     if (action.type === 'linkedin_invite') {
-      // Special handling for LinkedIn template edges
       newEdges = template.edges.map((edge) => {
         let sourceNode, targetNode;
 
-        // Handle left branch edges
         if (edge.id.startsWith('linkedin-left')) {
           sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]  // LinkedIn node
-            : newNodes[1]; // Left delay node
+            ? newNodes[0]
+            : newNodes[1];
           targetNode = edge.target.includes('delay')
-            ? newNodes[1]  // Left delay node
-            : newNodes[2]; // Left action node
-        }
-        // Handle right branch edges
-        else {
+            ? newNodes[1]
+            : newNodes[2];
+        } else {
           sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]  // LinkedIn node
-            : newNodes[3]; // Right delay node
+            ? newNodes[0]
+            : newNodes[3];
           targetNode = edge.target.includes('delay')
-            ? newNodes[3]  // Right delay node
-            : newNodes[4]; // Right action node
+            ? newNodes[3]
+            : newNodes[4];
         }
 
         return {
@@ -103,7 +104,6 @@ function Omni() {
         } as CustomEdge;
       });
     } else {
-      // Regular handling for other templates
       newEdges = template.edges.map((edge) => {
         const sourceNode = newNodes.find((n) =>
           n.id.includes(edge.source.split('-')[0])
@@ -143,18 +143,15 @@ function Omni() {
       return;
     }
 
-    // Find the parent delay node
     const parentNode = nodes.find(node =>
       edges.some(edge => edge.target === activeNodeId && edge.source === node.id)
     );
 
     if (!parentNode) return;
 
-    // Get the template
     const template = nodeTemplates[action.type];
     if (!template) return;
 
-    // Calculate new positions based on parent node
     const newNodes = template.nodes.map((node, index) => ({
       ...node,
       id: `${node.id}-${Date.now()}-${index}`,
@@ -164,16 +161,14 @@ function Omni() {
       },
     }));
 
-    // Create connecting edges based on template type
     let connectingEdges: CustomEdge[] = [];
 
     if (action.type === 'linkedin_invite') {
-      // For LinkedIn template, create single connecting edge from parent to LinkedIn node
       connectingEdges = [
         {
           id: `e-connecting-parent-${Date.now()}`,
           source: parentNode.id,
-          target: newNodes[0].id, // Connect to LinkedIn node
+          target: newNodes[0].id,
           type: 'smoothstep',
           style: {
             stroke: '#4f4f4f',
@@ -183,27 +178,23 @@ function Omni() {
         }
       ];
 
-      // Create edges between new nodes
       const newEdges = template.edges.map(edge => {
         let sourceNode, targetNode;
-        
-        // Handle left branch edges
+
         if (edge.id.startsWith('linkedin-left')) {
           sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]  // LinkedIn node
-            : newNodes[1]; // Left delay node
+            ? newNodes[0]
+            : newNodes[1];
           targetNode = edge.target.includes('delay')
-            ? newNodes[1]  // Left delay node
-            : newNodes[2]; // Left action node
-        } 
-        // Handle right branch edges
-        else {
+            ? newNodes[1]
+            : newNodes[2];
+        } else {
           sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]  // LinkedIn node
-            : newNodes[3]; // Right delay node
+            ? newNodes[0]
+            : newNodes[3];
           targetNode = edge.target.includes('delay')
-            ? newNodes[3]  // Right delay node
-            : newNodes[4]; // Right action node
+            ? newNodes[3]
+            : newNodes[4];
         }
 
         return {
@@ -220,19 +211,16 @@ function Omni() {
         } as CustomEdge;
       });
 
-      // Remove the original action node and its incoming edge
       setNodes(nodes => nodes
         .filter(node => node.id !== activeNodeId)
         .concat(newNodes)
       );
 
-      // Remove old edges and add new ones including the connecting edges
       setEdges(edges => edges
         .filter(edge => edge.target !== activeNodeId)
         .concat([...connectingEdges, ...newEdges])
       );
     } else {
-      // For other templates, create single connecting edge
       connectingEdges = [
         {
           id: `e-connecting-${Date.now()}`,
@@ -247,7 +235,6 @@ function Omni() {
         },
       ];
 
-      // Create edges between new nodes
       const newEdges = template.edges.map(edge => {
         const sourceNode = newNodes.find(n =>
           n.id.includes(edge.source.split('-')[0])
@@ -270,13 +257,11 @@ function Omni() {
         } as CustomEdge;
       });
 
-      // Remove the original action node and its incoming edge
       setNodes(nodes => nodes
         .filter(node => node.id !== activeNodeId)
         .concat(newNodes)
       );
 
-      // Remove old edges and add new ones including the connecting edges
       setEdges(edges => edges
         .filter(edge => edge.target !== activeNodeId)
         .concat([...connectingEdges, ...newEdges])
@@ -313,48 +298,185 @@ function Omni() {
     ));
   }, []);
 
+  const handleSaveFlow = async () => {
+    try {
+      const sortedNodes = [...nodes]
+        .filter(node => !['delayNode', 'actionNode'].includes(node.type))
+        .sort((a, b) => a.position.y - b.position.y);
+
+      const steps: Record<string, any> = {};
+      let stepCounter = 0;
+
+      const processPath = (startNode: Node, pathNodes: Node[]): number[] => {
+        const sequence: number[] = [];
+        let currentNode = startNode;
+
+        while (currentNode) {
+          const nodeIndex = sortedNodes.indexOf(currentNode);
+          if (nodeIndex !== -1) {
+            sequence.push(nodeIndex);
+          }
+
+          const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
+          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+          if (!nextDelayNode) break;
+
+          const nextActionNode = nodes.find(n =>
+            edges.some(e => e.source === nextDelayNode.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+          );
+          currentNode = nextActionNode || null;
+        }
+
+        return sequence;
+      };
+
+      sortedNodes.forEach((node) => {
+        const outgoingEdges = edges.filter(edge => edge.source === node.id);
+        const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+        const delay = nextNode?.data?.days || 0;
+
+        if (node.type === 'linkedInNode') {
+          const leftEdge = edges.find(e => e.sourceHandle === 'source-left' && e.source === node.id);
+          const rightEdge = edges.find(e => e.sourceHandle === 'source-right' && e.source === node.id);
+
+          const leftDelayNode = nodes.find(n => n.id === leftEdge?.target);
+          const rightDelayNode = nodes.find(n => n.id === rightEdge?.target);
+
+          const leftPathFirstNode = nodes.find(n =>
+            edges.some(e => e.source === leftDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+          );
+          const rightPathFirstNode = nodes.find(n =>
+            edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+          );
+
+          const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, sortedNodes) : [];
+          const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
+
+          steps[stepCounter] = {
+            action_type: node.data.label as string,
+            next_steps: {
+              accepted: acceptedPath[0] || null,
+              declined: null,
+              default: notAcceptedPath[0] || null
+            },
+            delay: `${delay}d`,
+            not_accepted_sequence: notAcceptedPath,
+            accepted_sequence: acceptedPath
+          };
+        } else {
+          const nextActionNode = sortedNodes[stepCounter + 1];
+          steps[stepCounter] = {
+            action_type: node.data.label as string,
+            next_steps: {
+              default: nextActionNode ? stepCounter + 1 : null
+            },
+            delay: `${delay}d`
+          };
+        }
+
+        stepCounter++;
+      });
+
+      const flowData = {
+        steps_config: {
+          steps
+        },
+        flow_data: {
+          nodes: nodes.map(node => ({
+            id: node.id,
+            type: node.type,
+            position: node.position,
+            data: {
+              label: node.data.label,
+              days: node.data.days,
+              isEnd: node.data.isEnd
+            }
+          })),
+          edges: edges.map(edge => ({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            type: edge.type,
+            style: edge.style
+          }))
+        }
+      };
+
+      const response = await fetch('/api/campaigns/flow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(flowData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save flow');
+      }
+
+      toast.success('Flow saved successfully');
+      console.log('Flow data:', JSON.stringify(flowData, null, 2));
+    } catch (error) {
+      console.error('Error saving flow:', error);
+      toast.error('Failed to save flow');
+    }
+  };
+
   return (
-    <div className='w-full flex'>
-      <div className='w-[300px]'>
-        <SideBar
-          isEnabled={isActionsEnabled}
-          onActionSelect={activeNodeId ? handleActionSelect : handleInitialActionSelect}
-        />
+    <div className='w-full flex flex-col'>
+      <div className='w-full flex'>
+        <div className='w-[300px]'>
+          <SideBar
+            isEnabled={isActionsEnabled}
+            onActionSelect={activeNodeId ? handleActionSelect : handleInitialActionSelect}
+          />
+        </div>
+
+        <div className='w-full min-h-[700px] border dark:border-white/20 border-zinc-800/30 relative'>
+          <ReactFlow
+            nodes={nodes.map(node => ({
+              ...node,
+              data: {
+                ...node.data,
+                onActionClick: () => handleActionClick(node.id),
+                onEndClick: () => handleEndClick(node.id),
+                onChange: handleDelayChange,
+              },
+            }))}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            nodeTypes={nodeTypes}
+            defaultEdgeOptions={{
+              style: { stroke: '#4f4f4f', strokeWidth: 2 },
+              type: 'smoothstep',
+            }}
+          >
+            <Background />
+          </ReactFlow>
+          {nodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                onClick={() => handleActionClick()}
+                className="px-8 py-3 rounded-lg border-2 border-dashed border-zinc-700
+                          text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
+              >
+                <span className="text-lg">Add action</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className='w-full min-h-[700px] border dark:border-white/20 border-zinc-800/30 relative'>
-        <ReactFlow
-          nodes={nodes.map(node => ({
-            ...node,
-            data: {
-              ...node.data,
-              onActionClick: () => handleActionClick(node.id),
-              onEndClick: () => handleEndClick(node.id),
-              onChange: handleDelayChange,
-            },
-          }))}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          defaultEdgeOptions={{
-            style: { stroke: '#4f4f4f', strokeWidth: 2 },
-            type: 'smoothstep',
-          }}
+      <div className="w-full flex justify-end p-4 border-t dark:border-white/20 border-zinc-800/30">
+        <Button
+          onClick={handleSaveFlow}
+          disabled={nodes.length === 0}
+          className="px-6"
         >
-          <Background />
-        </ReactFlow>
-        {nodes.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              onClick={() => handleActionClick()}
-              className="px-8 py-3 rounded-lg border-2 border-dashed border-zinc-700
-                        text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
-            >
-              <span className="text-lg">Add action</span>
-            </div>
-          </div>
-        )}
+          Save Flow
+        </Button>
       </div>
     </div>
   );

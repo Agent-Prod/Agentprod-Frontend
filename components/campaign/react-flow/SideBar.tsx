@@ -10,7 +10,7 @@ function SideBar({ isEnabled, onActionSelect }: SideBarProps) {
     { label: 'Send Email', type: 'send_email' },
     { label: 'Send Email Follow-up', type: 'email_followup' },
     { label: 'Send LinkedIn Invite', type: 'linkedin_invite' },
-    { label: 'Like LinkedIn Post', type: 'linkedin_like' },
+    { label: 'Like LinkedIn Post', type: 'linkedin_post' },
     { label: 'Comment on LinkedIn Post', type: 'linkedin_comment' },
     { label: 'Send LinkedIn Message', type: 'linkedin_message' },
     { label: 'Withdraw Connection Request', type: 'withdraw_request' },
@@ -30,10 +30,10 @@ function SideBar({ isEnabled, onActionSelect }: SideBarProps) {
             className={`w-full p-2 text-[13px] text-left rounded-lg 
             transition-all duration-200 font-medium tracking-wide
             border border-transparent
-            ${isEnabled 
-              ? 'hover:bg-zinc-800/50 hover:border-zinc-700 cursor-pointer' 
-              : 'opacity-50 cursor-not-allowed'
-            }`}
+            ${isEnabled
+                ? 'hover:bg-zinc-800/50 hover:border-zinc-700 cursor-pointer'
+                : 'opacity-50 cursor-not-allowed'
+              }`}
           >
             {action.label}
           </button>

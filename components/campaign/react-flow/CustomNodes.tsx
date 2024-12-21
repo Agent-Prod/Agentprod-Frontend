@@ -1,16 +1,9 @@
 import { NodeProps, Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
 
-interface NodeData {
-  label?: string;
-  days?: number;
-  onChange?: (id: string, days: number) => void;
-  onActionClick?: () => void;
-  onEndClick?: () => void;
-}
 
-export function EmailNode({ data, id }: NodeProps<NodeData>) {
-  const isChildNode = id.includes('followup');
+export function EmailNode({ data, id }: NodeProps<any>) {
+  const isChildNode = id.includes('-') && id.split('-').length > 1;
 
   return (
     <div className="px-16 py-4 rounded-full bg-zinc-900 text-white border border-zinc-800
@@ -22,6 +15,7 @@ export function EmailNode({ data, id }: NodeProps<NodeData>) {
           style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
         />
       )}
+
       <span className="text-lg font-medium">{data.label as string}</span>
 
       <Handle
@@ -31,14 +25,13 @@ export function EmailNode({ data, id }: NodeProps<NodeData>) {
           background: '#4f4f4f',
           width: '8px',
           height: '8px',
-          left: '65%'  // Position for right branch
         }}
       />
     </div>
   );
 }
 
-export function DelayNode({ data, id }: NodeProps<NodeData>) {
+export function DelayNode({ data, id }: NodeProps<any>) {
   const [isEditing, setIsEditing] = useState(false);
   const [days, setDays] = useState(() => {
     const initialDays = data.label?.split(' ')[0];
@@ -95,7 +88,7 @@ export function DelayNode({ data, id }: NodeProps<NodeData>) {
   );
 }
 
-export function DelayNode1({ data, id }: NodeProps<NodeData>) {
+export function DelayNode1({ data, id }: NodeProps<any>) {
   const [isEditing, setIsEditing] = useState(false);
   const [days, setDays] = useState(() => {
     const initialDays = data.label?.split(' ')[0];
@@ -152,7 +145,7 @@ export function DelayNode1({ data, id }: NodeProps<NodeData>) {
   );
 }
 
-export function ActionNode({ data }: NodeProps<NodeData>) {
+export function ActionNode({ data }: NodeProps<any>) {
   const [showEnd, setShowEnd] = useState(false);
 
   if (showEnd) {
@@ -204,17 +197,15 @@ export function ActionNode({ data }: NodeProps<NodeData>) {
   );
 }
 
-export function LinkedInNode({ data, id }: NodeProps<NodeData>) {
+export function LinkedInNode({ data, id }: NodeProps<any>) {
   return (
     <div className="px-16 py-4 rounded-full bg-zinc-900 text-white border border-zinc-800
                     flex items-center justify-center min-w-[200px] relative">
-      {id.includes('followup') && (
-        <Handle
-          type="target"
-          position={Position.Top}
-          style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
-        />
-      )}
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+      />
 
       <span className="text-lg font-medium">{data.label as string}</span>
 

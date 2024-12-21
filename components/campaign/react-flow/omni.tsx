@@ -168,38 +168,25 @@ function Omni() {
     let connectingEdges: CustomEdge[] = [];
 
     if (action.type === 'linkedin_invite') {
-      // For LinkedIn template, create both left and right connecting edges
+      // For LinkedIn template, create single connecting edge from parent to LinkedIn node
       connectingEdges = [
         {
-          id: `e-connecting-left-${Date.now()}`,
+          id: `e-connecting-parent-${Date.now()}`,
           source: parentNode.id,
-          target: newNodes[1].id, // Connect to left delay node (index 1)
-          sourceHandle: 'source-left',
+          target: newNodes[0].id, // Connect to LinkedIn node
           type: 'smoothstep',
           style: {
             stroke: '#4f4f4f',
             strokeWidth: 2,
             opacity: 0.8
           },
-        },
-        {
-          id: `e-connecting-right-${Date.now()}`,
-          source: parentNode.id,
-          target: newNodes[3].id, // Connect to right delay node (index 3)
-          sourceHandle: 'source-right',
-          type: 'smoothstep',
-          style: {
-            stroke: '#4f4f4f',
-            strokeWidth: 2,
-            opacity: 0.8
-          },
-        },
+        }
       ];
 
       // Create edges between new nodes
       const newEdges = template.edges.map(edge => {
         let sourceNode, targetNode;
-
+        
         // Handle left branch edges
         if (edge.id.startsWith('linkedin-left')) {
           sourceNode = edge.source === 'linkedin-invite'
@@ -208,7 +195,7 @@ function Omni() {
           targetNode = edge.target.includes('delay')
             ? newNodes[1]  // Left delay node
             : newNodes[2]; // Left action node
-        }
+        } 
         // Handle right branch edges
         else {
           sourceNode = edge.source === 'linkedin-invite'

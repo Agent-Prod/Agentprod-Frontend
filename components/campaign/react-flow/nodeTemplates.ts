@@ -1,6 +1,8 @@
 interface NodeData {
-  label: string;
+  label?: string;
   days?: number;
+  leftLabel?: string;
+  rightLabel?: string;
 }
 
 interface Template {
@@ -12,6 +14,7 @@ interface Template {
   }>;
   edges: Array<{
     id: string;
+    label?: string;
     source: string;
     target: string;
     type?: string;
@@ -116,8 +119,12 @@ export const nodeTemplates: Record<string, Template> = {
       {
         id: 'linkedin-invite',
         type: 'linkedInNode',
-        position: { x: 250, y: 0 },
-        data: { label: 'Send Linkedin Invite' },
+        position: { x: 250, y: -50 },
+        data: {
+          label: 'Send Linkedin Invite',
+          leftLabel: 'Not Accepted',
+          rightLabel: 'Accepted'
+        },
       },
       {
         id: 'delay-linkedin-invite-left',
@@ -157,6 +164,7 @@ export const nodeTemplates: Record<string, Template> = {
         sourceHandle: 'source-left',
         target: 'delay-linkedin-invite-left',
         type: 'smoothstep',
+        label: 'Not Accepted',
         style: {
           stroke: '#4f4f4f',
           strokeWidth: 2,
@@ -180,6 +188,7 @@ export const nodeTemplates: Record<string, Template> = {
         sourceHandle: 'source-right',
         target: 'delay-linkedin-invite-right',
         type: 'smoothstep',
+        label: 'Accepted',
         style: {
           stroke: '#4f4f4f',
           strokeWidth: 2,
@@ -196,6 +205,211 @@ export const nodeTemplates: Record<string, Template> = {
           strokeWidth: 2,
           opacity: 0.8
         },
+      },
+    ]
+  },
+  linkedin_post: {
+    nodes: [
+      {
+        id: 'linkedin-post',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Like LinkedIn Post' },
+      },
+      {
+        id: 'delay-post',
+        type: 'delayNode',
+        position: { x: 0, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-post',
+        type: 'actionNode',
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'lp1',
+        source: 'linkedin-post',
+        target: 'delay-post',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'lp2',
+        source: 'delay-post',
+        target: 'action-post',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+    ]
+  },
+  linkedin_comment: {
+    nodes: [
+      {
+        id: 'linkedin-comment',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Comment on LinkedIn Post' },
+      },
+      {
+        id: 'delay-comment',
+        type: 'delayNode',
+        position: { x: 0, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-comment',
+        type: 'actionNode',
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'lc1',
+        source: 'linkedin-comment',
+        target: 'delay-comment',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'lc2',
+        source: 'delay-comment',
+        target: 'action-comment',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+    ]
+  },
+  linkedin_message: {
+    nodes: [
+      {
+        id: 'linkedin-message',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Send LinkedIn Message' },
+      },
+      {
+        id: 'delay-message',
+        type: 'delayNode',
+        position: { x: 0, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-message',
+        type: 'actionNode',
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'lm1',
+        source: 'linkedin-message',
+        target: 'delay-message',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'lm2',
+        source: 'delay-message',
+        target: 'action-message',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+    ]
+  },
+  withdraw_request: {
+    nodes: [
+      {
+        id: 'withdraw-request',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Withdraw Connection Request' },
+      },
+      {
+        id: 'delay-withdraw-request',
+        type: 'delayNode',
+        position: { x: 0, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-withdraw-request',
+        type: 'actionNode',
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'wr1',
+        source: 'withdraw-request',
+        target: 'delay-withdraw-request',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'wr2',
+        source: 'delay-withdraw-request',
+        target: 'action-withdraw-request',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+    ]
+  },
+  linkedin_followup:{
+    nodes: [
+      {
+        id: 'linkedin-followup',
+        type: 'emailNode',
+        position: { x: 0, y: 0 },
+        data: { label: 'Send LinkedIn Follow-up Message' },
+      },
+      {
+        id: 'delay-linkedin-followup',
+        type: 'delayNode',
+        position: { x: 0, y: 100 },
+        data: {
+          label: '1 day',
+          days: 1
+        },
+      },
+      {
+        id: 'action-linkedin-followup',
+        type: 'actionNode',
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: 'lf1',
+        source: 'linkedin-followup',
+        target: 'delay-linkedin-followup',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
+      },
+      {
+        id: 'lf2',
+        source: 'delay-linkedin-followup',
+        target: 'action-linkedin-followup',
+        type: 'smoothstep',
+        style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },
     ]
   },

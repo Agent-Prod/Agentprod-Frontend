@@ -331,7 +331,7 @@ function Omni() {
         return sequence;
       };
 
-      sortedNodes.forEach((node) => {
+      sortedNodes.forEach((node, index) => {
         const outgoingEdges = edges.filter(edge => edge.source === node.id);
         const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
         const delay = nextNode?.data?.days || 0;
@@ -361,15 +361,32 @@ function Omni() {
               default: notAcceptedPath[0] || null
             },
             delay: `${delay}d`,
-            not_accepted_sequence: notAcceptedPath,
-            accepted_sequence: acceptedPath
+            
           };
         } else {
-          const nextActionNode = sortedNodes[stepCounter + 1];
+          let nextStepIndex = null;
+          
+          for (const step of Object.values(steps)) {
+            if (step.success?.includes(stepCounter)) {
+              const currentIndex = step.success.indexOf(stepCounter);
+              nextStepIndex = step.success[currentIndex + 1] || null;
+              break;
+            }
+            if (step.failure?.includes(stepCounter)) {
+              const currentIndex = step.failure.indexOf(stepCounter);
+              nextStepIndex = step.failure[currentIndex + 1] || null;
+              break;
+            }
+          }
+
+          if (nextStepIndex === null) {
+            nextStepIndex = sortedNodes[index + 1] ? stepCounter + 1 : null;
+          }
+
           steps[stepCounter] = {
             action_type: node.data.label as string,
             next_steps: {
-              default: nextActionNode ? stepCounter + 1 : null
+              default: nextStepIndex
             },
             delay: `${delay}d`
           };

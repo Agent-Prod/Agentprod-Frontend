@@ -10,6 +10,7 @@ import {
   Node,
   useNodesState,
   useEdgesState,
+  NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import SideBar from './SideBar';
@@ -213,7 +214,7 @@ function Omni() {
 
       setNodes(nodes => nodes
         .filter(node => node.id !== activeNodeId)
-        .concat(newNodes)
+        .concat(newNodes as Node<NodeData>[])
       );
 
       setEdges(edges => edges
@@ -259,7 +260,7 @@ function Omni() {
 
       setNodes(nodes => nodes
         .filter(node => node.id !== activeNodeId)
-        .concat(newNodes)
+        .concat(newNodes as Node<NodeData>[])
       );
 
       setEdges(edges => edges
@@ -301,7 +302,7 @@ function Omni() {
   const handleSaveFlow = async () => {
     try {
       const sortedNodes = [...nodes]
-        .filter(node => !['delayNode', 'actionNode'].includes(node.type))
+        .filter(node => !['delayNode', 'actionNode'].includes(node.type as string))
         .sort((a, b) => a.position.y - b.position.y);
 
       const steps: Record<string, any> = {};
@@ -322,9 +323,9 @@ function Omni() {
           if (!nextDelayNode) break;
 
           const nextActionNode = nodes.find(n =>
-            edges.some(e => e.source === nextDelayNode.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+            edges.some(e => e.source === nextDelayNode.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
           );
-          currentNode = nextActionNode || null;
+          currentNode = nextActionNode as any;
         }
 
         return sequence;
@@ -343,10 +344,10 @@ function Omni() {
           const rightDelayNode = nodes.find(n => n.id === rightEdge?.target);
 
           const leftPathFirstNode = nodes.find(n =>
-            edges.some(e => e.source === leftDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+            edges.some(e => e.source === leftDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
           );
           const rightPathFirstNode = nodes.find(n =>
-            edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type))
+            edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
           );
 
           const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, sortedNodes) : [];
@@ -447,7 +448,7 @@ function Omni() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
+            nodeTypes={nodeTypes as NodeTypes}
             defaultEdgeOptions={{
               style: { stroke: '#4f4f4f', strokeWidth: 2 },
               type: 'smoothstep',

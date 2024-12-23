@@ -1,7 +1,7 @@
 name: Test Server CI/CD
 on:
   push:
-    branches: [audience-verify]
+    branches: [axiosInstance]
 jobs:
   deploy:
     runs-on: [self-hosted, Linux, X64, test]

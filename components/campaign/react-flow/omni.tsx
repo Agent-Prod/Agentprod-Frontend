@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -14,7 +14,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import SideBar from './SideBar';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Undo2, Redo2, Trash2 } from 'lucide-react';
 import { nodeTemplates } from './nodeTemplates';
 import { EmailNode, DelayNode, ActionNode, LinkedInNode, DelayNode1 } from './CustomNodes';
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,8 @@ function Omni() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [isActionsEnabled, setIsActionsEnabled] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-
+  const [history, setHistory] = useState<{ nodes: Node<NodeData>[]; edges: CustomEdge[]; }[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const nodeTypes = {
     emailNode: EmailNode,
     delayNode: DelayNode,
@@ -51,6 +52,8 @@ function Omni() {
     linkedInNode: LinkedInNode,
     delayNode1: DelayNode1,
   } as const;
+
+  const isHistoryNavigationRef = React.useRef(false);
 
   const handleInitialActionSelect = (action: { type: string; label: string }) => {
     const template = nodeTemplates[action.type];
@@ -323,8 +326,13 @@ function Omni() {
           if (!nextDelayNode) break;
 
           const nextActionNode = nodes.find(n =>
-            edges.some(e => e.source === nextDelayNode.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
+            edges.some(e => e.source === nextDelayNode.id && e.target === n.id)
           );
+
+          if (nextActionNode?.type === 'actionNode') {
+            break;
+          }
+
           currentNode = nextActionNode as any;
         }
 
@@ -335,7 +343,7 @@ function Omni() {
         const outgoingEdges = edges.filter(edge => edge.source === node.id);
         const incomingEdges = edges.filter(edge => edge.target === node.id);
         const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-        
+
         const delay = incomingEdges.length === 0 ? 0 : (nextNode?.data?.days || 0);
 
         if (node.type === 'linkedInNode') {
@@ -356,7 +364,7 @@ function Omni() {
           const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
 
           steps[stepCounter] = {
-            action_type: node.data.label as string,
+            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
             next_steps: {
               accepted: acceptedPath[0] || null,
               declined: null,
@@ -365,27 +373,18 @@ function Omni() {
             delay: `${delay}d`,
           };
         } else {
-          let nextStepIndex = null;
-          
-          for (const step of Object.values(steps)) {
-            if (step.success?.includes(stepCounter)) {
-              const currentIndex = step.success.indexOf(stepCounter);
-              nextStepIndex = step.success[currentIndex + 1] || null;
-              break;
-            }
-            if (step.failure?.includes(stepCounter)) {
-              const currentIndex = step.failure.indexOf(stepCounter);
-              nextStepIndex = step.failure[currentIndex + 1] || null;
-              break;
-            }
-          }
+          const outgoingEdges = edges.filter(edge => edge.source === node.id);
+          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+          const nextActionNode = nodes.find(n =>
+            edges.some(e => e.source === nextDelayNode?.id && e.target === n.id)
+          );
 
-          if (nextStepIndex === null) {
-            nextStepIndex = sortedNodes[index + 1] ? stepCounter + 1 : null;
-          }
+          const nextStepIndex = nextActionNode?.type === 'actionNode' || !sortedNodes[index + 1]
+            ? null
+            : stepCounter + 1;
 
           steps[stepCounter] = {
-            action_type: node.data.label as string,
+            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
             next_steps: {
               default: nextStepIndex
             },
@@ -442,6 +441,141 @@ function Omni() {
     }
   };
 
+  const handleUndo = useCallback(() => {
+    if (nodes.length > 0) {
+      const actionNodes = [...nodes]
+        .filter(node => node.type === 'emailNode')
+        .sort((a, b) => b.position.y - a.position.y);
+
+      if (actionNodes.length > 1) {
+        const lastActionNode = actionNodes[0];
+        const nodesToRemove = new Set<string>();
+
+        const connectedDelay = nodes.find(node =>
+          node.type === 'delayNode' &&
+          edges.some(edge =>
+            edge.source === lastActionNode.id &&
+            edge.target === node.id
+          )
+        );
+
+        nodesToRemove.add(lastActionNode.id);
+        if (connectedDelay) {
+          nodesToRemove.add(connectedDelay.id);
+        }
+
+        const connectedAction = nodes.find(node =>
+          node.type === 'actionNode' &&
+          edges.some(edge =>
+            edge.source === (connectedDelay?.id || lastActionNode.id) &&
+            edge.target === node.id
+          )
+        );
+
+        if (connectedAction) {
+          nodesToRemove.add(connectedAction.id);
+        }
+
+        const updatedNodes = nodes.filter(node => !nodesToRemove.has(node.id));
+        const updatedEdges = edges.filter(edge =>
+          !nodesToRemove.has(edge.source) && !nodesToRemove.has(edge.target)
+        );
+
+        const previousEmailNode = actionNodes[1];
+        const previousDelayNode = nodes.find(node =>
+          node.type === 'delayNode' &&
+          edges.some(edge =>
+            edge.source === previousEmailNode.id &&
+            edge.target === node.id
+          )
+        );
+
+        if (previousDelayNode) {
+          const actionNode: Node<NodeData> = {
+            id: `action-${Date.now()}`,
+            type: 'actionNode',
+            position: {
+              x: previousEmailNode.position.x,
+              y: previousDelayNode.position.y + 150,
+            },
+            data: {}
+          };
+
+          const actionEdge: CustomEdge = {
+            id: `e-${Date.now()}`,
+            source: previousDelayNode.id,
+            target: actionNode.id,
+            type: 'smoothstep',
+            style: {
+              stroke: '#4f4f4f',
+              strokeWidth: 2,
+              opacity: 0.8
+            }
+          };
+
+          isHistoryNavigationRef.current = true;
+          setNodes([...updatedNodes, actionNode]);
+          setEdges([...updatedEdges, actionEdge]);
+          setCurrentHistoryIndex(prev => prev - 1);
+        }
+      } else if (actionNodes.length === 1) {
+        const firstEmailNode = actionNodes[0];
+        const firstDelay = nodes.find(node =>
+          node.type === 'delayNode' &&
+          edges.some(edge => edge.source === firstEmailNode.id && edge.target === node.id)
+        );
+
+        const nodesToKeep = new Set([firstEmailNode.id]);
+        if (firstDelay) nodesToKeep.add(firstDelay.id);
+
+        const updatedNodes = nodes.filter(node => nodesToKeep.has(node.id));
+        const updatedEdges = edges.filter(edge =>
+          nodesToKeep.has(edge.source) && nodesToKeep.has(edge.target)
+        );
+
+        setNodes(updatedNodes);
+        setEdges(updatedEdges);
+      }
+    }
+  }, [nodes, edges, currentHistoryIndex]);
+
+  const handleRedo = useCallback(() => {
+    if (currentHistoryIndex < history.length - 1) {
+      const nextState = history[currentHistoryIndex + 1];
+      isHistoryNavigationRef.current = true;
+      setNodes(nextState.nodes);
+      setEdges(nextState.edges);
+      setCurrentHistoryIndex(prev => prev + 1);
+    }
+  }, [currentHistoryIndex, history]);
+
+  useEffect(() => {
+    if (isHistoryNavigationRef.current) {
+      isHistoryNavigationRef.current = false;
+      return;
+    }
+
+    if (nodes.length === 0 && edges.length === 0) {
+      setHistory([]);
+      setCurrentHistoryIndex(-1);
+      return;
+    }
+
+    const newState = { nodes, edges };
+    const newHistory = history.slice(0, currentHistoryIndex + 1);
+    newHistory.push(newState);
+    setHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+  }, [nodes, edges]);
+
+  const handleClearCanvas = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setHistory([]);
+    setCurrentHistoryIndex(-1);
+    toast.success("Canvas cleared");
+  }, [setNodes, setEdges]);
+
   return (
     <div className='w-full flex flex-col'>
       <div className='w-full flex'>
@@ -453,6 +587,39 @@ function Omni() {
         </div>
 
         <div className='w-full min-h-[700px] border dark:border-white/20 border-zinc-800/30 relative'>
+          <div className="absolute top-4 right-4 z-10 flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleUndo}
+              disabled={nodes.length === 0}
+              className="w-8 h-8"
+              title="Undo"
+            >
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRedo}
+              disabled={currentHistoryIndex === history.length - 1}
+              className="w-8 h-8"
+              title="Redo"
+            >
+              <Redo2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClearCanvas}
+              disabled={nodes.length === 0}
+              className="w-8 h-8"
+              title="Clear Canvas"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+
           <ReactFlow
             nodes={nodes.map(node => ({
               ...node,

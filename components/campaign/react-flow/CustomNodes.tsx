@@ -69,6 +69,7 @@ export function DelayNode({ data, id }: NodeProps<any>) {
             onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
             autoFocus
             min="0"
+            max="7"
             className="w-12 bg-zinc-800 text-white text-lg font-medium 
                       rounded px-1 outline-none border border-zinc-700"
             onClick={(e) => e.stopPropagation()}

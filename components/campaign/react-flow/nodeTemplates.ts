@@ -249,16 +249,16 @@ export const nodeTemplates: Record<string, Template> = {
       },
     ]
   },
-  linkedin_comment: {
+  inmail: {
     nodes: [
       {
-        id: 'linkedin-comment',
+        id: 'inmail',
         type: 'emailNode',
         position: { x: 0, y: 0 },
-        data: { label: 'Comment on LinkedIn Post' },
+        data: { label: 'Send Inmail' },
       },
       {
-        id: 'delay-comment',
+        id: 'delay-inmail',
         type: 'delayNode',
         position: { x: 0, y: 100 },
         data: {
@@ -267,7 +267,7 @@ export const nodeTemplates: Record<string, Template> = {
         },
       },
       {
-        id: 'action-comment',
+        id: 'action-inmail',
         type: 'actionNode',
         position: { x: 0, y: 200 },
         data: {},
@@ -276,15 +276,15 @@ export const nodeTemplates: Record<string, Template> = {
     edges: [
       {
         id: 'lc1',
-        source: 'linkedin-comment',
-        target: 'delay-comment',
+        source: 'inmail',
+        target: 'delay-inmail',
         type: 'smoothstep',
         style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },
       {
         id: 'lc2',
-        source: 'delay-comment',
-        target: 'action-comment',
+        source: 'delay-inmail',
+        target: 'action-inmail',
         type: 'smoothstep',
         style: { stroke: '#4f4f4f', strokeWidth: 2 },
       },

@@ -576,6 +576,23 @@ function Omni() {
     toast.success("Canvas cleared");
   }, [setNodes, setEdges]);
 
+  const getExistingNodeTypes = useCallback(() => {
+    return nodes
+      .filter(node => node.type === 'emailNode' || node.type === 'linkedInNode')
+      .map(node => {
+        // Convert node labels to types
+        const label = node.data.label?.toLowerCase().replace(/ /g, '_');
+        switch (label) {
+          case 'send_email':
+            return 'send_email';
+          case 'send_linkedin_invite':
+            return 'linkedin_invite';
+          default:
+            return label;
+        }
+      });
+  }, [nodes]);
+
   return (
     <div className='w-full flex flex-col'>
       <div className='w-full flex'>
@@ -583,6 +600,7 @@ function Omni() {
           <SideBar
             isEnabled={isActionsEnabled}
             onActionSelect={activeNodeId ? handleActionSelect : handleInitialActionSelect}
+            existingNodes={getExistingNodeTypes().filter((type): type is string => type !== undefined)}
           />
         </div>
 

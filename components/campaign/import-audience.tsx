@@ -46,6 +46,10 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { CardTitle } from "../ui/card";
 import { CardDescription } from "../ui/card";
 import { useAuth } from "@/context/auth-provider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 
 interface FileData {
   [key: string]: string;
@@ -71,25 +75,69 @@ export const ImportAudience = () => {
   const [isEnrichmentLoading, setIsEnrichmentLoading] = useState(false);
   const [showCard, setShowCard] = useState(true);
 
+  const [importMethod, setImportMethod] = useState<'enhance' | 'direct' | null>(null);
+  const [directImportData, setDirectImportData] = useState<FileData[]>();
+
+  const [showImportCards, setShowImportCards] = useState(true);
+
+  const [showProviderDialog, setShowProviderDialog] = useState(false);
+
+  const [selectedProvider, setSelectedProvider] = useState<any | null>(null);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
+      const file = event.target.files[0];
+      
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("File size exceeds 50MB limit");
+        return;
+      }
+
       setIsLoading(true);
-      setFile(event.target.files[0]);
+      setFile(file);
+      setShowImportCards(false);
     }
   };
 
   useEffect(() => {
     if (file) {
       if (file.name.endsWith(".csv")) {
-        parseCSV(file);
+        if (importMethod === 'direct') {
+          Papa.parse(file, {
+            header: true,
+            complete: (results) => {
+              setDirectImportData(results.data as FileData[]);
+              setIsLoading(false);
+              setIsDialogOpen(true);
+            },
+            error: (error) => {
+              setError("Error parsing CSV: " + error.message);
+              setIsLoading(false);
+            },
+          });
+        } else {
+          parseCSV(file);
+        }
       } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
-        parseExcel(file);
-      } else {
-        setError("Unsupported file format. Please upload a CSV or Excel file.");
-        setIsLoading(false);
+        if (importMethod === 'direct') {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const data = e.target?.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const parsedData = XLSX.utils.sheet_to_json(sheet);
+            setDirectImportData(parsedData as FileData[]);
+            setIsLoading(false);
+            setIsDialogOpen(true);
+          };
+          reader.readAsBinaryString(file);
+        } else {
+          parseExcel(file);
+        }
       }
     }
-  }, [file]);
+  }, [file, importMethod]);
 
   const parseCSV = (file: File) => {
     Papa.parse(file, {
@@ -448,19 +496,441 @@ export const ImportAudience = () => {
 
   const handleCardClick = () => {
     if (fileInputRef.current) {
+      setImportMethod('enhance');
       fileInputRef.current.click();
     }
   };
 
+  const handleImportCardClick = () => {
+    setShowProviderDialog(true);
+  };
+
+  
+
+  const DirectImportTable = ({ data }: { data: FileData[] }) => {
+    // Add record count check
+    useEffect(() => {
+      if (data.length > 2000) {
+        toast.error("File contains more than 2000 records. Please reduce the number of records.");
+        setShowImportCards(true);
+        setFile(undefined);
+        setFileData(undefined);
+        setDirectImportData(undefined);
+        setImportMethod(null);
+      }
+    }, [data]);
+
+    const filteredData = data.filter(row =>
+      Object.values(row).some(value =>
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
+        value !== 'Empty'
+      )
+    );
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 5;
+    const startIndex = 0;
+    const endIndex = currentPage * recordsPerPage;
+    const hasMoreRecords = endIndex < filteredData.length;
+
+    const handleLoadMore = () => {
+      setCurrentPage(prev => prev + 1);
+    };
+    const [dailyLimit, setDailyLimit] = useState<number>(25); // Default value of 50
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSaveContacts = async () => {
+      setIsSaving(true);
+      try {
+        const payload = {
+          user_id: user?.id,
+          campaign_id: params.campaignId,
+          daily_limit: dailyLimit,
+          provider: selectedProvider,
+          leads: filteredData.map(lead => ({
+            ...lead,
+          }))
+        };
+
+        const response = await axiosInstance.post('v2/contacts/bulk-import', payload);
+
+        const getRecData = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
+        );
+        
+        if (getRecData.data.schedule_type === "recurring") {
+          const recurringResponse = await axiosInstance.post(
+            "v2/recurring_campaign_request",
+            {
+              campaign_id: params.campaignId,
+              user_id: user?.id,
+              apollo_url: "",
+              page: dailyLimit,
+              is_active: false,
+              leads_count: dailyLimit,
+            }
+          );
+        }
+
+        toast.info("Updating user details, please wait...");
+
+        // Start polling for leads
+        let attempts = 0;
+        const maxAttempts = 15;
+        const pollInterval = 6000; // 7 seconds
+
+        const checkLeads = async () => {
+          try {
+            const response = await axiosInstance.get(
+              `v2/lead/campaign/${params.campaignId}`
+            );
+            if (Array.isArray(response.data) && response.data.length >= 1) {
+
+              setTimeout(() => {
+                router.push(`/campaign/${params.campaignId}`);
+              }, 4000);
+
+              return true;
+            }
+          } catch (error) {
+            console.error("Error checking leads:", error);
+          }
+          return false;
+        };
+
+        const poll = async () => {
+          const success = await checkLeads();
+          if (success) {
+            return;
+          }
+
+          attempts++;
+          if (attempts >= maxAttempts) {
+            console.log("Max attempts reached. Stopping polling.");
+            toast.error("Failed to update leads. Please try again later.");
+            setIsSaving(false);
+            return;
+          }
+
+          setTimeout(poll, pollInterval);
+        };
+
+        poll(); 
+
+
+
+      } catch (error) {
+        console.error("Error saving contacts:", error);
+        toast.error("Failed to save contacts. Please try again.", { id: "import" });
+      } 
+    };
+
+    return (
+      <div className="mt-4 space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Preview Import Data</h3>
+            <p className="text-sm text-muted-foreground">
+              Showing {Math.min(endIndex, filteredData.length)} of {filteredData.length} total records
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card">
+          <div className="relative max-w-[calc(100vw-2rem)]">
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+
+            <div className="overflow-x-auto">
+              <div className="min-w-max">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      {Object.keys(filteredData[0]).map((header) => (
+                        <TableHead
+                          key={header}
+                          className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider whitespace-nowrap"
+                        >
+                          {header}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredData.slice(startIndex, endIndex).map((row, index) => (
+                      <TableRow
+                        key={index}
+                        className="hover:bg-muted/50 transition-colors border-b last:border-0"
+                      >
+                        {Object.values(row).map((value, i) => (
+                          <TableCell
+                            key={i}
+                            className="py-2.5 text-sm whitespace-nowrap px-4"
+                          >
+                            {value && value !== 'Empty' ? (
+                              <span className="truncate max-w-[200px] block">
+                                {value}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground italic text-xs">
+                                -
+                              </span>
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t bg-muted/50 p-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              {hasMoreRecords ? (
+                <div
+                  className="cursor-pointer hover:text-primary transition-colors"
+                  onClick={handleLoadMore}
+                >
+                  + Show {filteredData.length - endIndex} more records
+                </div>
+              ) : (
+                `Showing all ${filteredData.length} records`
+              )}
+            </div>
+
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <label
+            htmlFor="dailyLimit"
+            className="text-sm text-muted-foreground whitespace-nowrap"
+          >
+            Number of leads to be contacted per day:
+          </label>
+          <Input
+            id="dailyLimit"
+            type="number"
+            min={1}
+            max={200}
+            value={dailyLimit}
+            onChange={(e) => setDailyLimit(Number(e.target.value))}
+            className="w-[100px] h-9"
+            placeholder="50"
+          />
+        </div>
+        <div className="text-sm text-muted-foreground pb-4">
+          Your Campaign would be completed in {Math.ceil(filteredData.length / dailyLimit)} days
+        </div>
+        <div className="flex gap-3 ">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowImportCards(true);
+              setFile(undefined);
+              setFileData(undefined);
+              setDirectImportData(undefined);
+              setImportMethod(null);
+            }}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveContacts}
+            disabled={isSaving || filteredData.length === 0}
+            className="min-w-[140px]"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                Save {filteredData.length} Contacts
+              </>
+            )}
+          </Button>
+        </div>
+
+        {isSaving && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-card p-6 rounded-lg shadow-lg text-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              <p className="text-lg font-medium">Processing your contacts...</p>
+              <p className="text-sm text-muted-foreground">
+                This may take a few moments. Please don't close this window.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ProviderSelectionDialog = () => {
+    const [localProvider, setLocalProvider] = useState<any | null>(null);
+
+    const handleProviderChange = (value: string) => {
+      setLocalProvider(value as any);
+    };
+
+    const handleContinue = () => {
+      if (localProvider) {
+        setSelectedProvider(localProvider);
+        setShowProviderDialog(false);
+        setImportMethod('direct');
+        fileInputRef.current?.click();
+      }
+    };
+
+    return (
+      <Dialog open={showProviderDialog} onOpenChange={setShowProviderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Data Provider</DialogTitle>
+            <DialogDescription>
+              Choose your data source to import contacts
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <RadioGroup
+              value={localProvider || ''}
+              onValueChange={handleProviderChange}
+            >
+              <div className="space-y-2">
+                <Label
+                  htmlFor="apollo"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'apollo' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="apollo" id="apollo" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/apollo.svg"
+                      alt="Apollo"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">Apollo</div>
+                    <div className="text-sm text-muted-foreground">Import from Apollo contacts</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="rocketreach"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'rocketreach' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="rocketreach" id="rocketreach" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/rocketreach.png"
+                      alt="RocketReach"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">RocketReach</div>
+                    <div className="text-sm text-muted-foreground">Import from RocketReach</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="lusha"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'lusha' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="lusha" id="lusha" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/lusha.png"
+                      alt="lusha"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">Lusha</div>
+                    <div className="text-sm text-muted-foreground">Import from Lusha</div>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="zoominfo"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'zoominfo' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="zoominfo" id="zoominfo" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <Image
+                      src="/zoominfo.png"
+                      alt="zoominfo"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium">ZoomInfo</div>
+                    <div className="text-sm text-muted-foreground">Import from ZoomInfo</div>
+                  </div>
+                </Label>
+
+
+                <Label
+                  htmlFor="csv"
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${localProvider === 'csv' ? 'bg-muted border-primary' : 'hover:bg-muted/50'
+                    }`}
+                >
+                  <RadioGroupItem value="csv" id="csv" />
+                  <div className="bg-primary/10 p-2 rounded">
+                    <FileIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="font-medium">CSV/Excel File</div>
+                    <div className="text-sm text-muted-foreground">Upload your own contact list</div>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <DialogFooter className="gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowProviderDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleContinue}
+              disabled={!localProvider}
+            >
+              Continue with {localProvider || ''}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <>
-      {showCard && (
+      {showImportCards && (
         <div className="my-4">
           <h2 className="text-2xl font-bold mb-4">Choose Your Import Method</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
-              className="cursor-pointer transition-all h-60 border-primary"
+              className="cursor-pointer transition-all h-60 border-primary hover:shadow-lg"
               onClick={handleCardClick}
             >
               <CardHeader>
@@ -470,11 +940,30 @@ export const ImportAudience = () => {
                 <CardDescription>
                   <ul className="list-disc list-inside space-y-2">
                     <li>Upload your file (CSV, Excel, etc.)</li>
-                    // eslint-disable-next-line react/no-unescaped-entities
                     <li>We'll enrich each contact with additional details</li>
                     <li>Get their email ID, LinkedIn ID, job titles, company size, etc.</li>
                     <li>Save time on manual research</li>
                     <li>Required fields: Name, Company</li>
+                  </ul>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer transition-all h-60 border-primary hover:shadow-lg"
+              onClick={handleImportCardClick}
+            >
+              <CardHeader>
+                <CardTitle className="text-2xl mb-2 flex items-center">
+                  <FileIcon className="mr-2" /> Import Your Contact List
+                </CardTitle>
+                <CardDescription>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Upload your file (CSV, Excel, etc.)</li>
+                    <li>Direct import of your contacts</li>
+                    <li>No enrichment process</li>
+                    <li>Maximum file size: 50MB</li>
+                    <li>Maximum 2000 records per import</li>
                   </ul>
                 </CardDescription>
               </CardHeader>
@@ -492,9 +981,25 @@ export const ImportAudience = () => {
         </div>
       )}
 
+      <ProviderSelectionDialog />
+      {!showImportCards && (
+        <Button
+          variant="outline"
+          className="mb-4"
+          onClick={() => {
+            setShowImportCards(true);
+            setFile(undefined);
+            setFileData(undefined);
+            setDirectImportData(undefined);
+            setImportMethod(null);
+          }}
+        >
+          ← Back to Import Options
+        </Button>
+      )}
       {error && <div className="text-red-500">{error}</div>}
       {isLoading && <LoadingCircle />}
-      {fileData && (
+      {importMethod === 'enhance' && fileData && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -505,30 +1010,32 @@ export const ImportAudience = () => {
             </DialogHeader>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[150px]">Column Name</TableHead>
-                  <TableHead className="w-[150px]">Select Type</TableHead>
-                  <TableHead className="w-[150px]">Samples</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-[150px] font-semibold">Column Name</TableHead>
+                  <TableHead className="w-[150px] font-semibold">Select Type</TableHead>
+                  <TableHead className="w-[150px] font-semibold">Samples</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Object.keys(fileData[0]).map((column, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{column}</TableCell>
+                  <TableRow
+                    key={index}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    <TableCell className="font-medium text-primary">{column}</TableCell>
                     <TableCell>
                       <Select onValueChange={handleSelectChange}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Type" />
+                        <SelectTrigger className="w-[180px] border-primary/20">
+                          <SelectValue placeholder="Select type..." />
                         </SelectTrigger>
                         <SelectContent className="h-60">
                           <SelectGroup>
-                            <SelectLabel>Options</SelectLabel>
+                            <SelectLabel className="font-semibold">Options</SelectLabel>
                             {filteredOptions.map((option, index) => (
                               <SelectItem
                                 key={index}
-                                value={`${option
-                                  .toLowerCase()
-                                  .replace(/ /g, "_")}~${column}`}
+                                value={`${option.toLowerCase().replace(/ /g, "_")}~${column}`}
+                                className="cursor-pointer hover:bg-primary/10"
                               >
                                 {option}
                               </SelectItem>
@@ -537,7 +1044,7 @@ export const ImportAudience = () => {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground italic">
                       {fileData[0][column]}
                     </TableCell>
                   </TableRow>
@@ -568,6 +1075,11 @@ export const ImportAudience = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {importMethod === 'direct' && directImportData && (
+        <DirectImportTable data={directImportData} />
+      )}
+
       {isLeadsTableActive && (
         <>
           <AudienceTable />

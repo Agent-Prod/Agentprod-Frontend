@@ -246,7 +246,7 @@ export default function PeopleForm(): JSX.Element {
   const [technologiesDropdownIsOpen, setTechnologiesDropdownIsOpen] = useState(false);
   const technologyDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [likelyToEngage, setLikelyToEngage] = useState(false)
+  const [likelyToEngage, setLikelyToEngage] = useState<string>("verified");
   const [error, setError] = React.useState<string | null>(null);
   const [apolloUrl, setApolloUrl] = useState("");
   const [organizationCompanyTags, setOrganizationCompanyTags] = React.useState<
@@ -525,7 +525,7 @@ export default function PeopleForm(): JSX.Element {
   };
 
   const constructApolloUrl = (
-    formData: any,): string => {
+    formData: any): string => {
     const params: string[] = [
       'finderViewId=6674b20eecfedd000184539f',
       'sortByField=account_owner_id',
@@ -538,9 +538,9 @@ export default function PeopleForm(): JSX.Element {
         params.push(`${key}[]=${encodeURIComponent(value).replace(/%2C/g, ',').replace(/%20/g, '+')}`);
       });
     };
-
+    console.log("likelyToEngage", likelyToEngage);
     if (linkedinSelectionType !== "Linkedin") {
-      params.push(`contactEmailStatusV2[]=${likelyToEngage ? 'likely_to_engage' : ''}`);
+      params.push(`contactEmailStatusV2[]=${likelyToEngage}`);
     }
 
     if (formData.organization_locations?.length) {
@@ -618,6 +618,7 @@ export default function PeopleForm(): JSX.Element {
     const formData = form.getValues();
     const newApolloUrl = constructApolloUrl(formData);
     setApolloUrl(newApolloUrl);
+    console.log("newApolloUrl", apolloUrl);
   }, [
     form,
     checkedCompanyHeadcount,
@@ -656,7 +657,7 @@ export default function PeopleForm(): JSX.Element {
       email_status: data.email_status,
       organization_job_locations: data.organization_job_locations,
       q_organization_job_titles: data.q_organization_job_titles,
-      contact_email_status_v2: likelyToEngage ? ["likely_to_engage"] : [],
+      contact_email_status_v2: likelyToEngage,
     };
     setIsSubmitting(true);
     setPageCompletion("audience", true);
@@ -1597,7 +1598,7 @@ export default function PeopleForm(): JSX.Element {
     setIsLoadingTotalLeads(true);
     try {
       const formData = form.getValues();
-      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : [...(likelyToEngage ? ["likely_to_engage"] : [])];
+      const linkedinCheck = linkedinSelectionType === "Linkedin" ? [] : [likelyToEngage];
 
       const requestBody = {
         page: 1,
@@ -1882,44 +1883,40 @@ export default function PeopleForm(): JSX.Element {
                   </FormDropdown>
                 </div>
 
-                {linkedinSelectionType !== "Linkedin" && <div className="flex items-center space-x-2 mt-4">
-                  <Checkbox
-                    id="likely-to-engage"
-                    checked={likelyToEngage}
-                    onCheckedChange={(checked) => {
-                      const isChecked = checked as boolean;
-                      setLikelyToEngage(isChecked);
+                {linkedinSelectionType !== "Linkedin" && (
+                  <div className="flex flex-col space-y-2 mt-4">
+                    <Label className="text-sm text-muted-foreground">Email Status</Label>
+                    <RadioGroup
+                      defaultValue="verified"
+                      onValueChange={(value) => {
+                        setLikelyToEngage(value);
 
-                      // Update form data
-                      const formData = form.getValues();
-                      formData.contact_email_status_v2 = isChecked ? ["likely_to_engage"] : [];
-                      form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
+                        const formData = form.getValues();
+                        formData.contact_email_status_v2 = [value];
+                        form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
 
-                      // Log the change
-                      console.log("Likely to engage changed:", isChecked);
-                      console.log("Updated form data:", formData);
-                    }}
-                  />
-                  <Label
-                    htmlFor="likely-to-engage"
-                    className="text-sm text-muted-foreground cursor-pointer"
-                    onClick={() => {
-                      const newValue = !likelyToEngage;
-                      setLikelyToEngage(newValue);
-
-                      // Update form data
-                      const formData = form.getValues();
-                      formData.contact_email_status_v2 = newValue ? ["likely_to_engage"] : [];
-                      form.setValue("contact_email_status_v2", formData.contact_email_status_v2);
-
-                      // Log the change
-                      console.log("Likely to engage changed:", newValue);
-                      console.log("Updated form data:", formData);
-                    }}
-                  >
-                    Likely to engage
-                  </Label>
-                </div>}
+                        console.log("Email status changed:", value);
+                        console.log("Updated form data:", formData);
+                      }}
+                      value={likelyToEngage}
+                    >
+                      <div className="flex space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="verified" id="verified" />
+                          <Label htmlFor="verified" className="text-sm cursor-pointer">
+                            Verified
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="likely_to_engage" id="likely_to_engage" />
+                          <Label htmlFor="likely_to_engage" className="text-sm cursor-pointer">
+                            Likely to engage
+                          </Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}

@@ -675,11 +675,11 @@ function Omni() {
   }, [edges, activeNodeId]);
 
   return (
-    <Card className="w-full flex flex-col bg-background border-none rounded-none">
+    <Card className="w-full flex flex-col bg-background border rounded-none">
       <div className="w-full flex h-[calc(80vh-64px)]">
         <div className="w-[280px] border-r dark:border-white/10 border-zinc-200 flex flex-col">
           <div className="p-4 border-b dark:border-white/10 border-zinc-200">
-            <h3 className="text-sm font-medium">
+            <h3 className="text-[15.5px] font-medium">
               {isActionsEnabled ? 'Available Actions' : 'Start with an Action'}
             </h3>
           </div>
@@ -817,15 +817,12 @@ function Omni() {
         </div>
       </div>
 
-      <div className="h-16 px-4 border-t dark:border-white/10 border-zinc-200 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {nodes.length} node{nodes.length !== 1 ? 's' : ''} in flow
-        </div>
+      <div className="h-16 px-4 border-t  dark:border-white/10 border-zinc-200 flex items-center justify-between">
         <Button
           onClick={handleSaveFlow}
           disabled={nodes.length === 0}
           size="lg"
-          className="px-8"
+          className="px-8 bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:text-secondary-foreground/80"
         >
           Save Flow
         </Button>

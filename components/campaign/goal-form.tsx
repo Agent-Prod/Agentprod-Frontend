@@ -59,15 +59,10 @@ const goalFormSchema = z.object({
     .optional(),
   like_post: z.number().nullable().optional().default(0),
   withdraw_invite: z.number().nullable().optional().default(0),
-  follow_up_days: z
-    .number()
-    .min(0, { message: "Follow-up days must be a non-negative number" }),
-  follow_up_times: z
-    .number()
-    .min(0, { message: "Follow-up times must be a non-negative number" }),
-  mark_as_lost: z
-    .number()
-    .min(0, { message: "Mark as lost must be a non-negative number" }),
+  follow_up_days: 
+    z.number().nullable().optional().default(0),
+  follow_up_times: z.number().nullable().optional().default(0),
+  mark_as_lost: z.number().nullable().optional().default(0),
 }).refine((data) => {
   // Only validate scheduling_link when success_metric is "Meeting scheduled"
   if (data.success_metric === "Meeting scheduled") {
@@ -301,11 +296,7 @@ export function GoalForm() {
   const isFormValid = () => {
     const values = form.getValues();
     const hasEmails = values.emails && values.emails.length > 0;
-    const hasRequiredFields =
-      values.success_metric &&
-      values.follow_up_days !== undefined &&
-      values.follow_up_times !== undefined &&
-      values.mark_as_lost !== undefined;
+    const hasRequiredFields =values.success_metric 
 
     if (values.success_metric === "Meeting scheduled") {
       return hasEmails && hasRequiredFields && values.scheduling_link;
@@ -326,8 +317,9 @@ export function GoalForm() {
     return `${emailFields.length} ${campaignChannel === 'Linkedin' ? 'accounts' : 'emails'} selected`;
   };
 
-  return (<>{
-    campaignChannel === 'omni' ? (<><Omni /></>) : (
+  return (<>
+  {/* {
+    campaignChannel === 'omni' ? (<><Omni /></>) : ( */}
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit, (errors) => {
           console.log('Form validation errors:', errors);
@@ -504,8 +496,14 @@ export function GoalForm() {
               </FormItem>
             )}
           />
+        <div>
+        <FormLabel className="tex-sm font-medium">Make your outreach sequence</FormLabel>
+            <div className="flex gap-4 items-center mt-3">
+              <Omni />
+            </div>
+        </div>
 
-          {campaignChannel === 'Linkedin' && (<div>
+          {/* {campaignChannel === 'Linkedin' && (<div>
             <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
 
             <div className="flex gap-4 items-center mt-3">
@@ -555,9 +553,9 @@ export function GoalForm() {
                 )}
               />
             </div>
-          </div>)}
+          </div>)} */}
 
-          <div>
+          {/* <div>
             <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
 
             <div className="flex gap-4 items-center mt-3">
@@ -609,9 +607,9 @@ export function GoalForm() {
                 )}
               />
             </div>
-          </div>
+          </div> */}
 
-          <FormField
+          {/* <FormField
             control={form.control}
             name="mark_as_lost"
             render={({ field }) => (
@@ -633,7 +631,7 @@ export function GoalForm() {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           {type === "edit" ? (
             <Button type="submit">Update Goal</Button>
@@ -641,6 +639,7 @@ export function GoalForm() {
             <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
           )}
         </form>
-      </Form>)}</>
+      </Form>
+    </>
   );
 }

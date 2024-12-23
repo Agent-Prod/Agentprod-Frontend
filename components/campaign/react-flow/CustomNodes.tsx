@@ -1,32 +1,50 @@
 import { NodeProps, Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
-
+import { X } from 'lucide-react';
 
 export function EmailNode({ data, id }: NodeProps<any>) {
   const isChildNode = id.includes('-') && id.split('-').length > 1;
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (data.onDelete) {
+      data.onDelete(id);
+    }
+  };
+
   return (
-    <div className="px-16 py-4 rounded-full bg-zinc-900 text-white border border-zinc-800
-                    flex items-center justify-center min-w-[200px] relative">
-      {isChildNode && (
+    <div className="group relative">
+      <div className="px-16 py-4 rounded-full bg-white text-foreground 
+                    border border-border shadow-lg backdrop-blur-sm
+                    flex items-center justify-center min-w-[200px] relative
+                    transition-all duration-200 hover:border-zinc-600
+                    dark:bg-zinc-800 dark:border-zinc-600/50 dark:text-zinc-100">
+        {isChildNode && (
+          <Handle
+            type="target"
+            position={Position.Top}
+            className="!bg-muted !w-3 !h-3 hover:!bg-muted/80 transition-colors"
+          />
+        )}
+
+        <span className="text-lg font-medium">{data.label as string}</span>
+
+        <button
+          onClick={handleDelete}
+          className="absolute -right-3 -top-3 p-1.5 rounded-full bg-background 
+                    border border-border opacity-0 group-hover:opacity-100
+                    transition-all duration-200 hover:bg-red-500/20 hover:border-red-500
+                    hover:text-red-500 shadow-lg dark:bg-zinc-900/95 dark:border-zinc-700"
+        >
+          <X size={14} />
+        </button>
+
         <Handle
-          type="target"
-          position={Position.Top}
-          style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+          type="source"
+          position={Position.Bottom}
+          className="!bg-muted !w-3 !h-3 hover:!bg-muted/80 transition-colors"
         />
-      )}
-
-      <span className="text-lg font-medium">{data.label as string}</span>
-
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{
-          background: '#4f4f4f',
-          width: '8px',
-          height: '8px',
-        }}
-      />
+      </div>
     </div>
   );
 }
@@ -50,14 +68,17 @@ export function DelayNode({ data, id }: NodeProps<any>) {
   return (
     <div
       onClick={() => !isEditing && setIsEditing(true)}
-      className="px-8 py-3 rounded-lg bg-zinc-900 text-white border border-zinc-800
-                flex items-center gap-3 min-w-[140px] cursor-pointer hover:bg-zinc-800/50"
-    >
+      className="px-8 py-3 rounded-lg bg-white text-foreground 
+                border border-border shadow-lg backdrop-blur-sm
+                flex items-center gap-3 min-w-[140px] cursor-pointer 
+                transition-all duration-200 hover:border-zinc-600
+                dark:bg-zinc-800 dark:border-zinc-600/50 dark:text-zinc-100">
       <Handle
         type="target"
         position={Position.Top}
-        style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+        className="!bg-muted !w-3 !h-3 hover:!bg-muted/80 transition-colors"
       />
+
       <div className="w-6 h-6">⏱️</div>
       <div className="flex items-center gap-2">
         {isEditing ? (
@@ -70,21 +91,21 @@ export function DelayNode({ data, id }: NodeProps<any>) {
             autoFocus
             min="0"
             max="7"
-            className="w-12 bg-zinc-800 text-white text-lg font-medium 
-                      rounded px-1 outline-none border border-zinc-700"
+            className="w-12 bg-muted text-foreground text-lg font-medium 
+                      rounded px-1 outline-none border border-border
+                      focus:border-zinc-500"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="text-lg font-medium">
-            {days}
-          </span>
+          <span className="text-lg font-medium">{days}</span>
         )}
         <span className="text-lg font-medium">day{days !== 1 ? 's' : ''}</span>
       </div>
+
       <Handle
         type="source"
         position={Position.Bottom}
-        style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+        className="!bg-muted !w-3 !h-3 hover:!bg-muted/80 transition-colors"
       />
     </div>
   );
@@ -152,12 +173,14 @@ export function ActionNode({ data }: NodeProps<any>) {
 
   if (showEnd) {
     return (
-      <div className="px-12 py-3 rounded-lg border-2 border-zinc-700
-                    text-zinc-400 min-w-[120px] text-center">
+      <div className="px-12 py-3 rounded-lg border-2 border-border
+                    text-muted-foreground min-w-[120px] text-center
+                    transition-all duration-200 hover:border-zinc-600
+                    dark:border-zinc-600/50 dark:hover:border-zinc-500">
         <Handle
           type="target"
           position={Position.Top}
-          style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+          className="!bg-muted !w-3 !h-3 hover:!bg-muted/80 transition-colors"
         />
         <span className="text-lg">End</span>
       </div>
@@ -171,27 +194,29 @@ export function ActionNode({ data }: NodeProps<any>) {
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-1">
       <div
         onClick={handleActionClick}
-        className="px-8 py-3 rounded-l-lg border-2 border-dashed border-zinc-700
-                  text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
-      >
+        className="px-8 py-3 rounded-l-lg border-2 border-dashed border-border
+                  text-muted-foreground hover:bg-accent cursor-pointer
+                  transition-all duration-200 hover:border-zinc-600
+                  dark:border-zinc-600/50 dark:hover:border-zinc-500
+                  dark:hover:bg-zinc-700/50">
         <Handle
           type="target"
           position={Position.Top}
-          style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
+          className="!bg-zinc-600 !w-3 !h-3 hover:!bg-zinc-500 transition-colors"
         />
         <span className="text-lg">Add action</span>
       </div>
 
-      <div className="h-[calc(100%-4px)] w-[2px] bg-zinc-700 mx-[-1px]" />
-
       <div
         onClick={() => setShowEnd(true)}
-        className="px-8 py-3 rounded-r-lg border-2 border-dashed border-zinc-700
-                  text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
-      >
+        className="px-8 py-3 rounded-r-lg border-2 border-dashed border-border
+                  text-muted-foreground hover:bg-accent cursor-pointer
+                  transition-all duration-200 hover:border-zinc-600
+                  dark:border-zinc-600/50 dark:hover:border-zinc-500
+                  dark:hover:bg-zinc-700/50">
         <span className="text-lg">End</span>
       </div>
     </div>
@@ -199,40 +224,51 @@ export function ActionNode({ data }: NodeProps<any>) {
 }
 
 export function LinkedInNode({ data, id }: NodeProps<any>) {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (data.onDelete) {
+      data.onDelete(id);
+    }
+  };
+
   return (
-    <div className="px-16 py-4 rounded-full bg-zinc-900 text-white border border-zinc-800
-                    flex items-center justify-center min-w-[200px] relative">
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{ background: '#4f4f4f', width: '8px', height: '8px' }}
-      />
+    <div className="group relative">
+      <div className="px-16 py-4 rounded-full bg-zinc-900/95 text-white 
+                    border border-zinc-700 shadow-lg backdrop-blur-sm
+                    flex items-center justify-center min-w-[200px] relative
+                    transition-all duration-200 hover:border-zinc-600">
+        <Handle
+          type="target"
+          position={Position.Top}
+          className="!bg-zinc-600 !w-3 !h-3 hover:!bg-zinc-500 transition-colors"
+        />
 
-      <span className="text-lg font-medium">{data.label as string}</span>
+        <span className="text-lg font-medium">{data.label as string}</span>
 
-      <Handle
-        id="source-left"
-        type="source"
-        position={Position.Left}
-        style={{
-          background: '#4f4f4f',
-          width: '8px',
-          height: '8px',
-          top: '50%'
-        }}
-      />
+        <button
+          onClick={handleDelete}
+          className="absolute -right-3 -top-3 p-1.5 rounded-full bg-zinc-900/95 
+                    border border-zinc-700 opacity-0 group-hover:opacity-100
+                    transition-all duration-200 hover:bg-red-500/20 hover:border-red-500
+                    hover:text-red-500 shadow-lg"
+        >
+          <X size={14} />
+        </button>
 
-      <Handle
-        id="source-right"
-        type="source"
-        position={Position.Right}
-        style={{
-          background: '#4f4f4f',
-          width: '8px',
-          height: '8px',
-          top: '50%'
-        }}
-      />
+        <Handle
+          id="source-left"
+          type="source"
+          position={Position.Left}
+          className="!bg-zinc-600 !w-3 !h-3 hover:!bg-zinc-500 transition-colors !left-0"
+        />
+
+        <Handle
+          id="source-right"
+          type="source"
+          position={Position.Right}
+          className="!bg-zinc-600 !w-3 !h-3 hover:!bg-zinc-500 transition-colors !right-0"
+        />
+      </div>
     </div>
   );
 }

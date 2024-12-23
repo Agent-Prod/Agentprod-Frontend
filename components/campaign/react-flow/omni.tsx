@@ -14,11 +14,16 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import SideBar from './SideBar';
-import { PlusCircle, Undo2, Redo2, Trash2 } from 'lucide-react';
+import { PlusCircle, Undo2, Redo2, Trash2, Mail, Linkedin } from 'lucide-react';
 import { nodeTemplates } from './nodeTemplates';
 import { EmailNode, DelayNode, ActionNode, LinkedInNode, DelayNode1 } from './CustomNodes';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DragEvent } from 'react';
+import { cn } from "@/lib/utils";
 
 interface CustomEdge extends Edge {
   sourceHandle?: string;
@@ -31,6 +36,7 @@ interface NodeData extends Record<string, unknown> {
   onChange?: (id: string, days: number) => void;
   onActionClick?: () => void;
   onEndClick?: () => void;
+  onDelete?: (id: string) => void;
 }
 
 interface FlowData {
@@ -45,6 +51,8 @@ function Omni() {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [history, setHistory] = useState<{ nodes: Node<NodeData>[]; edges: CustomEdge[]; }[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+  const [draggedAction, setDraggedAction] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
   const nodeTypes = {
     emailNode: EmailNode,
     delayNode: DelayNode,
@@ -272,7 +280,7 @@ function Omni() {
       );
     }
 
-    setIsActionsEnabled(false);
+    setIsActionsEnabled(true);
     setActiveNodeId(null);
   };
 
@@ -593,96 +601,236 @@ function Omni() {
       });
   }, [nodes]);
 
+  const getLastNodePosition = () => {
+    if (nodes.length === 0) return { x: 250, y: 100 };
+
+    const actionNodes = nodes.filter(node =>
+      ['emailNode', 'linkedInNode'].includes(node.type as string)
+    );
+
+    if (actionNodes.length === 0) return { x: 250, y: 100 };
+
+    const lastNode = actionNodes.reduce((prev, current) =>
+      prev.position.y > current.position.y ? prev : current
+    );
+
+    return {
+      x: lastNode.position.x,
+      y: lastNode.position.y + 200 // Add spacing between nodes
+    };
+  };
+
+  const handleDragStart = (e: DragEvent<HTMLDivElement>, action: { type: string; label: string }) => {
+    e.dataTransfer.setData('actionType', action.type);
+    e.dataTransfer.setData('actionLabel', action.label);
+    setDraggedAction(action.type);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const actionType = e.dataTransfer.getData('actionType');
+    const actionLabel = e.dataTransfer.getData('actionLabel');
+
+    handleActionSelect({ type: actionType, label: actionLabel });
+    setDraggedAction(null);
+  };
+
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    const nodesToRemove = new Set<string>();
+    const edgesToRemove = new Set<string>();
+
+    const findDownstreamNodes = (currentNodeId: string) => {
+      edges.forEach(edge => {
+        if (edge.source === currentNodeId) {
+          edgesToRemove.add(edge.id);
+
+          nodesToRemove.add(edge.target);
+
+          findDownstreamNodes(edge.target);
+        }
+      });
+
+      edges.forEach(edge => {
+        if (edge.target === currentNodeId) {
+          edgesToRemove.add(edge.id);
+        }
+      });
+    };
+
+    nodesToRemove.add(nodeId);
+    findDownstreamNodes(nodeId);
+
+    setNodes(prevNodes => prevNodes.filter(node => !nodesToRemove.has(node.id)));
+    setEdges(prevEdges => prevEdges.filter(edge => !edgesToRemove.has(edge.id)));
+
+    if (activeNodeId === nodeId) {
+      setIsActionsEnabled(false);
+      setActiveNodeId(null);
+    }
+  }, [edges, activeNodeId]);
+
   return (
-    <div className='w-full flex flex-col'>
-      <div className='w-full flex'>
-        <div className='w-[300px]'>
-          <SideBar
-            isEnabled={isActionsEnabled}
-            onActionSelect={activeNodeId ? handleActionSelect : handleInitialActionSelect}
-            existingNodes={getExistingNodeTypes().filter((type): type is string => type !== undefined)}
-          />
-        </div>
-
-        <div className='w-full min-h-[700px] border dark:border-white/20 border-zinc-800/30 relative'>
-          <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleUndo}
-              disabled={nodes.length === 0}
-              className="w-8 h-8"
-              title="Undo"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRedo}
-              disabled={currentHistoryIndex === history.length - 1}
-              className="w-8 h-8"
-              title="Redo"
-            >
-              <Redo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleClearCanvas}
-              disabled={nodes.length === 0}
-              className="w-8 h-8"
-              title="Clear Canvas"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+    <Card className="w-full flex flex-col bg-background border-none rounded-none">
+      <div className="w-full flex h-[calc(80vh-64px)]">
+        <div className="w-[280px] border-r dark:border-white/10 border-zinc-200 flex flex-col">
+          <div className="p-4 border-b dark:border-white/10 border-zinc-200">
+            <h3 className="text-sm font-medium">
+              {isActionsEnabled ? 'Available Actions' : 'Start with an Action'}
+            </h3>
           </div>
-
-          <ReactFlow
-            nodes={nodes.map(node => ({
-              ...node,
-              data: {
-                ...node.data,
-                onActionClick: () => handleActionClick(node.id),
-                onEndClick: () => handleEndClick(node.id),
-                onChange: handleDelayChange,
-              },
-            }))}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes as NodeTypes}
-            defaultEdgeOptions={{
-              style: { stroke: '#4f4f4f', strokeWidth: 2 },
-              type: 'smoothstep',
-            }}
-          >
-            <Background />
-          </ReactFlow>
-          {nodes.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center">
+          <ScrollArea className="flex-1">
+            <div className="p-4">
               <div
-                onClick={() => handleActionClick()}
-                className="px-8 py-3 rounded-lg border-2 border-dashed border-zinc-700
-                          text-zinc-400 hover:bg-zinc-800/50 cursor-pointer"
+                className={cn(
+                  "transition-opacity",
+                  !isActionsEnabled && "opacity-75"
+                )}
               >
-                <span className="text-lg">Add action</span>
+                <SideBar
+                  isEnabled={isActionsEnabled}
+                  onActionSelect={activeNodeId ? handleActionSelect : handleInitialActionSelect}
+                  existingNodes={getExistingNodeTypes().filter((type): type is string => type !== undefined)}
+                  onDragStart={handleDragStart}
+                  draggedAction={draggedAction}
+                />
               </div>
             </div>
-          )}
+          </ScrollArea>
+        </div>
+
+        <div className="flex-1 flex flex-col">
+          <div className="h-14 px-4 border-b dark:border-white/10 border-zinc-200 flex items-center justify-between">
+            <div className="text-sm font-medium">Flow Editor</div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleUndo}
+                disabled={nodes.length === 0}
+                className="h-8"
+                title="Undo"
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Undo
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRedo}
+                disabled={currentHistoryIndex === history.length - 1}
+                className="h-8"
+                title="Redo"
+              >
+                <Redo2 className="h-4 w-4 mr-2" />
+                Redo
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleClearCanvas}
+                disabled={nodes.length === 0}
+                className="h-8"
+                title="Clear Canvas"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          <div
+            className="flex-1 relative"
+            onDragOver={handleDragOver}
+            onDrop={(e) => {
+              handleDrop(e);
+              setIsActionsEnabled(true);
+            }}
+          >
+            <ReactFlow
+              nodes={nodes.map(node => ({
+                ...node,
+                data: {
+                  ...node.data,
+                  onActionClick: () => handleActionClick(node.id),
+                  onEndClick: () => handleEndClick(node.id),
+                  onChange: handleDelayChange,
+                  onDelete: handleNodeDelete,
+                },
+              }))}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={nodeTypes as NodeTypes}
+              defaultEdgeOptions={{
+                style: { stroke: '#4f4f4f', strokeWidth: 2 },
+                type: 'smoothstep',
+              }}
+              fitView
+              className="bg-background"
+            >
+              <Background
+                gap={12}
+                size={1}
+                color="currentColor"
+                className="dark:text-zinc-800/50 text-zinc-200/30 dark:bg-zinc-900 bg-white"
+              />
+            </ReactFlow>
+
+            {draggedAction && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+                  <Card className="bg-accent/50 border-2 border-dashed border-accent p-4">
+                    <p className="text-sm text-center">Drop here to add action</p>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {nodes.length === 0 && !draggedAction && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                <Card className="w-72 p-6 flex flex-col items-center gap-4">
+                  <div className="text-zinc-500">
+                    <PlusCircle className="h-10 w-10" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-semibold mb-1">Empty Canvas</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Drag an action from the sidebar or click below to start
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleActionClick()}
+                    className="w-full"
+                  >
+                    Add Action
+                  </Button>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="w-full flex justify-end p-4 border-t dark:border-white/20 border-zinc-800/30">
+      <div className="h-16 px-4 border-t dark:border-white/10 border-zinc-200 flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          {nodes.length} node{nodes.length !== 1 ? 's' : ''} in flow
+        </div>
         <Button
           onClick={handleSaveFlow}
           disabled={nodes.length === 0}
-          className="px-6"
+          size="lg"
+          className="px-8"
         >
           Save Flow
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }
 

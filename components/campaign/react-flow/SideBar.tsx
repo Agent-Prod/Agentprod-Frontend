@@ -18,35 +18,29 @@ function SideBar({
 }: SideBarProps) {
   const isActionEnabled = (type: string): boolean => {
     if (existingNodes.length === 0) {
-      return ['send_email', 'linkedin_invite', 'linkedin_post', 'inmail'].includes(type);
+      return ['first_email', 'linkedin_connection', 'like_post'].includes(type);
     }
 
     switch (type) {
-      case 'email_followup':
-        return existingNodes.includes('send_email');
-
-      case 'linkedin_message':
-        return existingNodes.includes('linkedin_invite') &&
-          !existingNodes.includes('withdraw_request');
-
-      case 'linkedin_followup':
-        return (existingNodes.includes('linkedin_message') ||
-          existingNodes.includes('linkedin_invite')) &&
-          !existingNodes.includes('withdraw_request');
+      case 'follow_up_email':
+        return existingNodes.includes('first_email');
 
       case 'withdraw_request':
-        return existingNodes.includes('linkedin_invite') &&
-          !existingNodes.includes('linkedin_message');
+        return existingNodes.includes('linkedin_connection') &&
+          !existingNodes.includes('mark_as_lost');
 
-      case 'send_email':
-        return !existingNodes.some(node => node === 'email_followup');
+      case 'mark_as_lost':
+        return existingNodes.includes('linkedin_connection') &&
+          !existingNodes.includes('withdraw_request');
+
+      case 'first_email':
+        return !existingNodes.some(node => node === 'follow_up_email');
 
       // These actions are always available after any other action
-      case 'linkedin_post':
-      case 'inmail':
+      case 'like_post':
         return true;
 
-      case 'linkedin_invite':
+      case 'linkedin_connection':
         return !existingNodes.includes('withdraw_request');
 
       default:
@@ -55,14 +49,12 @@ function SideBar({
   };
 
   const actions = [
-    { label: 'Send Email', type: 'send_email' },
-    { label: 'Send Email Follow-up', type: 'email_followup' },
-    { label: 'Send LinkedIn Invite', type: 'linkedin_invite' },
-    { label: 'Like and Comment on LinkedIn Post', type: 'linkedin_post' },
-    { label: 'Send Inmail', type: 'inmail' },
-    { label: 'Send LinkedIn Message', type: 'linkedin_message' },
+    { label: 'Send First Email', type: 'first_email' },
+    { label: 'Send Follow-up Email', type: 'follow_up_email' },
+    { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
+    { label: 'Like and Comment on Post', type: 'like_post' },
+    { label: 'Mark as Lost', type: 'mark_as_lost' },
     { label: 'Withdraw Connection Request', type: 'withdraw_request' },
-    { label: 'Send LinkedIn Follow-up Message', type: 'linkedin_followup' },
   ];
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, action: { type: string; label: string }) => {

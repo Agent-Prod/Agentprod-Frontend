@@ -59,7 +59,7 @@ const goalFormSchema = z.object({
     .optional(),
   like_post: z.number().nullable().optional().default(0),
   withdraw_invite: z.number().nullable().optional().default(0),
-  follow_up_days: 
+  follow_up_days:
     z.number().nullable().optional().default(0),
   follow_up_times: z.number().nullable().optional().default(0),
   mark_as_lost: z.number().nullable().optional().default(0),
@@ -163,7 +163,17 @@ export function GoalForm() {
     }
   };
 
-  const onSubmit: SubmitHandler<GoalFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<GoalFormValues> = async (data, event) => {
+    // Check if the click originated from the Omni component or its children
+    if (event?.target && (
+      (event.target as HTMLElement).closest('.omni-component') ||
+      (event.target as HTMLElement).closest('.omni-wrapper')
+    )) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     console.log("Form submitted with data:", data);
 
     try {
@@ -178,9 +188,7 @@ export function GoalForm() {
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
-
         await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
-
       }
       const updatedFormsTracker = {
         schedulingBudget: true,
@@ -296,7 +304,7 @@ export function GoalForm() {
   const isFormValid = () => {
     const values = form.getValues();
     const hasEmails = values.emails && values.emails.length > 0;
-    const hasRequiredFields =values.success_metric 
+    const hasRequiredFields = values.success_metric
 
     if (values.success_metric === "Meeting scheduled") {
       return hasEmails && hasRequiredFields && values.scheduling_link;
@@ -318,192 +326,217 @@ export function GoalForm() {
   };
 
   return (<>
-  {/* {
+    {/* {
     campaignChannel === 'omni' ? (<><Omni /></>) : ( */}
-      <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit, (errors) => {
+    <Form {...form}>
+      <form
+        onSubmit={handleSubmit(onSubmit, (errors) => {
           console.log('Form validation errors:', errors);
-        })} className="space-y-8 mb-5">
-          <FormField
-            control={form.control}
-            name="success_metric"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <div>
-                  <FormLabel>Goal</FormLabel>
-                  <FormDescription>
-                    How success is measured for this campaign
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    value={field.value || goalData?.success_metric}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Meeting scheduled" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Meeting scheduled
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Link clicked" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Link clicked</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Reply received" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Reply received
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Custom goal" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Custom goal</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {form.watch("success_metric") === "Meeting scheduled" && (
-            <FormField
-              control={form.control}
-              name="scheduling_link"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <div>
-                    <FormLabel>Scheduling Link</FormLabel>
-                    <FormDescription>
-                      Where prospects can schedule a meeting with you
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://calendly.com/example"
-                      {...field}
-                      value={field.value || ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        })}
+        className="space-y-8 mb-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('.omni-component')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
+        <FormField
+          control={form.control}
+          name="success_metric"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <div>
+                <FormLabel>Goal</FormLabel>
+                <FormDescription>
+                  How success is measured for this campaign
+                </FormDescription>
+              </div>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value || goalData?.success_metric}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Meeting scheduled" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Meeting scheduled
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Link clicked" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Link clicked</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Reply received" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Reply received
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Custom goal" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Custom goal</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
 
-
+        {form.watch("success_metric") === "Meeting scheduled" && (
           <FormField
             control={form.control}
-            name="emails"
+            name="scheduling_link"
             render={({ field }) => (
               <FormItem className="space-y-3">
                 <div>
-                  <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
+                  <FormLabel>Scheduling Link</FormLabel>
                   <FormDescription>
                     Where prospects can schedule a meeting with you
                   </FormDescription>
                 </div>
                 <FormControl>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center justify-between w-1/4"
-                      >
-                        <span className="truncate">{getDisplayText()}</span>
-                        <ChevronDown size={20} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[400px]" align="start">
-                      <ScrollArea className="h-auto">
-                        <DropdownMenuGroup className="p-2">
-                          {mailboxes &&
-                            mailboxes.length > 0 &&
-                            mailboxes[0].mailbox !== null ? (
-                            mailboxes
-                              .filter(mailbox => {
-                                if (campaignChannel === 'Linkedin') {
-                                  return mailbox.mailbox.toLowerCase().includes('linkedin');
-                                }
-                                return true;
-                              })
-                              .map((mailbox, index) => (
-                                <DropdownMenuItem
-                                  key={index}
-                                  className="p-0 focus:bg-transparent"
-                                >
-                                  <div
-                                    className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-                                    onClick={(event) => event.stopPropagation()}
-                                  >
-                                    <Checkbox
-                                      checked={emailFields.some(
-                                        (emailField) =>
-                                          emailField.value === mailbox.mailbox
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          onEmailAppend(mailbox.mailbox, {
-                                            id: mailbox.id,
-                                            platform: campaignChannel
-                                          });
-                                        } else {
-                                          onEmailRemove(mailbox.mailbox);
-                                          if (campaignChannel === 'Linkedin') {
-                                            setSelectedLinkedInId([]);
-                                          }
-                                        }
-                                      }}
-                                    />
-                                    <label className="text-sm font-medium leading-none cursor-pointer flex-1">
-                                      {mailbox.sender_name} - {mailbox.mailbox}
-                                    </label>
-                                  </div>
-                                </DropdownMenuItem>
-                              ))
-                          ) : (
-                            <div className="text-sm m-2 text-center">
-                              <p> No mailboxes connected.</p>
-                              <p>
-                                You can add a mailbox on the{" "}
-                                <Link
-                                  href="/settings/mailbox"
-                                  className="text-blue-600 underline"
-                                >
-                                  Settings
-                                </Link>{" "}
-                                page.
-                              </p>
-                            </div>
-                          )}
-                        </DropdownMenuGroup>
-                      </ScrollArea>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Input
+                    type="url"
+                    placeholder="https://calendly.com/example"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        )}
+
+
+        <FormField
+          control={form.control}
+          name="emails"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <div>
+                <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
+                <FormDescription>
+                  Where prospects can schedule a meeting with you
+                </FormDescription>
+              </div>
+              <FormControl>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-between w-1/4"
+                    >
+                      <span className="truncate">{getDisplayText()}</span>
+                      <ChevronDown size={20} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[400px]" align="start">
+                    <ScrollArea className="h-auto">
+                      <DropdownMenuGroup className="p-2">
+                        {mailboxes &&
+                          mailboxes.length > 0 &&
+                          mailboxes[0].mailbox !== null ? (
+                          mailboxes
+                            .filter(mailbox => {
+                              if (campaignChannel === 'Linkedin') {
+                                return mailbox.mailbox.toLowerCase().includes('linkedin');
+                              }
+                              return true;
+                            })
+                            .map((mailbox, index) => (
+                              <DropdownMenuItem
+                                key={index}
+                                className="p-0 focus:bg-transparent"
+                              >
+                                <div
+                                  className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <Checkbox
+                                    checked={emailFields.some(
+                                      (emailField) =>
+                                        emailField.value === mailbox.mailbox
+                                    )}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        onEmailAppend(mailbox.mailbox, {
+                                          id: mailbox.id,
+                                          platform: campaignChannel
+                                        });
+                                      } else {
+                                        onEmailRemove(mailbox.mailbox);
+                                        if (campaignChannel === 'Linkedin') {
+                                          setSelectedLinkedInId([]);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <label className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                    {mailbox.sender_name} - {mailbox.mailbox}
+                                  </label>
+                                </div>
+                              </DropdownMenuItem>
+                            ))
+                        ) : (
+                          <div className="text-sm m-2 text-center">
+                            <p> No mailboxes connected.</p>
+                            <p>
+                              You can add a mailbox on the{" "}
+                              <Link
+                                href="/settings/mailbox"
+                                className="text-blue-600 underline"
+                              >
+                                Settings
+                              </Link>{" "}
+                              page.
+                            </p>
+                          </div>
+                        )}
+                      </DropdownMenuGroup>
+                    </ScrollArea>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div>
-        <FormLabel className="tex-sm font-medium">Make your outreach sequence</FormLabel>
-            <div className="flex gap-4 items-center mt-3">
-              <Omni />
+          <FormLabel className="tex-sm font-medium">Make your outreach sequence</FormLabel>
+          <div
+            className="flex gap-4 items-center mt-3"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <div
+              className="w-full"
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <div className="omni-wrapper">
+                <Omni />
+              </div>
             </div>
+          </div>
         </div>
 
-          {/* {campaignChannel === 'Linkedin' && (<div>
+        {/* {campaignChannel === 'Linkedin' && (<div>
             <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
 
             <div className="flex gap-4 items-center mt-3">
@@ -555,7 +588,7 @@ export function GoalForm() {
             </div>
           </div>)} */}
 
-          {/* <div>
+        {/* <div>
             <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
 
             <div className="flex gap-4 items-center mt-3">
@@ -609,7 +642,7 @@ export function GoalForm() {
             </div>
           </div> */}
 
-          {/* <FormField
+        {/* <FormField
             control={form.control}
             name="mark_as_lost"
             render={({ field }) => (
@@ -633,13 +666,13 @@ export function GoalForm() {
             )}
           /> */}
 
-          {type === "edit" ? (
-            <Button type="submit">Update Goal</Button>
-          ) : (
-            <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
-          )}
-        </form>
-      </Form>
-    </>
+        {type === "edit" ? (
+          <Button type="submit">Update Goal</Button>
+        ) : (
+          <Button type="submit" disabled={!isFormValid()}>Add Goal</Button>
+        )}
+      </form>
+    </Form>
+  </>
   );
 }

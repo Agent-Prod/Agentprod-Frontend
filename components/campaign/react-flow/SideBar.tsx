@@ -17,16 +17,40 @@ function SideBar({
   draggedAction
 }: SideBarProps) {
   const isActionEnabled = (type: string): boolean => {
+    if (existingNodes.length === 0) {
+      return ['send_email', 'linkedin_invite', 'linkedin_post', 'inmail'].includes(type);
+    }
+
     switch (type) {
       case 'email_followup':
         return existingNodes.includes('send_email');
+
       case 'linkedin_message':
+        return existingNodes.includes('linkedin_invite') &&
+          !existingNodes.includes('withdraw_request');
+
       case 'linkedin_followup':
-        return existingNodes.includes('linkedin_invite');
+        return (existingNodes.includes('linkedin_message') ||
+          existingNodes.includes('linkedin_invite')) &&
+          !existingNodes.includes('withdraw_request');
+
       case 'withdraw_request':
-        return existingNodes.includes('linkedin_invite');
-      default:
+        return existingNodes.includes('linkedin_invite') &&
+          !existingNodes.includes('linkedin_message');
+
+      case 'send_email':
+        return !existingNodes.some(node => node === 'email_followup');
+
+      // These actions are always available after any other action
+      case 'linkedin_post':
+      case 'inmail':
         return true;
+
+      case 'linkedin_invite':
+        return !existingNodes.includes('withdraw_request');
+
+      default:
+        return false;
     }
   };
 

@@ -9,6 +9,17 @@ interface SideBarProps {
   draggedAction?: string | null;
 }
 
+export const actions = [
+  { label: 'Send First Email', type: 'first_email' },
+  { label: 'Send Follow-up Email', type: 'follow_up_email' },
+  { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
+  // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
+  { label: 'Send LinkedIn Message', type: 'linkedin_message' },
+  { label: 'Like and Comment on Post', type: 'like_post' },
+  { label: 'Mark as Lost', type: 'mark_as_lost' },
+  { label: 'Withdraw Connection Request', type: 'withdraw_request' },
+];
+
 function SideBar({
   isEnabled,
   onActionSelect,
@@ -53,16 +64,7 @@ function SideBar({
     }
   };
 
-  const actions = [
-    { label: 'Send First Email', type: 'first_email' },
-    { label: 'Send Follow-up Email', type: 'follow_up_email' },
-    { label: 'Send LinkedIn Invite', type: 'linkedin_connection' },
-    // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
-    { label: 'Send LinkedIn Message', type: 'linkedin_message' },
-    { label: 'Like and Comment on Post', type: 'like_post' },
-    { label: 'Mark as Lost', type: 'mark_as_lost' },
-    { label: 'Withdraw Connection Request', type: 'withdraw_request' },
-  ];
+
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, action: { type: string; label: string }) => {
     if (!isEnabled || !isActionEnabled(action.type)) {

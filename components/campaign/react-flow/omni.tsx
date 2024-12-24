@@ -13,7 +13,7 @@ import {
   NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import SideBar from './SideBar';
+import SideBar, { actions } from './SideBar';
 import { PlusCircle, Undo2, Redo2, Trash2, Mail, Linkedin } from 'lucide-react';
 import { nodeTemplates } from './nodeTemplates';
 import { EmailNode, DelayNode, ActionNode, LinkedInNode, DelayNode1 } from './CustomNodes';
@@ -91,6 +91,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
     shouldNotifyParent.current = true;
   }, [onEdgesChange]);
 
+
   // Notify parent of changes, but only when necessary
   useEffect(() => {
     if (shouldNotifyParent.current && onFlowDataChange) {
@@ -154,7 +155,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
           const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
 
           steps[stepCounter] = {
-            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
+            action_type: actions.find(action => action.label === node.data.label)?.type,
             next_steps: {
               accepted: acceptedPath[0] || null,
               declined: null,
@@ -174,7 +175,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
             : stepCounter + 1;
 
           steps[stepCounter] = {
-            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
+            action_type: actions.find(action => action.label === node.data.label)?.type,
             next_steps: {
               default: nextStepIndex
             },

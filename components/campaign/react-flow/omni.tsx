@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -44,7 +44,20 @@ interface FlowData {
   edges: CustomEdge[];
 }
 
-function Omni() {
+interface OmniProps {
+  onFlowDataChange?: (flowData: any) => void;
+  initialSequence?: {
+    steps_config: {
+      steps: Record<string, any>;
+    };
+    flow_data: {
+      nodes: any[];
+      edges: any[];
+    };
+  };
+}
+
+function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [isActionsEnabled, setIsActionsEnabled] = useState(false);
@@ -62,6 +75,146 @@ function Omni() {
   } as const;
 
   const isHistoryNavigationRef = React.useRef(false);
+
+  // Use a ref to track if we need to notify parent of changes
+  const shouldNotifyParent = useRef(false);
+
+  // Handle nodes change
+  const handleNodesChange = useCallback((changes: any) => {
+    onNodesChange(changes);
+    shouldNotifyParent.current = true;
+  }, [onNodesChange]);
+
+  // Handle edges change
+  const handleEdgesChange = useCallback((changes: any) => {
+    onEdgesChange(changes);
+    shouldNotifyParent.current = true;
+  }, [onEdgesChange]);
+
+  // Notify parent of changes, but only when necessary
+  useEffect(() => {
+    if (shouldNotifyParent.current && onFlowDataChange) {
+      const sortedNodes = [...nodes]
+        .filter(node => !['delayNode', 'actionNode'].includes(node.type as string))
+        .sort((a, b) => a.position.y - b.position.y);
+
+      const steps: Record<string, any> = {};
+      let stepCounter = 0;
+
+      const processPath = (startNode: Node, pathNodes: Node[]): number[] => {
+        const sequence: number[] = [];
+        let currentNode = startNode;
+
+        while (currentNode) {
+          const nodeIndex = sortedNodes.indexOf(currentNode);
+          if (nodeIndex !== -1) {
+            sequence.push(nodeIndex);
+          }
+
+          const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
+          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+          if (!nextDelayNode) break;
+
+          const nextActionNode = nodes.find(n =>
+            edges.some(e => e.source === nextDelayNode.id && e.target === n.id)
+          );
+
+          if (nextActionNode?.type === 'actionNode') {
+            break;
+          }
+
+          currentNode = nextActionNode as any;
+        }
+
+        return sequence;
+      };
+
+      sortedNodes.forEach((node, index) => {
+        const outgoingEdges = edges.filter(edge => edge.source === node.id);
+        const incomingEdges = edges.filter(edge => edge.target === node.id);
+        const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+
+        const delay = incomingEdges.length === 0 ? 0 : (nextNode?.data?.days || 0);
+
+        if (node.type === 'linkedInNode') {
+          const leftEdge = edges.find(e => e.sourceHandle === 'source-left' && e.source === node.id);
+          const rightEdge = edges.find(e => e.sourceHandle === 'source-right' && e.source === node.id);
+
+          const leftDelayNode = nodes.find(n => n.id === leftEdge?.target);
+          const rightDelayNode = nodes.find(n => n.id === rightEdge?.target);
+
+          const leftPathFirstNode = nodes.find(n =>
+            edges.some(e => e.source === leftDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
+          );
+          const rightPathFirstNode = nodes.find(n =>
+            edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
+          );
+
+          const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, sortedNodes) : [];
+          const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
+
+          steps[stepCounter] = {
+            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
+            next_steps: {
+              accepted: acceptedPath[0] || null,
+              declined: null,
+              default: notAcceptedPath[0] || null
+            },
+            delay: `${delay}d`,
+          };
+        } else {
+          const outgoingEdges = edges.filter(edge => edge.source === node.id);
+          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
+          const nextActionNode = nodes.find(n =>
+            edges.some(e => e.source === nextDelayNode?.id && e.target === n.id)
+          );
+
+          const nextStepIndex = nextActionNode?.type === 'actionNode' || !sortedNodes[index + 1]
+            ? null
+            : stepCounter + 1;
+
+          steps[stepCounter] = {
+            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
+            next_steps: {
+              default: nextStepIndex
+            },
+            delay: `${delay}d`
+          };
+        }
+
+        stepCounter++;
+      });
+
+      const sequenceData = {
+        steps_config: {
+          steps
+        },
+        flow_data: {
+          nodes: nodes.map(node => ({
+            id: node.id,
+            type: node.type,
+            position: node.position,
+            data: {
+              label: node.data.label,
+              days: node.data.days,
+              isEnd: node.data.isEnd
+            }
+          })),
+          edges: edges.map(edge => ({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            type: edge.type,
+            style: edge.style
+          }))
+        }
+      };
+
+      onFlowDataChange(sequenceData);
+      shouldNotifyParent.current = false;
+    }
+  }, [nodes, edges, onFlowDataChange]);
 
   const handleInitialActionSelect = (action: { type: string; label: string }) => {
     const template = nodeTemplates[action.type];
@@ -330,101 +483,7 @@ function Omni() {
 
   const handleSaveFlow = async () => {
     try {
-      const sortedNodes = [...nodes]
-        .filter(node => !['delayNode', 'actionNode'].includes(node.type as string))
-        .sort((a, b) => a.position.y - b.position.y);
-
-      const steps: Record<string, any> = {};
-      let stepCounter = 0;
-
-      const processPath = (startNode: Node, pathNodes: Node[]): number[] => {
-        const sequence: number[] = [];
-        let currentNode = startNode;
-
-        while (currentNode) {
-          const nodeIndex = sortedNodes.indexOf(currentNode);
-          if (nodeIndex !== -1) {
-            sequence.push(nodeIndex);
-          }
-
-          const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
-          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-          if (!nextDelayNode) break;
-
-          const nextActionNode = nodes.find(n =>
-            edges.some(e => e.source === nextDelayNode.id && e.target === n.id)
-          );
-
-          if (nextActionNode?.type === 'actionNode') {
-            break;
-          }
-
-          currentNode = nextActionNode as any;
-        }
-
-        return sequence;
-      };
-
-      sortedNodes.forEach((node, index) => {
-        const outgoingEdges = edges.filter(edge => edge.source === node.id);
-        const incomingEdges = edges.filter(edge => edge.target === node.id);
-        const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-
-        const delay = incomingEdges.length === 0 ? 0 : (nextNode?.data?.days || 0);
-
-        if (node.type === 'linkedInNode') {
-          const leftEdge = edges.find(e => e.sourceHandle === 'source-left' && e.source === node.id);
-          const rightEdge = edges.find(e => e.sourceHandle === 'source-right' && e.source === node.id);
-
-          const leftDelayNode = nodes.find(n => n.id === leftEdge?.target);
-          const rightDelayNode = nodes.find(n => n.id === rightEdge?.target);
-
-          const leftPathFirstNode = nodes.find(n =>
-            edges.some(e => e.source === leftDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
-          );
-          const rightPathFirstNode = nodes.find(n =>
-            edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
-          );
-
-          const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, sortedNodes) : [];
-          const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
-
-          steps[stepCounter] = {
-            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
-            next_steps: {
-              accepted: acceptedPath[0] || null,
-              declined: null,
-              default: notAcceptedPath[0] || null
-            },
-            delay: `${delay}d`,
-          };
-        } else {
-          const outgoingEdges = edges.filter(edge => edge.source === node.id);
-          const nextDelayNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-          const nextActionNode = nodes.find(n =>
-            edges.some(e => e.source === nextDelayNode?.id && e.target === n.id)
-          );
-
-          const nextStepIndex = nextActionNode?.type === 'actionNode' || !sortedNodes[index + 1]
-            ? null
-            : stepCounter + 1;
-
-          steps[stepCounter] = {
-            action_type: (node.data.label?.toLowerCase() as string).replace(/ /g, '_'),
-            next_steps: {
-              default: nextStepIndex
-            },
-            delay: `${delay}d`
-          };
-        }
-
-        stepCounter++;
-      });
-
-      const flowData = {
-        steps_config: {
-          steps
-        },
+      const flowStructureData = {
         flow_data: {
           nodes: nodes.map(node => ({
             id: node.id,
@@ -447,23 +506,22 @@ function Omni() {
         }
       };
 
-      const response = await fetch('/api/campaigns/flow', {
+      const response = await fetch('/api/campaigns/flow-structure', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(flowData),
+        body: JSON.stringify(flowStructureData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save flow');
+        throw new Error('Failed to save flow structure');
       }
 
-      toast.success('Flow saved successfully');
-      console.log('Flow data:', JSON.stringify(flowData, null, 2));
+      toast.success('Flow structure saved successfully');
     } catch (error) {
-      console.error('Error saving flow:', error);
-      toast.error('Failed to save flow');
+      console.error('Error saving flow structure:', error);
+      toast.error('Failed to save flow structure');
     }
   };
 
@@ -849,6 +907,34 @@ function Omni() {
     }
   }, [edges, nodes, activeNodeId]);
 
+  // Add useEffect to handle initial sequence data
+  useEffect(() => {
+    if (initialSequence?.flow_data) {
+      const { nodes: sequenceNodes, edges: sequenceEdges } = initialSequence.flow_data;
+
+      // Map the nodes with necessary data and handlers
+      const reconstructedNodes = sequenceNodes.map(node => ({
+        ...node,
+        data: {
+          ...node.data,
+          onActionClick: () => handleActionClick(node.id),
+          onEndClick: () => handleEndClick(node.id),
+          onChange: handleDelayChange,
+          onDelete: handleNodeDelete,
+        },
+      }));
+
+      // Set the initial flow state
+      setNodes(reconstructedNodes);
+      setEdges(sequenceEdges);
+      // setFlowData(initialSequence);
+
+      // Update history
+      setHistory([{ nodes: reconstructedNodes, edges: sequenceEdges }]);
+      setCurrentHistoryIndex(0);
+    }
+  }, [initialSequence]);
+
   return (
     <Card className="w-full flex flex-col bg-background border rounded-none">
       <div className="w-full flex h-[calc(80vh-64px)]">
@@ -928,8 +1014,8 @@ function Omni() {
                 },
               }))}
               edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
+              onNodesChange={handleNodesChange}
+              onEdgesChange={handleEdgesChange}
               nodeTypes={nodeTypes as NodeTypes}
               defaultEdgeOptions={{
                 style: { stroke: '#4f4f4f', strokeWidth: 2 },

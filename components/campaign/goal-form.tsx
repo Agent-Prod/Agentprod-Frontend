@@ -63,6 +63,7 @@ const goalFormSchema = z.object({
     z.number().nullable().optional().default(0),
   follow_up_times: z.number().nullable().optional().default(0),
   mark_as_lost: z.number().nullable().optional().default(0),
+  sequence: z.any().optional(),
 }).refine((data) => {
   // Only validate scheduling_link when success_metric is "Meeting scheduled"
   if (data.success_metric === "Meeting scheduled") {
@@ -101,6 +102,7 @@ export function GoalForm() {
   const [selectedLinkedInId, setSelectedLinkedInId] = useState<string[]>([]);
   const [likePost, setLikePost] = useState<number>(0);
   const [withdrawInvite, setWithdrawInvite] = useState<number>(0);
+  const [flowData, setFlowData] = useState(null);
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
     defaultValues,
@@ -164,7 +166,6 @@ export function GoalForm() {
   };
 
   const onSubmit: SubmitHandler<GoalFormValues> = async (data, event) => {
-    // Check if the click originated from the Omni component or its children
     if (event?.target && (
       (event.target as HTMLElement).closest('.omni-component') ||
       (event.target as HTMLElement).closest('.omni-wrapper')
@@ -182,13 +183,21 @@ export function GoalForm() {
           ...data,
           linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
             ? selectedLinkedInId
-            : null
+            : null,
+          sequence: flowData
         };
+
+        console.log("payload", payload);
 
         await createGoal(payload as GoalFormData, params.campaignId);
       }
       if (type === "edit") {
-        await editGoal(data as GoalFormData, goalData?.id as string, params.campaignId);
+        const payload = {
+          ...data,
+          sequence: flowData
+        };
+        console.log("payload", payload);
+        await editGoal(payload as GoalFormData, goalData?.id as string, params.campaignId);
       }
       const updatedFormsTracker = {
         schedulingBudget: true,
@@ -253,6 +262,11 @@ export function GoalForm() {
         ...goalData,
         emails: goalData.emails.map((email) => ({ value: email })),
       });
+
+      // Set the flow data if it exists
+      if (goalData.sequence) {
+        setFlowData(goalData.sequence);
+      }
     }
   }, [goalData, form]);
 
@@ -323,6 +337,10 @@ export function GoalForm() {
     }
 
     return `${emailFields.length} ${campaignChannel === 'Linkedin' ? 'accounts' : 'emails'} selected`;
+  };
+
+  const handleFlowDataChange = (data: any) => {
+    setFlowData(data);
   };
 
   return (<>
@@ -530,7 +548,10 @@ export function GoalForm() {
               }}
             >
               <div className="omni-wrapper">
-                <Omni />
+                <Omni
+                  onFlowDataChange={handleFlowDataChange}
+                  initialSequence={goalData?.sequence}
+                />
               </div>
             </div>
           </div>

@@ -145,239 +145,123 @@ function Omni() {
   };
 
   const handleActionClick = (nodeId?: string) => {
+    if (nodeId === activeNodeId) return;
+
     setIsActionsEnabled(true);
     setActiveNodeId(nodeId || null);
-  };
 
-  const calculateNodePosition = (delayNode: Node, template: any) => {
-    // Calculate center alignment based on the delay node
-    const centerX = delayNode.position.x;
-
-    // For LinkedIn nodes that have multiple paths, adjust x position
-    const isLinkedInNode = template.nodes[0].type === 'linkedInNode';
-    const xOffset = isLinkedInNode ? -100 : 0; // Adjust LinkedIn nodes slightly to the left
-
-    return {
-      x: centerX + xOffset,
-      y: delayNode.position.y + 200, // Increased vertical spacing
-    };
+    setNodes(nodes => nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isSelected: node.id === nodeId
+      }
+    })));
   };
 
   const handleActionSelect = (action: { type: string; label: string }) => {
-    if (!nodes.length) {
+    if (!activeNodeId) {
       handleInitialActionSelect(action);
       return;
     }
 
-    const lastActionNode = [...nodes]
-      .filter(node => !['delayNode', 'actionNode'].includes(node.type as string))
-      .reduce((prev, current) =>
-        prev.position.y > current.position.y ? prev : current
-      );
-
-    if (!lastActionNode) return;
-
-    const delayNode = nodes.find(node =>
-      node.type === 'delayNode' &&
-      edges.some(edge => edge.source === lastActionNode.id && edge.target === node.id)
+    const parentNode = nodes.find(node =>
+      edges.some(edge => edge.target === activeNodeId && edge.source === node.id)
     );
 
-    if (!delayNode) return;
-
-    const actionNodeToRemove = nodes.find(node =>
-      node.type === 'actionNode' &&
-      edges.some(edge => edge.source === delayNode.id && edge.target === node.id)
-    );
-
-    if (actionNodeToRemove) {
-      setNodes(nodes => nodes.filter(node => node.id !== actionNodeToRemove.id));
-      setEdges(edges => edges.filter(edge => edge.target !== actionNodeToRemove.id));
-    }
+    if (!parentNode) return;
 
     const template = nodeTemplates[action.type];
     if (!template) return;
 
-    const basePosition = calculateNodePosition(delayNode, template);
+    const newNodes = template.nodes.map((node, index) => ({
+      ...node,
+      id: `${node.id}-${Date.now()}-${index}`,
+      position: {
+        x: parentNode.position.x + (node.position.x - template.nodes[0].position.x),
+        y: parentNode.position.y + node.position.y + 150,
+      },
+    }));
+
+    let connectingEdges: CustomEdge[] = [];
 
     if (action.type === 'linkedin_invite') {
-      // Create LinkedIn invite node
-      const linkedInNode = {
-        ...template.nodes[0],
-        id: `linkedin-invite-${Date.now()}`,
-        position: basePosition,
-        data: {
-          ...template.nodes[0].data,
-          label: template.nodes[0].data.label || '',
+      connectingEdges = [
+        {
+          id: `e-connecting-parent-${Date.now()}`,
+          source: parentNode.id,
+          target: newNodes[0].id,
+          type: 'smoothstep',
+          style: {
+            stroke: '#4f4f4f',
+            strokeWidth: 2,
+            opacity: 0.8
+          },
         }
-      };
+      ];
 
-      // Create left path (not accepted)
-      const leftDelayNode = {
-        ...template.nodes[1],
-        id: `delay-left-${Date.now()}`,
-        position: {
-          x: basePosition.x - 200,
-          y: basePosition.y + 150
-        },
-        data: {
-          ...template.nodes[1].data,
-          label: '1 day',
-          days: 1
+      const newEdges = template.edges.map(edge => {
+        let sourceNode, targetNode;
+
+        if (edge.id.startsWith('linkedin-left')) {
+          sourceNode = edge.source === 'linkedin-invite'
+            ? newNodes[0]
+            : newNodes[1];
+          targetNode = edge.target.includes('delay')
+            ? newNodes[1]
+            : newNodes[2];
+        } else {
+          sourceNode = edge.source === 'linkedin-invite'
+            ? newNodes[0]
+            : newNodes[3];
+          targetNode = edge.target.includes('delay')
+            ? newNodes[3]
+            : newNodes[4];
         }
-      };
 
-      const leftActionNode = {
-        ...template.nodes[2],
-        id: `action-left-${Date.now()}`,
-        position: {
-          x: basePosition.x - 200,
-          y: basePosition.y + 250
-        },
-        data: {
-          ...template.nodes[2].data,
-        }
-      };
+        return {
+          ...edge,
+          id: `${edge.id}-${Date.now()}`,
+          source: sourceNode?.id || '',
+          target: targetNode?.id || '',
+          sourceHandle: edge.sourceHandle,
+          style: {
+            stroke: '#4f4f4f',
+            strokeWidth: 2,
+            opacity: 0.8
+          },
+        } as CustomEdge;
+      });
 
-      // Create right path (accepted)
-      const rightDelayNode = {
-        ...template.nodes[3],
-        id: `delay-right-${Date.now()}`,
-        position: {
-          x: basePosition.x + 200,
-          y: basePosition.y + 150
-        },
-        data: {
-          ...template.nodes[3].data,
-          label: '1 day',
-          days: 1
-        }
-      };
+      setNodes(nodes => nodes
+        .filter(node => node.id !== activeNodeId)
+        .concat(newNodes as Node<NodeData>[])
+      );
 
-      const rightActionNode = {
-        ...template.nodes[4],
-        id: `action-right-${Date.now()}`,
-        position: {
-          x: basePosition.x + 200,
-          y: basePosition.y + 250
-        },
-        data: {
-          ...template.nodes[4].data,
-        }
-      };
-
-      // Create edges
-      const connectingEdge: CustomEdge = {
-        id: `e-connecting-${Date.now()}`,
-        source: delayNode.id,
-        target: linkedInNode.id,
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        }
-      };
-
-      const leftPathEdge: CustomEdge = {
-        id: `e-left-${Date.now()}`,
-        source: linkedInNode.id,
-        target: leftDelayNode.id,
-        sourceHandle: 'source-left',
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        }
-      };
-
-      const leftActionEdge: CustomEdge = {
-        id: `e-left-action-${Date.now()}`,
-        source: leftDelayNode.id,
-        target: leftActionNode.id,
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        }
-      };
-
-      const rightPathEdge: CustomEdge = {
-        id: `e-right-${Date.now()}`,
-        source: linkedInNode.id,
-        target: rightDelayNode.id,
-        sourceHandle: 'source-right',
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        }
-      };
-
-      const rightActionEdge: CustomEdge = {
-        id: `e-right-action-${Date.now()}`,
-        source: rightDelayNode.id,
-        target: rightActionNode.id,
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        }
-      };
-
-      // Add all nodes and edges
-      setNodes(prevNodes => [
-        ...prevNodes,
-        linkedInNode,
-        leftDelayNode,
-        leftActionNode,
-        rightDelayNode,
-        rightActionNode
-      ]);
-
-      setEdges(prevEdges => [
-        ...prevEdges,
-        connectingEdge,
-        leftPathEdge,
-        leftActionEdge,
-        rightPathEdge,
-        rightActionEdge
-      ]);
+      setEdges(edges => edges
+        .filter(edge => edge.target !== activeNodeId)
+        .concat([...connectingEdges, ...newEdges])
+      );
     } else {
-      // Handle regular nodes
-      const newNodes = template.nodes.map((node, index) => ({
-        ...node,
-        id: `${node.id}-${Date.now()}`,
-        position: {
-          x: basePosition.x + (node.position.x - template.nodes[0].position.x),
-          y: basePosition.y + (index * 100),
+      connectingEdges = [
+        {
+          id: `e-connecting-${Date.now()}`,
+          source: parentNode.id,
+          target: newNodes[0].id,
+          type: 'smoothstep',
+          style: {
+            stroke: '#4f4f4f',
+            strokeWidth: 2,
+            opacity: 0.8
+          },
         },
-        data: {
-          ...node.data,
-          label: node.data.label || '',
-        },
-      }));
+      ];
 
-      const connectingEdge: CustomEdge = {
-        id: `e-connecting-${Date.now()}`,
-        source: delayNode.id,
-        target: newNodes[0].id,
-        type: 'smoothstep',
-        style: {
-          stroke: '#4f4f4f',
-          strokeWidth: 2,
-          opacity: 0.8
-        },
-      };
-
-      const newEdges = template.edges.map((edge) => {
-        const sourceNode = newNodes.find((n) =>
+      const newEdges = template.edges.map(edge => {
+        const sourceNode = newNodes.find(n =>
           n.id.includes(edge.source.split('-')[0])
         );
-        const targetNode = newNodes.find((n) =>
+        const targetNode = newNodes.find(n =>
           n.id.includes(edge.target.split('-')[0])
         );
 
@@ -395,12 +279,27 @@ function Omni() {
         } as CustomEdge;
       });
 
-      setNodes(prevNodes => [...prevNodes, ...newNodes]);
-      setEdges(prevEdges => [...prevEdges, connectingEdge, ...newEdges]);
+      setNodes(nodes => nodes
+        .filter(node => node.id !== activeNodeId)
+        .concat(newNodes as Node<NodeData>[])
+      );
+
+      setEdges(edges => edges
+        .filter(edge => edge.target !== activeNodeId)
+        .concat([...connectingEdges, ...newEdges])
+      );
     }
 
-    setIsActionsEnabled(true);
+    setIsActionsEnabled(false);
     setActiveNodeId(null);
+
+    setNodes(prevNodes => prevNodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isSelected: false
+      }
+    })));
   };
 
   const handleEndClick = (nodeId: string) => {
@@ -703,23 +602,30 @@ function Omni() {
   }, [currentHistoryIndex, history]);
 
   useEffect(() => {
+    // Skip history update if we're undoing/redoing
     if (isHistoryNavigationRef.current) {
       isHistoryNavigationRef.current = false;
       return;
     }
 
-    if (nodes.length === 0 && edges.length === 0) {
-      setHistory([]);
-      setCurrentHistoryIndex(-1);
-      return;
-    }
-
+    // Create new state
     const newState = { nodes, edges };
+
+    // If we're in the middle of the history stack, truncate the future states
     const newHistory = history.slice(0, currentHistoryIndex + 1);
-    newHistory.push(newState);
-    setHistory(newHistory);
-    setCurrentHistoryIndex(newHistory.length - 1);
-  }, [nodes, edges]);
+
+    // Only add to history if the state has actually changed
+    const lastState = newHistory[newHistory.length - 1];
+    const hasStateChanged = !lastState ||
+      JSON.stringify(lastState.nodes) !== JSON.stringify(nodes) ||
+      JSON.stringify(lastState.edges) !== JSON.stringify(edges);
+
+    if (hasStateChanged) {
+      newHistory.push(newState);
+      setHistory(newHistory);
+      setCurrentHistoryIndex(newHistory.length - 1);
+    }
+  }, [nodes, edges, currentHistoryIndex, history]);
 
   const handleClearCanvas = useCallback(() => {
     setNodes([]);
@@ -781,6 +687,7 @@ function Omni() {
     const actionType = e.dataTransfer.getData('actionType');
     const actionLabel = e.dataTransfer.getData('actionLabel');
 
+    // If there are existing nodes, find the last action node
     if (nodes.length > 0) {
       const lastActionNode = [...nodes]
         .filter(node => !['delayNode', 'actionNode'].includes(node.type as string))
@@ -789,33 +696,27 @@ function Omni() {
         );
 
       if (lastActionNode) {
-        const delayNode = nodes.find(node =>
-          node.type === 'delayNode' &&
+        // Remove the action node placeholder
+        const actionNodeToRemove = nodes.find(node =>
+          node.type === 'actionNode' &&
           edges.some(edge => edge.source === lastActionNode.id && edge.target === node.id)
         );
 
-        if (!delayNode) return;
-
-        const actionNodeToRemove = nodes.find(node =>
-          node.type === 'actionNode' &&
-          edges.some(edge => edge.source === delayNode.id && edge.target === node.id)
-        );
-
         if (actionNodeToRemove) {
+          // Remove the action node and its edge
           setNodes(nodes => nodes.filter(node => node.id !== actionNodeToRemove.id));
           setEdges(edges => edges.filter(edge => edge.target !== actionNodeToRemove.id));
         }
 
+        // Add the new node below the last action node
         const template = nodeTemplates[actionType];
         if (template) {
-          const basePosition = calculateNodePosition(delayNode, template);
-
-          const newNodes = template.nodes.map((node, index) => ({
+          const newNodes = template.nodes.map((node) => ({
             ...node,
             id: `${node.id}-${Date.now()}`,
             position: {
-              x: basePosition.x + (node.position.x - template.nodes[0].position.x),
-              y: basePosition.y + (index * 100),
+              x: lastActionNode.position.x + (node.position.x - template.nodes[0].position.x),
+              y: lastActionNode.position.y + 150, // Position below the last node
             },
             data: {
               ...node.data,
@@ -825,7 +726,7 @@ function Omni() {
 
           const connectingEdge: CustomEdge = {
             id: `e-connecting-${Date.now()}`,
-            source: delayNode.id,
+            source: lastActionNode.id,
             target: newNodes[0].id,
             type: 'smoothstep',
             style: {
@@ -862,6 +763,7 @@ function Omni() {
         }
       }
     } else {
+      // If no nodes exist, handle as initial action
       handleInitialActionSelect({ type: actionType, label: actionLabel });
     }
 
@@ -872,18 +774,21 @@ function Omni() {
   const handleNodeDelete = useCallback((nodeId: string) => {
     const nodesToRemove = new Set<string>();
     const edgesToRemove = new Set<string>();
-    let lastRemainingNode: Node | null = null;
 
-    // Find all downstream nodes to remove
+    // Find all downstream nodes to remove (including action nodes)
     const findDownstreamNodes = (currentNodeId: string) => {
       edges.forEach(edge => {
         if (edge.source === currentNodeId) {
-          edgesToRemove.add(edge.id);
-          nodesToRemove.add(edge.target);
-          findDownstreamNodes(edge.target);
+          const targetNode = nodes.find(n => n.id === edge.target);
+          if (targetNode) {
+            edgesToRemove.add(edge.id);
+            nodesToRemove.add(edge.target);
+            findDownstreamNodes(edge.target);
+          }
         }
       });
 
+      // Remove incoming edges to the deleted node
       edges.forEach(edge => {
         if (edge.target === currentNodeId) {
           edgesToRemove.add(edge.id);
@@ -894,29 +799,27 @@ function Omni() {
     nodesToRemove.add(nodeId);
     findDownstreamNodes(nodeId);
 
-    // Find the last remaining node after deletion
-    const remainingNodes = nodes.filter(node => !nodesToRemove.has(node.id));
-    if (remainingNodes.length > 0) {
-      lastRemainingNode = remainingNodes.reduce((prev, current) =>
-        prev.position.y > current.position.y ? prev : current
-      );
-    }
+    // Find the parent node of the deleted node
+    const parentNode = nodes.find(node =>
+      edges.some(edge => edge.target === nodeId && edge.source === node.id)
+    );
 
-    // Add action node to the last remaining node
-    if (lastRemainingNode) {
+    if (parentNode) {
+      // Create a new action node
       const actionNode: Node<NodeData> = {
         id: `action-${Date.now()}`,
         type: 'actionNode',
         position: {
-          x: lastRemainingNode.position.x,
-          y: lastRemainingNode.position.y + 150,
+          x: parentNode.position.x,
+          y: parentNode.position.y + 150,
         },
         data: {}
       };
 
+      // Create edge from parent to new action node
       const actionEdge: CustomEdge = {
         id: `e-${Date.now()}`,
-        source: lastRemainingNode.id,
+        source: parentNode.id,
         target: actionNode.id,
         type: 'smoothstep',
         style: {
@@ -935,6 +838,7 @@ function Omni() {
         actionEdge
       ]);
     } else {
+      // If no parent node (deleting the first node), clear everything
       setNodes([]);
       setEdges([]);
     }
@@ -988,17 +892,6 @@ function Omni() {
               >
                 <Undo2 className="h-4 w-4 mr-2" />
                 Undo
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRedo}
-                disabled={currentHistoryIndex === history.length - 1}
-                className="h-8"
-                title="Redo"
-              >
-                <Redo2 className="h-4 w-4 mr-2" />
-                Redo
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Button

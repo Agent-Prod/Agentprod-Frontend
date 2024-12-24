@@ -1,6 +1,7 @@
 import { NodeProps, Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function EmailNode({ data, id }: NodeProps<any>) {
   const isChildNode = id.includes('-') && id.split('-').length > 1;
@@ -170,6 +171,7 @@ export function DelayNode1({ data, id }: NodeProps<any>) {
 
 export function ActionNode({ data }: NodeProps<any>) {
   const [showEnd, setShowEnd] = useState(false);
+  const isSelected = data.isSelected;
 
   if (showEnd) {
     return (
@@ -197,11 +199,19 @@ export function ActionNode({ data }: NodeProps<any>) {
     <div className="flex items-center gap-1">
       <div
         onClick={handleActionClick}
-        className="px-8 py-3 rounded-l-lg border-2 border-dashed border-border
-                  text-muted-foreground hover:bg-accent cursor-pointer
-                  transition-all duration-200 hover:border-zinc-600
-                  dark:border-zinc-600/50 dark:hover:border-zinc-500
-                  dark:hover:bg-zinc-700/50">
+        className={cn(
+          "px-8 py-3 rounded-l-lg border-2 border-dashed",
+          "text-muted-foreground cursor-pointer transition-all duration-200",
+          "dark:border-zinc-600/50 dark:hover:border-zinc-500",
+          "dark:hover:bg-zinc-700/50",
+          isSelected ? [
+            "border-primary bg-accent/50 ring-2 ring-primary ring-offset-2 ring-offset-background",
+            "dark:border-primary dark:bg-accent/30",
+          ] : [
+            "border-border hover:bg-accent",
+            "hover:border-zinc-600",
+          ]
+        )}>
         <Handle
           type="target"
           position={Position.Top}
@@ -212,11 +222,19 @@ export function ActionNode({ data }: NodeProps<any>) {
 
       <div
         onClick={() => setShowEnd(true)}
-        className="px-8 py-3 rounded-r-lg border-2 border-dashed border-border
-                  text-muted-foreground hover:bg-accent cursor-pointer
-                  transition-all duration-200 hover:border-zinc-600
-                  dark:border-zinc-600/50 dark:hover:border-zinc-500
-                  dark:hover:bg-zinc-700/50">
+        className={cn(
+          "px-8 py-3 rounded-r-lg border-2 border-dashed",
+          "text-muted-foreground cursor-pointer transition-all duration-200",
+          "dark:border-zinc-600/50 dark:hover:border-zinc-500",
+          "dark:hover:bg-zinc-700/50",
+          isSelected ? [
+            "border-primary bg-accent/50 ring-2 ring-primary ring-offset-2 ring-offset-background",
+            "dark:border-primary dark:bg-accent/30",
+          ] : [
+            "border-border hover:bg-accent",
+            "hover:border-zinc-600",
+          ]
+        )}>
         <span className="text-lg">End</span>
       </div>
     </div>

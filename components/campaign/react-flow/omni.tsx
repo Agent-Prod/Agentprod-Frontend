@@ -222,7 +222,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
 
     const newNodes = template.nodes.map((node) => ({
       ...node,
-      id: `${node.id}-${Date.now()}`,
+      id: `${node.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       position: {
         x: node.position.x,
         y: node.position.y,
@@ -230,71 +230,37 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
       data: {
         ...node.data,
         label: node.data.label || '',
+        isSelected: false,
+        isEnd: false,
       },
     }));
 
-    let newEdges;
+    const newEdges = template.edges.map((edge) => {
+      const sourceNode = newNodes.find((n) =>
+        n.id.includes(edge.source.split('-')[0])
+      );
+      const targetNode = newNodes.find((n) =>
+        n.id.includes(edge.target.split('-')[0])
+      );
 
-    if (action.type === 'linkedin_invite') {
-      newEdges = template.edges.map((edge) => {
-        let sourceNode, targetNode;
-
-        if (edge.id.startsWith('linkedin-left')) {
-          sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]
-            : newNodes[1];
-          targetNode = edge.target.includes('delay')
-            ? newNodes[1]
-            : newNodes[2];
-        } else {
-          sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]
-            : newNodes[3];
-          targetNode = edge.target.includes('delay')
-            ? newNodes[3]
-            : newNodes[4];
-        }
-
-        return {
-          ...edge,
-          id: `${edge.id}-${Date.now()}`,
-          source: sourceNode?.id || '',
-          target: targetNode?.id || '',
-          sourceHandle: edge.sourceHandle,
-          style: {
-            stroke: '#4f4f4f',
-            strokeWidth: 2,
-            opacity: 0.8
-          },
-        } as CustomEdge;
-      });
-    } else {
-      newEdges = template.edges.map((edge) => {
-        const sourceNode = newNodes.find((n) =>
-          n.id.includes(edge.source.split('-')[0])
-        );
-        const targetNode = newNodes.find((n) =>
-          n.id.includes(edge.target.split('-')[0])
-        );
-
-        return {
-          ...edge,
-          id: `${edge.id}-${Date.now()}`,
-          source: sourceNode?.id || '',
-          target: targetNode?.id || '',
-          sourceHandle: edge.sourceHandle,
-          style: {
-            stroke: '#4f4f4f',
-            strokeWidth: 2,
-            opacity: 0.8
-          },
-        } as CustomEdge;
-      });
-    }
+      return {
+        ...edge,
+        id: `${edge.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: sourceNode?.id || '',
+        target: targetNode?.id || '',
+        sourceHandle: edge.sourceHandle,
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
+      } as CustomEdge;
+    });
 
     setNodes(newNodes);
     setEdges(newEdges);
     setIsActionsEnabled(false);
+    shouldNotifyParent.current = true;
   };
 
   const handleActionClick = (nodeId?: string) => {
@@ -338,7 +304,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
 
     let connectingEdges: CustomEdge[] = [];
 
-    if (action.type === 'linkedin_invite') {
+    if (action.type === 'linkedin_connection') {
       connectingEdges = [
         {
           id: `e-connecting-parent-${Date.now()}`,
@@ -694,20 +660,24 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
   }, [setNodes, setEdges]);
 
   const getExistingNodeTypes = useCallback(() => {
-    return nodes
+    const existingTypes = nodes
       .filter(node => node.type === 'emailNode' || node.type === 'linkedInNode')
       .map(node => {
-        // Convert node labels to types
         const label = node.data.label?.toLowerCase().replace(/ /g, '_');
         switch (label) {
           case 'send_email':
             return 'send_email';
-          case 'send_linkedin_invite':
-            return 'linkedin_invite';
+          case 'send_linkedin_connection':
+            return 'linkedin_connection';
+          case 'send_linkedin_inmail':
+            return 'linkedin_inmail';
+          case 'send_linkedin_message':
+            return 'linkedin_message';
           default:
             return label;
         }
       });
+    return existingTypes;
   }, [nodes]);
 
   const getLastNodePosition = () => {

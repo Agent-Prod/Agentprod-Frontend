@@ -1,5 +1,5 @@
 import { NodeProps, Handle, Position } from '@xyflow/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -169,9 +169,30 @@ export function DelayNode1({ data, id }: NodeProps<any>) {
   );
 }
 
-export function ActionNode({ data }: NodeProps<any>) {
-  const [showEnd, setShowEnd] = useState(false);
+export function ActionNode({ data, id }: NodeProps<any>) {
+  const [showEnd, setShowEnd] = useState(data.isEnd || false);
   const isSelected = data.isSelected;
+
+  useEffect(() => {
+    if (data.isEnd) {
+      setShowEnd(true);
+    }
+  }, [data.isEnd]);
+
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (data.onActionClick) {
+      data.onActionClick();
+    }
+  };
+
+  const handleEndClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowEnd(true);
+    if (data.onEndClick) {
+      data.onEndClick(id);
+    }
+  };
 
   if (showEnd) {
     return (
@@ -189,12 +210,6 @@ export function ActionNode({ data }: NodeProps<any>) {
     );
   }
 
-  const handleActionClick = () => {
-    if (data.onActionClick) {
-      data.onActionClick();
-    }
-  };
-
   return (
     <div className="flex items-center gap-1">
       <div
@@ -202,10 +217,8 @@ export function ActionNode({ data }: NodeProps<any>) {
         className={cn(
           "px-8 py-3 rounded-l-lg border-2 border-dashed",
           "text-muted-foreground cursor-pointer transition-all duration-200",
-          "dark:border-zinc-600/50 dark:hover:border-zinc-500",
-          "dark:hover:bg-zinc-700/50",
           isSelected ? [
-            "border-primary bg-accent/50 ring-2 ring-primary ring-offset-2 ring-offset-background",
+            "border-primary bg-accent/50",
             "dark:border-primary dark:bg-accent/30",
           ] : [
             "border-border hover:bg-accent",
@@ -221,19 +234,11 @@ export function ActionNode({ data }: NodeProps<any>) {
       </div>
 
       <div
-        onClick={() => setShowEnd(true)}
+        onClick={handleEndClick}
         className={cn(
           "px-8 py-3 rounded-r-lg border-2 border-dashed",
           "text-muted-foreground cursor-pointer transition-all duration-200",
-          "dark:border-zinc-600/50 dark:hover:border-zinc-500",
-          "dark:hover:bg-zinc-700/50",
-          isSelected ? [
-            "border-primary bg-accent/50 ring-2 ring-primary ring-offset-2 ring-offset-background",
-            "dark:border-primary dark:bg-accent/30",
-          ] : [
-            "border-border hover:bg-accent",
-            "hover:border-zinc-600",
-          ]
+          "dark:border-zinc-600/50 dark:hover:border-zinc-500"
         )}>
         <span className="text-lg">End</span>
       </div>

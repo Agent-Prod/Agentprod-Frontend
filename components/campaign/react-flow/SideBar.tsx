@@ -18,12 +18,12 @@ function SideBar({
 }: SideBarProps) {
   const isActionEnabled = (type: string): boolean => {
     if (existingNodes.length === 0) {
-      return ['first_email', 'linkedin_connection', 'like_post'].includes(type);
+      return ['first_email', 'linkedin_connection', 'linkedin_inmail', 'linkedin_message', 'like_post'].includes(type);
     }
 
     switch (type) {
       case 'follow_up_email':
-        return existingNodes.includes('first_email');
+        return true;
 
       case 'withdraw_request':
         return existingNodes.includes('linkedin_connection') &&
@@ -36,12 +36,17 @@ function SideBar({
       case 'first_email':
         return !existingNodes.some(node => node === 'follow_up_email');
 
-      // These actions are always available after any other action
       case 'like_post':
         return true;
 
       case 'linkedin_connection':
         return !existingNodes.includes('withdraw_request');
+
+      case 'linkedin_inmail':
+        return true;
+
+      case 'linkedin_message':
+        return true;
 
       default:
         return false;
@@ -51,7 +56,9 @@ function SideBar({
   const actions = [
     { label: 'Send First Email', type: 'first_email' },
     { label: 'Send Follow-up Email', type: 'follow_up_email' },
-    { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
+    { label: 'Send LinkedIn Invite', type: 'linkedin_connection' },
+    // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
+    { label: 'Send LinkedIn Message', type: 'linkedin_message' },
     { label: 'Like and Comment on Post', type: 'like_post' },
     { label: 'Mark as Lost', type: 'mark_as_lost' },
     { label: 'Withdraw Connection Request', type: 'withdraw_request' },

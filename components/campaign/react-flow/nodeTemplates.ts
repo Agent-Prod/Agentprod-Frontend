@@ -372,4 +372,127 @@ export const nodeTemplates: Record<string, Template> = {
       },
     ],
   },
+  linkedin_inmail: {
+    nodes: [
+      {
+        id: "linkedin-inmail",
+        type: "linkedInNode",
+        position: { x: 0, y: 0 },
+        data: {
+          label: "Send LinkedIn InMail",
+          leftLabel: "Not Accepted",
+          rightLabel: "Accepted",
+        },
+      },
+      {
+        id: "delay-linkedin-inmail-left",
+        type: "delayNode",
+        position: { x: -100, y: 100 },
+        data: {
+          label: "1 day",
+          days: 1,
+        },
+      },
+      {
+        id: "action-linkedin-inmail-left",
+        type: "actionNode",
+        position: { x: -100, y: 200 },
+        data: {},
+      },
+      {
+        id: "delay-linkedin-inmail-right",
+        type: "delayNode",
+        position: { x: 100, y: 100 },
+        data: {
+          label: "1 day",
+          days: 1,
+        },
+      },
+      {
+        id: "action-linkedin-inmail-right",
+        type: "actionNode",
+        position: { x: 100, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: "inmail-left-1",
+        source: "linkedin-inmail",
+        sourceHandle: "source-left",
+        target: "delay-linkedin-inmail-left",
+        type: "smoothstep",
+        label: "Not Accepted",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+      {
+        id: "inmail-left-2",
+        source: "delay-linkedin-inmail-left",
+        target: "action-linkedin-inmail-left",
+        type: "smoothstep",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+      {
+        id: "inmail-right-1",
+        source: "linkedin-inmail",
+        sourceHandle: "source-right",
+        target: "delay-linkedin-inmail-right",
+        type: "smoothstep",
+        label: "Accepted",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+      {
+        id: "inmail-right-2",
+        source: "delay-linkedin-inmail-right",
+        target: "action-linkedin-inmail-right",
+        type: "smoothstep",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+    ],
+  },
+  linkedin_message: {
+    nodes: [
+      {
+        id: "linkedin-message",
+        type: "linkedInNode",
+        position: { x: 0, y: 0 },
+        data: {
+          label: "Send LinkedIn Message",
+          leftLabel: "Not Read",
+          rightLabel: "Read",
+        },
+      },
+      {
+        id: "delay-linkedin-message",
+        type: "delayNode",
+        position: { x: 0, y: 100 },
+        data: {
+          label: "1 day",
+          days: 1,
+        },
+      },
+      {
+        id: "action-linkedin-message",
+        type: "actionNode",
+        position: { x: 0, y: 200 },
+        data: {},
+      },
+    ],
+    edges: [
+      {
+        id: "message-1",
+        source: "linkedin-message",
+        target: "delay-linkedin-message",
+        type: "smoothstep",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+      {
+        id: "message-2",
+        source: "delay-linkedin-message",
+        target: "action-linkedin-message",
+        type: "smoothstep",
+        style: { stroke: "#4f4f4f", strokeWidth: 2 },
+      },
+    ],
+  },
 };

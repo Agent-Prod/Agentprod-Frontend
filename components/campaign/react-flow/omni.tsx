@@ -747,10 +747,17 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
         );
 
       if (lastActionNode) {
+        const delayNode = nodes.find(node =>
+          node.type === 'delayNode' &&
+          edges.some(edge => edge.source === lastActionNode.id && edge.target === node.id)
+        );
+
+        if (!delayNode) return;
+
         // Remove the action node placeholder
         const actionNodeToRemove = nodes.find(node =>
           node.type === 'actionNode' &&
-          edges.some(edge => edge.source === lastActionNode.id && edge.target === node.id)
+          edges.some(edge => edge.source === delayNode.id && edge.target === node.id)
         );
 
         if (actionNodeToRemove) {
@@ -759,15 +766,15 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
           setEdges(edges => edges.filter(edge => edge.target !== actionNodeToRemove.id));
         }
 
-        // Add the new node below the last action node
+        // Add the new node below the delay node
         const template = nodeTemplates[actionType];
         if (template) {
           const newNodes = template.nodes.map((node) => ({
             ...node,
             id: `${node.id}-${Date.now()}`,
             position: {
-              x: lastActionNode.position.x + (node.position.x - template.nodes[0].position.x),
-              y: lastActionNode.position.y + 150, // Position below the last node
+              x: delayNode.position.x + (node.position.x - template.nodes[0].position.x),
+              y: delayNode.position.y + node.position.y + 150,
             },
             data: {
               ...node.data,
@@ -777,7 +784,7 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
 
           const connectingEdge: CustomEdge = {
             id: `e-connecting-${Date.now()}`,
-            source: lastActionNode.id,
+            source: delayNode.id,
             target: newNodes[0].id,
             type: 'smoothstep',
             style: {

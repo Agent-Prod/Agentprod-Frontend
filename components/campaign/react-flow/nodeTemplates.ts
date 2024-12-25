@@ -144,16 +144,22 @@ export const nodeTemplates: Record<string, Template> = {
       {
         id: "delay-linkedin-invite-right",
         type: "delayNode",
-        position: { x: 450, y: 100 },
+        position: { x: 350, y: 100 },
         data: {
           label: "1 day",
           days: 1,
         },
       },
       {
+        id: "action-linkedin-invite-left",
+        type: "actionNode",
+        position: { x: 150, y: 200 },
+        data: {},
+      },
+      {
         id: "action-linkedin-invite-right",
         type: "actionNode",
-        position: { x: 450, y: 200 },
+        position: { x: 500, y: 200 },
         data: {},
       },
     ],
@@ -171,9 +177,10 @@ export const nodeTemplates: Record<string, Template> = {
         },
       },
       {
-        id: "linkedin-left-2",
-        source: "delay-linkedin-invite-left",
-        target: "action-linkedin-invite-left",
+        id: "linkedin-right-1",
+        source: "linkedin-invite",
+        sourceHandle: "source-right",
+        target: "delay-linkedin-invite-right",
         type: "smoothstep",
         style: {
           stroke: "#4f4f4f",
@@ -182,10 +189,9 @@ export const nodeTemplates: Record<string, Template> = {
         },
       },
       {
-        id: "linkedin-right-1",
-        source: "linkedin-invite",
-        sourceHandle: "source-right",
-        target: "delay-linkedin-invite-right",
+        id: "linkedin-left-2",
+        source: "delay-linkedin-invite-left",
+        target: "action-linkedin-invite-left",
         type: "smoothstep",
         style: {
           stroke: "#4f4f4f",

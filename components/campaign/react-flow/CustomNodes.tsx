@@ -53,10 +53,16 @@ export function EmailNode({ data, id }: NodeProps<any>) {
 export function DelayNode({ data, id }: NodeProps<any>) {
   const [isEditing, setIsEditing] = useState(false);
   const [days, setDays] = useState(() => {
-    const isParentNode = !id.includes('-') || id.split('-').length === 2;
-    const initialDays = isParentNode ? 0 : (data.label?.split(' ')[0] || 1);
-    return typeof initialDays === 'number' ? initialDays : parseInt(initialDays);
+    return data.days || data.defaultDays || 1;
   });
+
+  useEffect(() => {
+    if (data.onChange && (days === 0 || !days)) {
+      const defaultValue = 1;
+      setDays(defaultValue);
+      data.onChange(id, defaultValue);
+    }
+  }, []);
 
   const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 1;

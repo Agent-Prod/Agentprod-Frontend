@@ -62,10 +62,6 @@ function SideBar({
       case 'linkedin_message':
         return true;
 
-      case 'linkedin_followup':
-        return existingNodes.includes('linkedin_connection') || 
-               existingNodes.includes('linkedin_message');
-
       default:
         return false;
     }

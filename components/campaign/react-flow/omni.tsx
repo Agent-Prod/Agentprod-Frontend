@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DragEvent } from 'react';
 import { cn } from "@/lib/utils";
+import { createDefaultEmailFlow } from './defaultFlows';
 
 interface CustomEdge extends Edge {
   sourceHandle?: string;
@@ -79,6 +80,9 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
 
   // Use a ref to track if we need to notify parent of changes
   const shouldNotifyParent = useRef(false);
+
+  // Add a ref to track if canvas was cleared
+  const wasCanvasCleared = useRef(false);
 
   // Handle nodes change
   const handleNodesChange = useCallback((changes: any) => {
@@ -656,10 +660,13 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
   const handleClearCanvas = useCallback(() => {
     setNodes([]);
     setEdges([]);
-    setHistory([]);
-    setCurrentHistoryIndex(-1);
-    toast.success("Canvas cleared");
-  }, [setNodes, setEdges]);
+    wasCanvasCleared.current = true;  // Set flag when canvas is cleared
+
+    // Add to history
+    const newHistory = [...history.slice(0, currentHistoryIndex + 1), { nodes: [], edges: [] }];
+    setHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+  }, [history, currentHistoryIndex]);
 
   const getExistingNodeTypes = useCallback(() => {
     const existingTypes = nodes
@@ -906,6 +913,28 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
       setCurrentHistoryIndex(0);
     }
   }, [initialSequence]);
+
+  // Add useEffect to handle default email flow
+  useEffect(() => {
+    if (channel === 'mail' && nodes.length === 0 && !initialSequence && !wasCanvasCleared.current) {
+      const defaultEmailFlow = createDefaultEmailFlow({
+        handleActionClick,
+        handleEndClick,
+        handleDelayChange,
+        handleNodeDelete,
+      });
+
+      setNodes(defaultEmailFlow.nodes as unknown as Node<NodeData>[]);
+      setEdges(defaultEmailFlow.edges as unknown as CustomEdge[]);
+      setHistory([{ nodes: defaultEmailFlow.nodes as unknown as Node<NodeData>[], edges: defaultEmailFlow.edges as unknown as CustomEdge[] }]);
+      setCurrentHistoryIndex(0);
+    }
+  }, [channel, nodes.length, initialSequence]);
+
+  // Reset the wasCanvasCleared flag when channel changes
+  useEffect(() => {
+    wasCanvasCleared.current = false;
+  }, [channel]);
 
   return (
     <Card className="w-full flex flex-col bg-background border rounded-none">

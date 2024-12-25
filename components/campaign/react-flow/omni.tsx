@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DragEvent } from 'react';
 import { cn } from "@/lib/utils";
-import { createDefaultEmailFlow } from './defaultFlows';
+import { createDefaultEmailFlow, createDefaultOmniFlow } from './defaultFlows';
 
 interface CustomEdge extends Edge {
   sourceHandle?: string;
@@ -68,6 +68,7 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [draggedAction, setDraggedAction] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [viewportInitialized, setViewportInitialized] = useState(false);
   const nodeTypes = {
     emailNode: EmailNode,
     delayNode: DelayNode,
@@ -96,6 +97,12 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
     shouldNotifyParent.current = true;
   }, [onEdgesChange]);
 
+  // Add this function to calculate the total height of the flow
+  const calculateFlowHeight = (nodes: Node[]) => {
+    if (nodes.length === 0) return 0;
+    const yPositions = nodes.map(node => node.position.y);
+    return Math.max(...yPositions) + 200; // Add padding for new nodes
+  };
 
   // Notify parent of changes, but only when necessary
   useEffect(() => {
@@ -916,18 +923,30 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
 
   // Add useEffect to handle default email flow
   useEffect(() => {
-    if (channel === 'mail' && nodes.length === 0 && !initialSequence && !wasCanvasCleared.current) {
-      const defaultEmailFlow = createDefaultEmailFlow({
-        handleActionClick,
-        handleEndClick,
-        handleDelayChange,
-        handleNodeDelete,
-      });
-
-      setNodes(defaultEmailFlow.nodes as unknown as Node<NodeData>[]);
-      setEdges(defaultEmailFlow.edges as unknown as CustomEdge[]);
-      setHistory([{ nodes: defaultEmailFlow.nodes as unknown as Node<NodeData>[], edges: defaultEmailFlow.edges as unknown as CustomEdge[] }]);
-      setCurrentHistoryIndex(0);
+    if (!initialSequence && !wasCanvasCleared.current) {
+      if (channel === 'mail') {
+        const defaultEmailFlow = createDefaultEmailFlow({
+          handleActionClick,
+          handleEndClick,
+          handleDelayChange,
+          handleNodeDelete,
+        });
+        setNodes(defaultEmailFlow.nodes as unknown as Node<NodeData>[]);
+        setEdges(defaultEmailFlow.edges as unknown as CustomEdge[]);
+        setHistory([{ nodes: defaultEmailFlow.nodes as unknown as Node<NodeData>[], edges: defaultEmailFlow.edges as unknown as CustomEdge[] }]);
+        setCurrentHistoryIndex(0);
+      } else if (channel === 'omni') {
+        const defaultOmniFlow = createDefaultOmniFlow({
+          handleActionClick,
+          handleEndClick,
+          handleDelayChange,
+          handleNodeDelete,
+        });
+        setNodes(defaultOmniFlow.nodes as unknown as Node<NodeData>[]);
+        setEdges(defaultOmniFlow.edges as unknown as CustomEdge[]);
+        setHistory([{ nodes: defaultOmniFlow.nodes as unknown as Node<NodeData>[], edges: defaultOmniFlow.edges as unknown as CustomEdge[] }]);
+        setCurrentHistoryIndex(0);
+      }
     }
   }, [channel, nodes.length, initialSequence]);
 
@@ -1024,6 +1043,10 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
                 type: 'smoothstep',
               }}
               fitView
+              minZoom={0.1}
+              maxZoom={1.5}
+              defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+              style={{ height: `${Math.max(800, calculateFlowHeight(nodes))}px` }}
               className="bg-background"
             >
               <Background

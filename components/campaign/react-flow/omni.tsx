@@ -249,16 +249,30 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
     }));
 
     const newEdges = template.edges.map((edge) => {
-      const sourceNode = newNodes.find((n) =>
-        n.id.includes(edge.source.split('-')[0])
-      );
-      const targetNode = newNodes.find((n) =>
-        n.id.includes(edge.target.split('-')[0])
-      );
+      let sourceNode, targetNode;
+
+      if (action.type === 'linkedin_connection') {
+        if (edge.sourceHandle === 'source-left') {
+          sourceNode = newNodes.find(n => n.id.includes('linkedin-invite'));
+          targetNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-left'));
+        } else if (edge.sourceHandle === 'source-right') {
+          sourceNode = newNodes.find(n => n.id.includes('linkedin-invite'));
+          targetNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-right'));
+        } else if (edge.source.includes('delay-linkedin-invite-left')) {
+          sourceNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-left'));
+          targetNode = newNodes.find(n => n.id.includes('action-linkedin-invite-left'));
+        } else if (edge.source.includes('delay-linkedin-invite-right')) {
+          sourceNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-right'));
+          targetNode = newNodes.find(n => n.id.includes('action-linkedin-invite-right'));
+        }
+      } else {
+        sourceNode = newNodes.find(n => n.id.includes(edge.source.split('-')[0]));
+        targetNode = newNodes.find(n => n.id.includes(edge.target.split('-')[0]));
+      }
 
       return {
         ...edge,
-        id: `${edge.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `${edge.id}-${Date.now()}`,
         source: sourceNode?.id || '',
         target: targetNode?.id || '',
         sourceHandle: edge.sourceHandle,
@@ -335,20 +349,20 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
       const newEdges = template.edges.map(edge => {
         let sourceNode, targetNode;
 
-        if (edge.id.startsWith('linkedin-left')) {
-          sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]
-            : newNodes[1];
-          targetNode = edge.target.includes('delay')
-            ? newNodes[1]
-            : newNodes[2];
-        } else {
-          sourceNode = edge.source === 'linkedin-invite'
-            ? newNodes[0]
-            : newNodes[3];
-          targetNode = edge.target.includes('delay')
-            ? newNodes[3]
-            : newNodes[4];
+        // Handle left path edges
+        if (edge.sourceHandle === 'source-left') {
+          sourceNode = edge.source === 'linkedin-invite' ? newNodes[0] : newNodes[1];
+          targetNode = edge.target === 'delay-linkedin-invite-left' ? newNodes[1] : newNodes[2];
+        }
+        // Handle right path edges
+        else if (edge.sourceHandle === 'source-right') {
+          sourceNode = edge.source === 'linkedin-invite' ? newNodes[0] : newNodes[3];
+          targetNode = edge.target === 'delay-linkedin-invite-right' ? newNodes[3] : newNodes[4];
+        }
+        // Handle other edges
+        else {
+          sourceNode = newNodes.find(n => n.id.includes(edge.source.split('-')[0]));
+          targetNode = newNodes.find(n => n.id.includes(edge.target.split('-')[0]));
         }
 
         return {
@@ -781,12 +795,26 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
           };
 
           const newEdges = template.edges.map((edge) => {
-            const sourceNode = newNodes.find((n) =>
-              n.id.includes(edge.source.split('-')[0])
-            );
-            const targetNode = newNodes.find((n) =>
-              n.id.includes(edge.target.split('-')[0])
-            );
+            let sourceNode, targetNode;
+
+            if (actionType === 'linkedin_connection') {
+              if (edge.sourceHandle === 'source-left') {
+                sourceNode = newNodes.find(n => n.id.includes('linkedin-invite'));
+                targetNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-left'));
+              } else if (edge.sourceHandle === 'source-right') {
+                sourceNode = newNodes.find(n => n.id.includes('linkedin-invite'));
+                targetNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-right'));
+              } else if (edge.source.includes('delay-linkedin-invite-left')) {
+                sourceNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-left'));
+                targetNode = newNodes.find(n => n.id.includes('action-linkedin-invite-left'));
+              } else if (edge.source.includes('delay-linkedin-invite-right')) {
+                sourceNode = newNodes.find(n => n.id.includes('delay-linkedin-invite-right'));
+                targetNode = newNodes.find(n => n.id.includes('action-linkedin-invite-right'));
+              }
+            } else {
+              sourceNode = newNodes.find(n => n.id.includes(edge.source.split('-')[0]));
+              targetNode = newNodes.find(n => n.id.includes(edge.target.split('-')[0]));
+            }
 
             return {
               ...edge,

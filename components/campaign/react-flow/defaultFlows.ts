@@ -387,4 +387,212 @@ export const createDefaultOmniFlow = (handlers: {
             style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
         }
     ]
+});
+
+export const createDefaultLinkedInFlow = (handlers: {
+    handleActionClick: (id: string) => void;
+    handleEndClick: (id: string) => void;
+    handleDelayChange: (id: string, days: number) => void;
+    handleNodeDelete: (id: string) => void;
+}): FlowTemplate => ({
+    nodes: [
+        {
+            id: 'linkedin-connection-1',
+            type: 'linkedInNode',
+            position: { x: 250, y: 0 },
+            data: {
+                label: 'Send LinkedIn Connection',
+                leftLabel: 'Not Accepted',
+                rightLabel: 'Accepted',
+                onActionClick: () => handlers.handleActionClick('linkedin-connection-1'),
+                onEndClick: () => handlers.handleEndClick('linkedin-connection-1'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-not-accepted',
+            type: 'delayNode',
+            position: { x: 50, y: 150 },
+            data: {
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
+            },
+        },
+        {
+            id: 'withdraw-request',
+            type: 'emailNode',
+            position: { x: 50, y: 300 },
+            data: {
+                label: 'Withdraw Connection Request',
+                onActionClick: () => handlers.handleActionClick('withdraw-request'),
+                onEndClick: () => handlers.handleEndClick('withdraw-request'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-withdraw',
+            type: 'delayNode',
+            position: { x: 50, y: 450 },
+            data: {
+                label: "1 day",
+                days: 1,
+                defaultDays: 1,
+            },
+        },
+        {
+            id: 'action-left',
+            type: 'actionNode',
+            position: { x: 50, y: 600 },
+            data: {
+                onActionClick: () => handlers.handleActionClick('action-left'),
+                onEndClick: () => handlers.handleEndClick('action-left'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-accepted',
+            type: 'delayNode',
+            position: { x: 450, y: 150 },
+            data: {
+                label: "1 day",
+                days: 1,
+                defaultDays: 1,
+            },
+        },
+        {
+            id: 'linkedin-message',
+            type: 'emailNode',
+            position: { x: 450, y: 300 },
+            data: {
+                label: 'Send LinkedIn Message',
+                onActionClick: () => handlers.handleActionClick('linkedin-message'),
+                onEndClick: () => handlers.handleEndClick('linkedin-message'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-after-message',
+            type: 'delayNode',
+            position: { x: 450, y: 450 },
+            data: {
+                label: "3 days",
+                days: 3,
+                defaultDays: 3,
+            },
+        },
+        {
+            id: 'linkedin-followup',
+            type: 'emailNode',
+            position: { x: 450, y: 600 },
+            data: {
+                label: 'Send LinkedIn Follow-up',
+                onActionClick: () => handlers.handleActionClick('linkedin-followup'),
+                onEndClick: () => handlers.handleEndClick('linkedin-followup'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-followup',
+            type: 'delayNode',
+            position: { x: 450, y: 750 },
+            data: {
+                label: "1 day",
+                days: 1,
+                defaultDays: 1,
+            },
+        },
+        {
+            id: 'action-right',
+            type: 'actionNode',
+            position: { x: 450, y: 900 },
+            data: {
+                onActionClick: () => handlers.handleActionClick('action-right'),
+                onEndClick: () => handlers.handleEndClick('action-right'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        }
+    ],
+    edges: [
+        {
+            id: 'e1-left',
+            source: 'linkedin-connection-1',
+            sourceHandle: 'source-left',
+            target: 'delay-not-accepted',
+            type: 'smoothstep',
+            label: 'Not Accepted',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e2-left',
+            source: 'delay-not-accepted',
+            target: 'withdraw-request',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e3-left',
+            source: 'withdraw-request',
+            target: 'delay-withdraw',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e4-left',
+            source: 'delay-withdraw',
+            target: 'action-left',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e1-right',
+            source: 'linkedin-connection-1',
+            sourceHandle: 'source-right',
+            target: 'delay-accepted',
+            type: 'smoothstep',
+            label: 'Accepted',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e2-right',
+            source: 'delay-accepted',
+            target: 'linkedin-message',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e3-right',
+            source: 'linkedin-message',
+            target: 'delay-after-message',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e4-right',
+            source: 'delay-after-message',
+            target: 'linkedin-followup',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e5-right',
+            source: 'linkedin-followup',
+            target: 'delay-followup',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e6-right',
+            source: 'delay-followup',
+            target: 'action-right',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        }
+    ]
 }); 

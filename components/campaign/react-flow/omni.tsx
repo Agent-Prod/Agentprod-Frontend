@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DragEvent } from 'react';
 import { cn } from "@/lib/utils";
-import { createDefaultEmailFlow, createDefaultOmniFlow } from './defaultFlows';
+import { createDefaultEmailFlow, createDefaultOmniFlow, createDefaultLinkedInFlow } from './defaultFlows';
 
 interface CustomEdge extends Edge {
   sourceHandle?: string;
@@ -982,6 +982,17 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
         setNodes(defaultOmniFlow.nodes as unknown as Node<NodeData>[]);
         setEdges(defaultOmniFlow.edges as unknown as CustomEdge[]);
         setHistory([{ nodes: defaultOmniFlow.nodes as unknown as Node<NodeData>[], edges: defaultOmniFlow.edges as unknown as CustomEdge[] }]);
+        setCurrentHistoryIndex(0);
+      } else if (channel === 'Linkedin') {
+        const defaultLinkedInFlow = createDefaultLinkedInFlow({
+          handleActionClick,
+          handleEndClick,
+          handleDelayChange,
+          handleNodeDelete,
+        });
+        setNodes(defaultLinkedInFlow.nodes as unknown as Node<NodeData>[]);
+        setEdges(defaultLinkedInFlow.edges as unknown as CustomEdge[]);
+        setHistory([{ nodes: defaultLinkedInFlow.nodes as unknown as Node<NodeData>[], edges: defaultLinkedInFlow.edges as unknown as CustomEdge[] }]);
         setCurrentHistoryIndex(0);
       }
     }

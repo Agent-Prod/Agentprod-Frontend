@@ -219,7 +219,7 @@ export function SchedulingForm() {
                       <FormLabel
                         className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
                       >
-                        {campaignType}
+                        {campaignType} {campaignType === "Inbound" ? "/ Upload Your Own Leads" : ""}
                         {(campaignType === "Inbound" || campaignType === "Nurturing") && (
                           <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
                             Beta
@@ -309,6 +309,9 @@ export function SchedulingForm() {
                     >
                       Linkedin
                     </FormLabel>
+                    <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
+                      Beta
+                    </span>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
@@ -321,8 +324,11 @@ export function SchedulingForm() {
                     <FormLabel
                       className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
                     >
-                      Omni
+                      Multi-Channel
                     </FormLabel>
+                    <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
+                      Beta
+                    </span>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

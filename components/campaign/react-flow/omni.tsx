@@ -55,9 +55,10 @@ interface OmniProps {
       edges: any[];
     };
   };
+  channel?: string;
 }
 
-function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
+function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [isActionsEnabled, setIsActionsEnabled] = useState(false);
@@ -929,6 +930,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
                   existingNodes={getExistingNodeTypes().filter((type): type is string => type !== undefined)}
                   onDragStart={handleDragStart}
                   draggedAction={draggedAction}
+                  channel={channel}
                 />
               </div>
             </div>
@@ -1043,16 +1045,7 @@ function Omni({ onFlowDataChange, initialSequence }: OmniProps) {
         </div>
       </div>
 
-      <div className="h-16 px-4 border-t  dark:border-white/10 border-zinc-200 flex items-center justify-between">
-        <Button
-          onClick={handleSaveFlow}
-          disabled={nodes.length === 0}
-          size="lg"
-          className="px-8 bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:text-secondary-foreground/80"
-        >
-          Save Flow
-        </Button>
-      </div>
+
     </Card>
   );
 }

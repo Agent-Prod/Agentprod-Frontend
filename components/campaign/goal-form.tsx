@@ -147,9 +147,6 @@ export function GoalForm() {
     console.log('onEmailAppend:', { email, mailbox });
     if (!emailFields.some((emailField) => emailField.value === email)) {
       appendEmail({ value: email });
-      if (campaignChannel === 'Linkedin') {
-        setSelectedLinkedInId(prev => [...prev, mailbox.id.toString()]);
-      }
     }
   };
 
@@ -159,10 +156,18 @@ export function GoalForm() {
     );
     if (indexToRemove !== -1) {
       removeEmail(indexToRemove);
-      if (campaignChannel === 'Linkedin') {
-        setSelectedLinkedInId(prev => prev.filter((_, index) => index !== indexToRemove));
-      }
     }
+  };
+
+  const onLinkedInAppend = (linkedInUrl: string, mailbox: { id: number }) => {
+    console.log('onLinkedInAppend:', { linkedInUrl, mailbox });
+    if (!selectedLinkedInId.includes(mailbox.id.toString())) {
+      setSelectedLinkedInId(prev => [...prev, mailbox.id.toString()]);
+    }
+  };
+
+  const onLinkedInRemove = (linkedInUrl: string, mailbox: { id: number }) => {
+    setSelectedLinkedInId(prev => prev.filter(id => id !== mailbox.id.toString()));
   };
 
   const onSubmit: SubmitHandler<GoalFormValues> = async (data, event) => {
@@ -181,7 +186,7 @@ export function GoalForm() {
       if (type === "create") {
         const payload = {
           ...data,
-          linkedin_accounts: campaignChannel === 'Linkedin' && selectedLinkedInId.length > 0
+          linkedin_accounts: (campaignChannel === 'Linkedin' || campaignChannel === 'omni') && selectedLinkedInId.length > 0
             ? selectedLinkedInId
             : null,
           sequence: flowData
@@ -194,6 +199,9 @@ export function GoalForm() {
       if (type === "edit") {
         const payload = {
           ...data,
+          linkedin_accounts: (campaignChannel === 'Linkedin' || campaignChannel === 'omni') && selectedLinkedInId.length > 0
+            ? selectedLinkedInId
+            : null,
           sequence: flowData
         };
         console.log("payload", payload);
@@ -316,15 +324,42 @@ export function GoalForm() {
   }, [params.campaignId]);
 
   const isFormValid = () => {
-    const values = form.getValues();
-    const hasEmails = values.emails && values.emails.length > 0;
-    const hasRequiredFields = values.success_metric
-
-    if (values.success_metric === "Meeting scheduled") {
-      return hasEmails && hasRequiredFields && values.scheduling_link;
+    const formValues = form.getValues();
+    
+    // Check if scheduling link is provided when "Meeting scheduled" is selected
+    if (formValues.success_metric === "Meeting scheduled" && !formValues.scheduling_link) {
+      return false;
     }
 
-    return hasEmails && hasRequiredFields;
+    // Check for required sender based on channel
+    if (campaignChannel === 'mail') {
+      // For email campaigns, check if at least one email is selected
+      if (!formValues.emails || formValues.emails.length === 0) {
+        return false;
+      }
+    } else if (campaignChannel === 'Linkedin') {
+      // For LinkedIn campaigns, check if at least one LinkedIn account is selected
+      if (selectedLinkedInId.length === 0) {
+        return false;
+      }
+    } else if (campaignChannel === 'omni') {
+      // For omni campaigns, check if at least one email AND one LinkedIn account is selected
+      if ((!formValues.emails || formValues.emails.length === 0) || selectedLinkedInId.length === 0) {
+        return false;
+      }
+    }
+
+    // Check if success metric is selected
+    if (!formValues.success_metric) {
+      return false;
+    }
+
+    // Check if sequence data exists
+    if (!flowData) {
+      return false;
+    }
+
+    return true;
   };
 
   const getDisplayText = () => {
@@ -437,100 +472,180 @@ export function GoalForm() {
           />
         )}
 
-
-        <FormField
-          control={form.control}
-          name="emails"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <div>
-                <FormLabel>Sender {campaignChannel === 'Linkedin' ? 'LinkedIn Account' : 'Email'}</FormLabel>
-                <FormDescription>
-                  Where prospects can schedule a meeting with you
-                </FormDescription>
-              </div>
-              <FormControl>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-between w-1/4"
-                    >
-                      <span className="truncate">{getDisplayText()}</span>
-                      <ChevronDown size={20} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[400px]" align="start">
-                    <ScrollArea className="h-auto">
-                      <DropdownMenuGroup className="p-2">
-                        {mailboxes &&
-                          mailboxes.length > 0 &&
-                          mailboxes[0].mailbox !== null ? (
-                          mailboxes
-                            .filter(mailbox => {
-                              if (campaignChannel === 'Linkedin') {
-                                return mailbox.mailbox.toLowerCase().includes('linkedin');
-                              }
-                              return true;
-                            })
-                            .map((mailbox, index) => (
-                              <DropdownMenuItem
-                                key={index}
-                                className="p-0 focus:bg-transparent"
-                              >
-                                <div
-                                  className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
-                                  onClick={(event) => event.stopPropagation()}
+        {(campaignChannel === 'mail' || campaignChannel === 'omni') && (
+          <FormField
+            control={form.control}
+            name="emails"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>Sender Email</FormLabel>
+                  <FormDescription>
+                    Email address to send campaigns from
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center justify-between w-1/4"
+                      >
+                        <span className="truncate">{getDisplayText()}</span>
+                        <ChevronDown size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[400px]" align="start">
+                      <ScrollArea className="h-auto">
+                        <DropdownMenuGroup className="p-2">
+                          {mailboxes &&
+                            mailboxes.length > 0 &&
+                            mailboxes[0].mailbox !== null ? (
+                            mailboxes
+                              .filter(mailbox => !mailbox.mailbox.toLowerCase().includes('linkedin'))
+                              .map((mailbox, index) => (
+                                <DropdownMenuItem
+                                  key={index}
+                                  className="p-0 focus:bg-transparent"
                                 >
-                                  <Checkbox
-                                    checked={emailFields.some(
-                                      (emailField) =>
-                                        emailField.value === mailbox.mailbox
-                                    )}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        onEmailAppend(mailbox.mailbox, {
-                                          id: mailbox.id,
-                                          platform: campaignChannel
-                                        });
-                                      } else {
-                                        onEmailRemove(mailbox.mailbox);
-                                        if (campaignChannel === 'Linkedin') {
-                                          setSelectedLinkedInId([]);
+                                  <div
+                                    className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <Checkbox
+                                      checked={emailFields.some(
+                                        (emailField) =>
+                                          emailField.value === mailbox.mailbox
+                                      )}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          onEmailAppend(mailbox.mailbox, {
+                                            id: mailbox.id,
+                                            platform: 'mail'
+                                          });
+                                        } else {
+                                          onEmailRemove(mailbox.mailbox);
                                         }
-                                      }
-                                    }}
-                                  />
-                                  <label className="text-sm font-medium leading-none cursor-pointer flex-1">
-                                    {mailbox.sender_name} - {mailbox.mailbox}
-                                  </label>
-                                </div>
-                              </DropdownMenuItem>
-                            ))
-                        ) : (
-                          <div className="text-sm m-2 text-center">
-                            <p> No mailboxes connected.</p>
-                            <p>
-                              You can add a mailbox on the{" "}
-                              <Link
-                                href="/settings/mailbox"
-                                className="text-blue-600 underline"
-                              >
-                                Settings
-                              </Link>{" "}
-                              page.
-                            </p>
-                          </div>
-                        )}
-                      </DropdownMenuGroup>
-                    </ScrollArea>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                                      }}
+                                    />
+                                    <label className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                      {mailbox.sender_name} - {mailbox.mailbox}
+                                    </label>
+                                  </div>
+                                </DropdownMenuItem>
+                              ))
+                          ) : (
+                            <div className="text-sm m-2 text-center">
+                              <p>No email mailboxes connected.</p>
+                              <p>
+                                You can add a mailbox on the{" "}
+                                <Link
+                                  href="/settings/mailbox"
+                                  className="text-blue-600 underline"
+                                >
+                                  Settings
+                                </Link>{" "}
+                                page.
+                              </p>
+                            </div>
+                          )}
+                        </DropdownMenuGroup>
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {(campaignChannel === 'Linkedin' || campaignChannel === 'omni') && (
+          <FormField
+            control={form.control}
+            name="emails"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>LinkedIn Account</FormLabel>
+                  <FormDescription>
+                    LinkedIn account to send campaigns from
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center justify-between w-1/4"
+                      >
+                        <span className="truncate">{selectedLinkedInId.length > 0 ?  "LinkedIn account selected" : 'Select LinkedIn Account'}</span>
+                        <ChevronDown size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[400px]" align="start">
+                      <ScrollArea className="h-auto">
+                        <DropdownMenuGroup className="p-2">
+                          {mailboxes &&
+                            mailboxes.length > 0 &&
+                            mailboxes[0].mailbox !== null ? (
+                            mailboxes
+                              .filter(mailbox => mailbox.mailbox.toLowerCase().includes('linkedin'))
+                              .map((mailbox, index) => (
+                                <DropdownMenuItem
+                                  key={index}
+                                  className="p-0 focus:bg-transparent"
+                                >
+                                  <div
+                                    className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <Checkbox
+                                      checked={selectedLinkedInId.includes(mailbox.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          onLinkedInAppend(mailbox.mailbox, {
+                                            id: mailbox.id
+                                          });
+                                        } else {
+                                          onLinkedInRemove(mailbox.mailbox, {
+                                            id: mailbox.id
+                                          });
+                                        }
+                                      }}
+                                    />
+                                    <label className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                      {mailbox.sender_name} - {mailbox.mailbox}
+                                    </label>
+                                  </div>
+                                </DropdownMenuItem>
+                              ))
+                          ) : (
+                            <div className="text-sm m-2 text-center">
+                              <p>No LinkedIn accounts connected.</p>
+                              <p>
+                                You can add a LinkedIn account on the{" "}
+                                <Link
+                                  href="/settings/mailbox"
+                                  className="text-blue-600 underline"
+                                >
+                                  Settings
+                                </Link>{" "}
+                                page.
+                              </p>
+                            </div>
+                          )}
+                        </DropdownMenuGroup>
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         <div>
           <FormLabel className="tex-sm font-medium">Make your outreach sequence</FormLabel>
           <div
@@ -551,6 +666,7 @@ export function GoalForm() {
                 <Omni
                   onFlowDataChange={handleFlowDataChange}
                   initialSequence={goalData?.sequence}
+                  channel={campaignChannel}
                 />
               </div>
             </div>

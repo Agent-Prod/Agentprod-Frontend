@@ -7,6 +7,7 @@ interface SideBarProps {
   existingNodes?: string[];
   onDragStart?: (e: DragEvent<HTMLDivElement>, action: { type: string; label: string }) => void;
   draggedAction?: string | null;
+  channel?: string;
 }
 
 export const actions = [
@@ -15,6 +16,7 @@ export const actions = [
   { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
   // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
   { label: 'Send LinkedIn Message', type: 'linkedin_message' },
+  { label: 'Send LinkedIn Follow-up', type: 'linkedin_followup' },
   { label: 'Like and Comment on Post', type: 'like_post' },
   { label: 'Mark as Lost', type: 'mark_as_lost' },
   { label: 'Withdraw Connection Request', type: 'withdraw_request' },
@@ -25,7 +27,8 @@ function SideBar({
   onActionSelect,
   existingNodes = [],
   onDragStart,
-  draggedAction
+  draggedAction,
+  channel
 }: SideBarProps) {
   const isActionEnabled = (type: string): boolean => {
     if (existingNodes.length === 0) {
@@ -59,12 +62,14 @@ function SideBar({
       case 'linkedin_message':
         return true;
 
+      case 'linkedin_followup':
+        return existingNodes.includes('linkedin_connection') || 
+               existingNodes.includes('linkedin_message');
+
       default:
         return false;
     }
   };
-
-
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, action: { type: string; label: string }) => {
     if (!isEnabled || !isActionEnabled(action.type)) {
@@ -74,10 +79,19 @@ function SideBar({
     onDragStart?.(e, action);
   };
 
+  const visibleActions = actions.filter(action => {
+    if (channel === 'mail') {
+      return ['first_email', 'follow_up_email', 'mark_as_lost'].includes(action.type);
+    } else if (channel === 'Linkedin') {
+      return ['linkedin_connection', 'linkedin_message', 'like_post', 'mark_as_lost', 'withdraw_request', 'linkedin_followup'].includes(action.type);
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
-        {actions.map((action) => {
+        {visibleActions.map((action) => {
           const actionEnabled = isEnabled && isActionEnabled(action.type);
 
           return (

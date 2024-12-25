@@ -454,7 +454,7 @@ export const nodeTemplates: Record<string, Template> = {
     nodes: [
       {
         id: "linkedin-message",
-        type: "linkedInNode",
+        type: "emailNode",
         position: { x: 0, y: 0 },
         data: {
           label: "Send LinkedIn Message",

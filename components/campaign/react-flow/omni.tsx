@@ -332,37 +332,39 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
     let connectingEdges: CustomEdge[] = [];
 
     if (action.type === 'linkedin_connection') {
-      connectingEdges = [
-        {
-          id: `e-connecting-parent-${Date.now()}`,
-          source: parentNode.id,
-          target: newNodes[0].id,
-          type: 'smoothstep',
-          style: {
-            stroke: '#4f4f4f',
-            strokeWidth: 2,
-            opacity: 0.8
-          },
-        }
-      ];
+      // Connect parent to LinkedIn node
+      connectingEdges = [{
+        id: `e-connecting-parent-${Date.now()}`,
+        source: parentNode.id,
+        target: newNodes[0].id,
+        type: 'smoothstep',
+        style: {
+          stroke: '#4f4f4f',
+          strokeWidth: 2,
+          opacity: 0.8
+        },
+      }];
 
       const newEdges = template.edges.map(edge => {
         let sourceNode, targetNode;
 
         // Handle left path edges
         if (edge.sourceHandle === 'source-left') {
-          sourceNode = edge.source === 'linkedin-invite' ? newNodes[0] : newNodes[1];
-          targetNode = edge.target === 'delay-linkedin-invite-left' ? newNodes[1] : newNodes[2];
+          sourceNode = newNodes[0]; // LinkedIn node
+          targetNode = newNodes[1]; // Left delay node
         }
         // Handle right path edges
         else if (edge.sourceHandle === 'source-right') {
-          sourceNode = edge.source === 'linkedin-invite' ? newNodes[0] : newNodes[3];
-          targetNode = edge.target === 'delay-linkedin-invite-right' ? newNodes[3] : newNodes[4];
+          sourceNode = newNodes[0]; // LinkedIn node
+          targetNode = newNodes[3]; // Right delay node
         }
-        // Handle other edges
-        else {
-          sourceNode = newNodes.find(n => n.id.includes(edge.source.split('-')[0]));
-          targetNode = newNodes.find(n => n.id.includes(edge.target.split('-')[0]));
+        else if (edge.source.includes('delay-linkedin-invite-left')) {
+          sourceNode = newNodes[1]; // Left delay node
+          targetNode = newNodes[2]; // Left action node
+        }
+        else if (edge.source.includes('delay-linkedin-invite-right')) {
+          sourceNode = newNodes[3]; // Right delay node
+          targetNode = newNodes[4]; // Right action node
         }
 
         return {

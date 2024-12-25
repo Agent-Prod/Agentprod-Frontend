@@ -151,15 +151,9 @@ export const nodeTemplates: Record<string, Template> = {
         },
       },
       {
-        id: "action-linkedin-invite-left",
-        type: "actionNode",
-        position: { x: 150, y: 200 },
-        data: {},
-      },
-      {
         id: "action-linkedin-invite-right",
         type: "actionNode",
-        position: { x: 500, y: 200 },
+        position: { x: 350, y: 200 },
         data: {},
       },
     ],

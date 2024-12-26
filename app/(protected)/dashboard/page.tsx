@@ -414,7 +414,7 @@ export default function Page() {
       <ScrollArea className="h-full scroll-my-36 bg-gradient-to-br from-background via-background/98 to-background/95">
         <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <div className="flex flex-col col-span-2 gap-4">
+            <div className="flex flex-col col-span-3 gap-4">
               <Card
                 className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm"
                 onClick={() => {
@@ -438,11 +438,11 @@ export default function Page() {
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
-            <Card className="col-span-4 shadow-sm">
+            <Card className="col-span-3 shadow-sm">
               <ScrollArea className="h-[20rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
-                    <CardTitle>Top Performing Campaigns</CardTitle>
+                    <CardTitle>Email Campaign</CardTitle>
                     {!shouldLoadAnalytics && (
                       <Button
                         onClick={() => setShouldLoadAnalytics(true)}
@@ -513,7 +513,7 @@ export default function Page() {
               </ScrollArea>
             </Card>
 
-            <Card className="col-span-2">
+            <Card className="col-span-1">
               <ScrollArea className="h-[16rem]">
                 <CardHeader>
                   <CardTitle>Hot Leads</CardTitle>
@@ -554,53 +554,104 @@ export default function Page() {
               </ScrollArea>
             </Card>
 
-            <Card className="col-span-2">
-              <ScrollArea className="lg:h-56 md:h-[26rem]">
-                <CardHeader>
-                  <CardTitle>Mailbox Health</CardTitle>
+            <div className="col-span-2 grid grid-cols-1 gap-4">
+              <Card>
+                <ScrollArea className="h-[16rem]">
+                  <CardHeader>
+                    <CardTitle>Mailbox Health</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <MailboxHealth healthData={dashboardData?.mailbox_health} isLoading={isLoading} />
+                  </CardContent>
+                </ScrollArea>
+              </Card>
+
+              <Card className="p-4 space-y-8">
+                <div className="flex justify-between items-center gap-5 mb-4">
+                  <div>
+                    <div className="text-lg font-semibold">Email Streak</div>
+                    <div className="text-sm text-gray-600">
+                      Approve emails today to start a new streak
+                    </div>
+                  </div>
+                  <Icons.zap
+                    size={35}
+                    className="fill-purple-500 text-purple-500"
+                  />
+                </div>
+
+                <div className="flex items-end justify-between">
+                  {allWeekDays.map((day, index) => {
+                    const dayOfWeek = format(parseISO(day), "EEE");
+                    const isActive = activeDaysSet.has(day);
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center justify-center text-gray-400"
+                      >
+                        <span className="text-sm mb-1">{dayOfWeek}</span>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive
+                            ? "bg-gradient-to-r from-purple-700 to-purple-400 text-purple-400"
+                            : "bg-gray-500"
+                            }`}
+                        ></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+            <div className="col-span-3">
+            <Card className=" shadow-sm">
+              <ScrollArea className="h-[28rem]">
+                <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Multi-Channel Campaign</CardTitle>
+                    {!shouldLoadAnalytics && (
+                      <Button
+                        onClick={() => setShouldLoadAnalytics(true)}
+                        className="bg-gradient-to-r from-primary to-primary/90 text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200"
+                      >
+                        Load Analytics
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <MailboxHealth healthData={dashboardData?.mailbox_health} isLoading={isLoading} />
+                <CardContent className="px-6 pb-4 pt-0">
+                  <div className="relative w-full h-full">
+                    {!shouldLoadAnalytics ? (
+                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
+                      </div>
+                    ) : (
+                      <TopPerformingCampaignsTable
+                        campaigns={analyticsData?.map(campaign => ({
+                          campaign_id: campaign.campaign_id,
+                          sent_count: campaign.sent_count,
+                          delivered_count: campaign.delivered_count,
+                          clicked_count: campaign.clicked_count,
+                          spam_count: campaign.spam_count,
+                          bounced_count: campaign.bounced_count,
+                          user_id: campaign.user_id,
+                          open_count: campaign.open_count,
+                          campaign_name: campaign.campaign_name,
+                          responded: campaign.responded,
+                          engaged_leads: 0,
+                          response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                          total_leads: campaign.total_leads
+                        }))}
+                        isLoading={isAnalyticsLoading}
+                      />
+                    )}
+                  </div>
                 </CardContent>
               </ScrollArea>
             </Card>
-
-            <Card className="col-span-2 p-4 space-y-16">
-              <div className="flex justify-between items-center gap-5 mb-4">
-                <div>
-                  <div className="text-lg font-semibold">Email Streak</div>
-                  <div className="text-sm text-gray-600">
-                    Approve emails today to start a new streak
-                  </div>
-                </div>
-                <Icons.zap
-                  size={35}
-                  className="fill-purple-500 text-purple-500"
-                />
-              </div>
-
-              <div className="flex items-end justify-between">
-                {allWeekDays.map((day, index) => {
-                  const dayOfWeek = format(parseISO(day), "EEE");
-                  const isActive = activeDaysSet.has(day);
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center justify-center text-gray-400"
-                    >
-                      <span className="text-sm mb-1">{dayOfWeek}</span>
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive
-                          ? "bg-gradient-to-r from-purple-700 to-purple-400 text-purple-400"
-                          : "bg-gray-500"
-                          }`}
-                      ></div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
+            </div>
           </div>
         </div>
       </ScrollArea>

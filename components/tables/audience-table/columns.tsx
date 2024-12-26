@@ -68,7 +68,7 @@ export const leadColumns: ColumnDef<Lead>[] = [
 export const contactsColumn: ColumnDef<Lead>[] = [
   {
     accessorKey: "name",
-    header: "NAME",
+    header: "Name",
     cell: ({ row }) => (
       <div key={row.id} className="flex items-center gap-3">
         <Avatar className="h-6 w-6">
@@ -86,7 +86,7 @@ export const contactsColumn: ColumnDef<Lead>[] = [
   },
   {
     accessorKey: "title",
-    header: "ROLE",
+    header: "Role",
     cell: ({ row }) => (
       <div className="truncate max-w-[200px]" title={row.original.title}>
         {row.original.title}
@@ -96,7 +96,7 @@ export const contactsColumn: ColumnDef<Lead>[] = [
   {
     accessorFn: (row) =>
       row.employment_history?.[0]?.organization_name ?? row.company,
-    header: "COMPANY",
+    header: "Company",
     cell: ({ row }) => {
       const companyName =
         row.original.employment_history?.[0]?.organization_name ??
@@ -109,7 +109,7 @@ export const contactsColumn: ColumnDef<Lead>[] = [
     },
   },
   {
-    header: "WorkFlow Builder",
+    header: "Workflow Stage",
     accessorFn: (row) => row.sequence_count ?? 0,
     cell: ({ row }) => (
       <div className="text-muted-foreground flex items-center gap-[2px]">
@@ -124,7 +124,7 @@ export const contactsColumn: ColumnDef<Lead>[] = [
   },
   {
     accessorKey: "last_contacted",
-    header: "LAST CONTACTED",
+    header: "Last Contacted",
   },
 ];
 export const selectContactsColumn: ColumnDef<Lead>[] = [

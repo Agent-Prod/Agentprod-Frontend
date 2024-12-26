@@ -1021,7 +1021,7 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
         <div className="w-[280px] border-r dark:border-white/10 border-zinc-200 flex flex-col">
           <div className="p-4 border-b dark:border-white/10 border-zinc-200">
             <h3 className="text-[15.5px] font-medium">
-              {isActionsEnabled ? 'Available Actions' : 'Start with an Action'}
+              {isActionsEnabled ? 'Available Actions' : 'Make your Workflow'}
             </h3>
           </div>
           <ScrollArea className="flex-1">

@@ -668,7 +668,7 @@ export function GoalForm() {
         )}
 
         <div>
-          <FormLabel className="tex-sm font-medium">Make your outreach sequence</FormLabel>
+          {/* <FormLabel className="tex-sm font-medium">Make your Workflow</FormLabel> */}
           <div
             className="flex gap-4 items-center mt-3"
             onClick={(e) => {

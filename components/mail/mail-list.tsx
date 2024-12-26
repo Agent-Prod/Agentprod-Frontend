@@ -243,7 +243,7 @@ const MailList: React.FC<MailListProps> = ({
                   {item.category && getCategoryBadge(item.category)}
                 </span>
               </div>
-              
+
               <div
                 className={cn(
                   "ml-auto text-xs flex gap-2 items-center",
@@ -265,7 +265,7 @@ const MailList: React.FC<MailListProps> = ({
                 ) : (
                   <Mail className="w-3 h-3 text-white" />
                 )}
-                
+
                 <span className="text-xs text-gray-400">
                   {item.updated_at && formatDate(item.updated_at)}
                 </span>

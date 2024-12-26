@@ -106,6 +106,7 @@ interface ContactData {
   personalized_social_info?: any;
   company_linkedin_url: string;
   company_website_url: string;
+  sequence_count?: number;
 }
 
 interface EmailContent {

@@ -327,6 +327,7 @@ export const ImportAudience = () => {
         linkedin_bio: lead.linkedin_bio || "",
         social_monitoring_data: lead.social_monitoring_data || "",
         personalized_social_info: lead.personalized_social_info || "",
+        sequence_count: lead.sequence_count || 0,
       }));
 
       setLeads(processedLeads);
@@ -398,6 +399,7 @@ export const ImportAudience = () => {
       linkedin_bio: lead.linkedin_bio || "",
       social_monitoring_data: lead.social_monitoring_data || "",
       personalized_social_info: lead.personalized_social_info || "",
+      sequence_count: lead.sequence_count || 0,
     }));
   }
 

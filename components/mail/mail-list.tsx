@@ -254,7 +254,7 @@ const MailList: React.FC<MailListProps> = ({
               >
                 <div className="text-muted-foreground flex items-center gap-[2px]">
                   {[...Array(Math.min(Number(item.sequence_count) || 0, 15))].map((_, index) => (
-                    <div key={index} className="text-pink-500 text-sm font-bold">|</div>
+                    <div key={index} className="text-pink-500 text-sm font-extrabold">|</div>
                   ))}
                   {(Number(item.sequence_count) || 0) > 15 && (
                     <span className="text-xs text-pink-500 ml-1">+{(Number(item.sequence_count) || 0) - 15}</span>

@@ -243,6 +243,7 @@ const MailList: React.FC<MailListProps> = ({
                   {item.category && getCategoryBadge(item.category)}
                 </span>
               </div>
+              
               <div
                 className={cn(
                   "ml-auto text-xs flex gap-2 items-center",
@@ -251,11 +252,20 @@ const MailList: React.FC<MailListProps> = ({
                     : "text-muted-foreground"
                 )}
               >
+                <div className="text-muted-foreground flex items-center gap-[2px]">
+                  {[...Array(Math.min(Number(item.sequence_count) || 0, 15))].map((_, index) => (
+                    <div key={index} className="text-pink-500 text-sm font-bold">|</div>
+                  ))}
+                  {(Number(item.sequence_count) || 0) > 15 && (
+                    <span className="text-xs text-pink-500 ml-1">+{(Number(item.sequence_count) || 0) - 15}</span>
+                  )}
+                </div>
                 {item.subject === "" ? (
                   <LinkedinIcon className="w-3 h-3 text-white" />
                 ) : (
                   <Mail className="w-3 h-3 text-white" />
                 )}
+                
                 <span className="text-xs text-gray-400">
                   {item.updated_at && formatDate(item.updated_at)}
                 </span>

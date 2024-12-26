@@ -83,6 +83,7 @@ export interface Conversations {
   channel?: string;
   campaign_name: string | null;
   contact_id: string | null;
+  sequence_count: number;
 }
 
 const CampaignDropdown = React.memo(

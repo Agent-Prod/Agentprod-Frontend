@@ -18,7 +18,6 @@ export const actions = [
   { label: 'Send LinkedIn Message', type: 'linkedin_message' },
   { label: 'Send LinkedIn Follow-up', type: 'linkedin_followup' },
   { label: 'Like and Comment on Post', type: 'like_post' },
-  { label: 'Mark as Lost', type: 'mark_as_lost' },
   { label: 'Withdraw Connection Request', type: 'withdraw_request' },
 ];
 
@@ -40,12 +39,7 @@ function SideBar({
         return true;
 
       case 'withdraw_request':
-        return existingNodes.includes('linkedin_connection') &&
-          !existingNodes.includes('mark_as_lost');
-
-      case 'mark_as_lost':
-        return existingNodes.includes('linkedin_connection') &&
-          !existingNodes.includes('withdraw_request');
+        return existingNodes.includes('linkedin_connection')
 
       case 'first_email':
         return !existingNodes.some(node => node === 'follow_up_email');
@@ -77,9 +71,9 @@ function SideBar({
 
   const visibleActions = actions.filter(action => {
     if (channel === 'mail') {
-      return ['first_email', 'follow_up_email', 'mark_as_lost'].includes(action.type);
+      return ['first_email', 'follow_up_email'].includes(action.type);
     } else if (channel === 'Linkedin') {
-      return ['linkedin_connection', 'linkedin_message', 'like_post', 'mark_as_lost', 'withdraw_request', 'linkedin_followup'].includes(action.type);
+      return ['linkedin_connection', 'linkedin_message', 'like_post', 'withdraw_request', 'linkedin_followup'].includes(action.type);
     }
     return true;
   });

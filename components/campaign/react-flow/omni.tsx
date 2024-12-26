@@ -57,9 +57,10 @@ interface OmniProps {
     };
   };
   channel?: string;
+  onTotalDelayChange?: (totalDays: number) => void;
 }
 
-function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
+function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }: OmniProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [isActionsEnabled, setIsActionsEnabled] = useState(false);
@@ -1002,6 +1003,17 @@ function Omni({ onFlowDataChange, initialSequence, channel }: OmniProps) {
   useEffect(() => {
     wasCanvasCleared.current = false;
   }, [channel]);
+
+  const calculateTotalDelay = useCallback(() => {
+    const delayNodes = nodes.filter(node => node.type === 'delayNode');
+    const totalDays = delayNodes.reduce((sum, node) => sum + (node.data.days || 0), 0);
+    return totalDays;
+  }, [nodes]);
+
+  useEffect(() => {
+    const totalDays = calculateTotalDelay();
+    onTotalDelayChange?.(totalDays);
+  }, [nodes, calculateTotalDelay, onTotalDelayChange]);
 
   return (
     <Card className="w-full flex flex-col bg-background border rounded-none">

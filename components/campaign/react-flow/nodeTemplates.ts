@@ -247,47 +247,6 @@ export const nodeTemplates: Record<string, Template> = {
       },
     ],
   },
-  mark_as_lost: {
-    nodes: [
-      {
-        id: "mark-as-lost",
-        type: "emailNode",
-        position: { x: 0, y: 0 },
-        data: { label: "Mark as Lost" },
-      },
-      {
-        id: "delay-mark-as-lost",
-        type: "delayNode",
-        position: { x: 0, y: 100 },
-        data: {
-          label: "1 day",
-          days: 1,
-        },
-      },
-      {
-        id: "action-mark-as-lost",
-        type: "actionNode",
-        position: { x: 0, y: 200 },
-        data: {},
-      },
-    ],
-    edges: [
-      {
-        id: "ml1",
-        source: "mark-as-lost",
-        target: "delay-mark-as-lost",
-        type: "smoothstep",
-        style: { stroke: "#4f4f4f", strokeWidth: 2 },
-      },
-      {
-        id: "ml2",
-        source: "delay-mark-as-lost",
-        target: "action-mark-as-lost",
-        type: "smoothstep",
-        style: { stroke: "#4f4f4f", strokeWidth: 2 },
-      },
-    ],
-  },
   withdraw_request: {
     nodes: [
       {

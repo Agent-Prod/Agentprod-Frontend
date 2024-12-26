@@ -43,6 +43,13 @@ import axios from "axios";
 import { useAuth } from "@/context/auth-provider";
 import Omni from "./react-flow/omni";
 
+interface OmniProps {
+  onFlowDataChange?: (flowData: any) => void;
+  initialSequence?: any;
+  channel?: string;
+  onTotalDelayChange?: (totalDays: number) => void;
+}
+
 const goalFormSchema = z.object({
   success_metric: z.string(),
   scheduling_link: z.union([
@@ -62,7 +69,10 @@ const goalFormSchema = z.object({
   follow_up_days:
     z.number().nullable().optional().default(0),
   follow_up_times: z.number().nullable().optional().default(0),
-  mark_as_lost: z.number().nullable().optional().default(0),
+  mark_as_lost: z
+    .number()
+    .min(0, { message: "Mark as lost must be a non-negative number" })
+    .default(0),
   sequence: z.any().optional(),
 }).refine((data) => {
   // Only validate scheduling_link when success_metric is "Meeting scheduled"
@@ -103,6 +113,7 @@ export function GoalForm() {
   const [likePost, setLikePost] = useState<number>(0);
   const [withdrawInvite, setWithdrawInvite] = useState<number>(0);
   const [flowData, setFlowData] = useState(null);
+  const [minimumMarkAsLost, setMinimumMarkAsLost] = useState(0);
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
     defaultValues,
@@ -323,9 +334,15 @@ export function GoalForm() {
     }
   }, [params.campaignId]);
 
+  useEffect(() => {
+    if (minimumMarkAsLost > 0) {
+      form.setValue('mark_as_lost', minimumMarkAsLost);
+    }
+  }, [minimumMarkAsLost, form]);
+
   const isFormValid = () => {
     const formValues = form.getValues();
-    
+
     // Check if scheduling link is provided when "Meeting scheduled" is selected
     if (formValues.success_metric === "Meeting scheduled" && !formValues.scheduling_link) {
       return false;
@@ -376,6 +393,10 @@ export function GoalForm() {
 
   const handleFlowDataChange = (data: any) => {
     setFlowData(data);
+  };
+
+  const handleTotalDelayChange = (totalDays: number) => {
+    setMinimumMarkAsLost(totalDays);
   };
 
   return (<>
@@ -579,7 +600,7 @@ export function GoalForm() {
                         variant="outline"
                         className="flex items-center justify-between w-1/4"
                       >
-                        <span className="truncate">{selectedLinkedInId.length > 0 ?  "LinkedIn account selected" : 'Select LinkedIn Account'}</span>
+                        <span className="truncate">{selectedLinkedInId.length > 0 ? "LinkedIn account selected" : 'Select LinkedIn Account'}</span>
                         <ChevronDown size={20} />
                       </Button>
                     </DropdownMenuTrigger>
@@ -667,6 +688,7 @@ export function GoalForm() {
                   onFlowDataChange={handleFlowDataChange}
                   initialSequence={goalData?.sequence}
                   channel={campaignChannel}
+                  onTotalDelayChange={handleTotalDelayChange}
                 />
               </div>
             </div>
@@ -779,29 +801,33 @@ export function GoalForm() {
             </div>
           </div> */}
 
-        {/* <FormField
-            control={form.control}
-            name="mark_as_lost"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Mark as lost</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="eg. 10 days"
-                    {...field}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const numberValue =
-                        value === "" ? undefined : Number(value);
-                      field.onChange(numberValue);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
+        <FormField
+          control={form.control}
+          name="mark_as_lost"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Mark as lost</FormLabel>
+              <FormDescription>
+                Minimum {minimumMarkAsLost} days based on sequence delays
+              </FormDescription>
+              <FormControl>
+                <Input
+                  type="number"
+                  min = {minimumMarkAsLost}
+                  placeholder={`Minimum ${minimumMarkAsLost} days`}
+                  {...field}
+                  value={field.value ?? minimumMarkAsLost}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const numValue = value === '' ? minimumMarkAsLost : Number(value);
+                    field.onChange(Math.max(numValue, minimumMarkAsLost));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {type === "edit" ? (
           <Button type="submit">Update Goal</Button>

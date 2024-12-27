@@ -1025,7 +1025,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             <ThumbsUp className="h-4 w-4 text-gray-400" />
           </div>
           <p className="ml-1 text-xs">
-            Liked Recipient&apos;s LinkedIn post
+            Liked on Recipient&apos;s LinkedIn post
           </p>
           <span className="text-gray-400 text-xs">
             {formatDate(email.like_comment_date)}
@@ -1039,7 +1039,8 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             <MessageSquare className="h-4 w-4 text-gray-400" />
           </div>
           <p className="ml-1 text-xs">
-            Commented on Recipient&apos;s LinkedIn post: "{email.comment}"
+            Commented on Recipient&apos;s LinkedIn post: "{email.comment.trim().slice(0, 50)}
+            {email.comment.length > 50 ? '...' : ''}"
           </p>
           <span className="text-gray-400 text-xs">
             {email.like_comment_date && formatDate(email.like_comment_date)}
@@ -1061,7 +1062,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
         </div>
       )}
 
-      {email?.post_id && (
+      {/* {email?.post_id && (
         <div className="flex items-center gap-3">
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
             <LinkedinIcon className="h-4 w-4 text-gray-400" />
@@ -1070,7 +1071,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             Related to LinkedIn post: {email.post_id}
           </p>
         </div>
-      )}
+      )} */}
     </div>
 
   );

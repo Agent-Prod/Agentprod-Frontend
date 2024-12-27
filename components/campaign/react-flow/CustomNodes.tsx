@@ -65,11 +65,34 @@ export function DelayNode({ data, id }: NodeProps<any>) {
   }, []);
 
   const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 1;
+    const inputValue = e.target.value;
+
+    // Allow empty input while typing
+    if (inputValue === '') {
+      setDays(1);
+      return;
+    }
+
+    const value = parseInt(inputValue);
+
+    // Allow any number input, but validate on blur
     setDays(value);
     if (data.onChange) {
       data.onChange(id, value);
     }
+  };
+
+  const handleBlur = () => {
+    // Validate and correct the value when input loses focus
+    let finalValue = days;
+    if (days < 1) finalValue = 1;
+    if (days > 7) finalValue = 7;
+
+    setDays(finalValue);
+    if (data.onChange) {
+      data.onChange(id, finalValue);
+    }
+    setIsEditing(false);
   };
 
   return (
@@ -77,7 +100,7 @@ export function DelayNode({ data, id }: NodeProps<any>) {
       onClick={() => !isEditing && setIsEditing(true)}
       className="px-8 py-3 rounded-lg bg-white text-foreground 
                 border border-border shadow-lg backdrop-blur-sm
-                flex items-center gap-3 min-w-[140px] cursor-pointer 
+                flex items-center gap-3 min-w-[140px] 
                 transition-all duration-200 hover:border-zinc-600
                 dark:bg-zinc-800 dark:border-zinc-600/50 dark:text-zinc-100">
       <Handle
@@ -89,24 +112,39 @@ export function DelayNode({ data, id }: NodeProps<any>) {
       <div className="w-6 h-6">⏱️</div>
       <div className="flex items-center gap-2">
         {isEditing ? (
-          <input
-            type="number"
-            value={days}
-            onChange={handleDayChange}
-            onBlur={() => setIsEditing(false)}
-            onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-            autoFocus
-            min="0"
-            max="7"
-            className="w-12 bg-muted text-foreground text-lg font-medium 
-                      rounded px-1 outline-none border border-border
-                      focus:border-zinc-500"
+          <div
             onClick={(e) => e.stopPropagation()}
-          />
+            className="relative"
+          >
+            <input
+              type="number"
+              value={days}
+              onChange={handleDayChange}
+              onBlur={handleBlur}
+              onKeyDown={(e) => e.key === 'Enter' && handleBlur()}
+              autoFocus
+              min="1"
+              max="7"
+              style={{
+                WebkitAppearance: 'none',
+                MozAppearance: 'textfield',
+                margin: 0
+              }}
+              className="w-12 bg-muted text-foreground text-lg font-medium 
+                        rounded px-1 outline-none border border-border
+                        focus:border-zinc-500 [appearance:textfield]
+                        [&::-webkit-outer-spin-button]:appearance-none
+                        [&::-webkit-inner-spin-button]:appearance-none
+                        [&::-webkit-outer-spin-button]:m-0
+                        [&::-webkit-inner-spin-button]:m-0
+                        [&::-webkit-inner-spin-button]:hidden
+                        [&::-webkit-outer-spin-button]:hidden"
+            />
+          </div>
         ) : (
-          <span className="text-lg font-medium">{days}</span>
+          <span className="text-lg font-medium select-none">{days}</span>
         )}
-        <span className="text-lg font-medium">day{days !== 1 ? 's' : ''}</span>
+        <span className="text-lg font-medium select-none">day{days !== 1 ? 's' : ''}</span>
       </div>
 
       <Handle

@@ -774,7 +774,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
-      
+
 
       {email?.status &&
         !email.is_reply &&

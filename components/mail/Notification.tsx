@@ -23,6 +23,8 @@ import {
   TimerReset,
   Trash2,
   UserX,
+  MessageSquare,
+  UserMinus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MdInfoOutline, MdOutlineScheduleSend } from "react-icons/md";
@@ -77,6 +79,10 @@ interface EmailMessage {
   spam_datetime: any;
   channel?: any;
   connected_on_linkedin?: any;
+  like_comment_date?: string;
+  withdraw_time?: string;
+  post_id?: string;
+  comment?: string | null;
 }
 
 interface NotificationProps {
@@ -1012,6 +1018,59 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             </span>
           </div>
         )}
+
+      {email?.like_comment_date && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <ThumbsUp className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Liked Recipient&apos;s LinkedIn post
+          </p>
+          <span className="text-gray-400 text-xs">
+            {formatDate(email.like_comment_date)}
+          </span>
+        </div>
+      )}
+
+      {email?.comment && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <MessageSquare className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Commented on Recipient&apos;s LinkedIn post: "{email.comment}"
+          </p>
+          <span className="text-gray-400 text-xs">
+            {email.like_comment_date && formatDate(email.like_comment_date)}
+          </span>
+        </div>
+      )}
+
+      {email?.withdraw_time && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <UserMinus className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Connection request was withdrawn
+          </p>
+          <span className="text-gray-400 text-xs">
+            {formatDate(email.withdraw_time)}
+          </span>
+        </div>
+      )}
+
+      {email?.post_id && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <LinkedinIcon className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Related to LinkedIn post: {email.post_id}
+          </p>
+        </div>
+      )}
     </div>
 
   );

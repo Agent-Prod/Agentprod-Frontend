@@ -396,7 +396,7 @@ export function GoalForm() {
   };
 
   const handleTotalDelayChange = (totalDays: number) => {
-    setMinimumMarkAsLost(totalDays);
+    setMinimumMarkAsLost(totalDays+2);
   };
 
   return (<>

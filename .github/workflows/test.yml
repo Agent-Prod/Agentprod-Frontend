@@ -1,7 +1,7 @@
 name: Test Server CI/CD
 on:
   push:
-    branches: [import-self]
+    branches: [omni]
 
 jobs:
   deploy:

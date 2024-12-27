@@ -292,8 +292,34 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
   };
 
   const handleActionClick = (nodeId?: string) => {
-    if (nodeId === activeNodeId) return;
+    console.log("handleActionClick called with nodeId:", nodeId);
+    
+    if (nodeId === activeNodeId) {
+      console.log("Same node clicked, returning");
+      return;
+    }
 
+    const clickedNode = nodes.find(n => n.id === nodeId);
+    console.log("Clicked node:", clickedNode);
+
+    // Always enable sidebar and set active node for action nodes
+    if (clickedNode?.type === 'actionNode') {
+      console.log("Action node clicked, enabling sidebar");
+      setActiveNodeId(nodeId || null);  // Fixed type error by handling undefined case
+      setIsActionsEnabled(true);
+
+      // Update selection state for all nodes
+      setNodes(nodes => nodes.map(node => ({
+        ...node,
+        data: {
+          ...node.data,
+          isSelected: node.id === nodeId
+        }
+      })));
+      return;
+    }
+
+    // Handle other node types
     setIsActionsEnabled(true);
     setActiveNodeId(nodeId || null);
 
@@ -997,7 +1023,7 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
         setCurrentHistoryIndex(0);
       }
     }
-  }, [channel, nodes.length, initialSequence]);
+  }, [channel, initialSequence]);
 
   // Reset the wasCanvasCleared flag when channel changes
   useEffect(() => {

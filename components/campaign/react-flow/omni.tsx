@@ -293,7 +293,7 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
 
   const handleActionClick = (nodeId?: string) => {
     console.log("handleActionClick called with nodeId:", nodeId);
-    
+
     if (nodeId === activeNodeId) {
       console.log("Same node clicked, returning");
       return;

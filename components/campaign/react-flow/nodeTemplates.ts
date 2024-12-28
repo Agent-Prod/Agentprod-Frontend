@@ -164,6 +164,7 @@ export const nodeTemplates: Record<string, Template> = {
         sourceHandle: "source-left",
         target: "delay-linkedin-invite-left",
         type: "smoothstep",
+        label: "Not Accepted",
         style: {
           stroke: "#4f4f4f",
           strokeWidth: 2,
@@ -176,6 +177,7 @@ export const nodeTemplates: Record<string, Template> = {
         sourceHandle: "source-right",
         target: "delay-linkedin-invite-right",
         type: "smoothstep",
+        label: "Accepted",
         style: {
           stroke: "#4f4f4f",
           strokeWidth: 2,

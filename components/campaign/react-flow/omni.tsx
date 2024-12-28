@@ -115,13 +115,20 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
       const steps: Record<string, any> = {};
       let stepCounter = 0;
 
-      const processPath = (startNode: Node, pathNodes: Node[]): number[] => {
+      // Create a map to store node indices
+      const nodeIndices = new Map();
+      sortedNodes.forEach((node, index) => {
+        nodeIndices.set(node.id, index);
+      });
+
+      const processPath = (startNode: Node, visited: Set<string> = new Set()): number[] => {
         const sequence: number[] = [];
         let currentNode = startNode;
 
-        while (currentNode) {
-          const nodeIndex = sortedNodes.indexOf(currentNode);
-          if (nodeIndex !== -1) {
+        while (currentNode && !visited.has(currentNode.id)) {
+          visited.add(currentNode.id);
+          const nodeIndex = nodeIndices.get(currentNode.id);
+          if (nodeIndex !== undefined) {
             sequence.push(nodeIndex);
           }
 
@@ -137,19 +144,13 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
             break;
           }
 
-          currentNode = nextActionNode as any;
+          currentNode = nextActionNode as Node;
         }
 
         return sequence;
       };
 
       sortedNodes.forEach((node, index) => {
-        const outgoingEdges = edges.filter(edge => edge.source === node.id);
-        const incomingEdges = edges.filter(edge => edge.target === node.id);
-        const nextNode = nodes.find(n => outgoingEdges[0]?.target === n.id);
-
-        const delay = incomingEdges.length === 0 ? 0 : (nextNode?.data?.days || 0);
-
         if (node.type === 'linkedInNode') {
           const leftEdge = edges.find(e => e.sourceHandle === 'source-left' && e.source === node.id);
           const rightEdge = edges.find(e => e.sourceHandle === 'source-right' && e.source === node.id);
@@ -164,15 +165,19 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
             edges.some(e => e.source === rightDelayNode?.id && e.target === n.id && !['delayNode', 'actionNode'].includes(n.type as string))
           );
 
-          const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, sortedNodes) : [];
-          const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, sortedNodes) : [];
+          // Use separate visited sets for each path to avoid cross-contamination
+          const notAcceptedPath = leftPathFirstNode ? processPath(leftPathFirstNode, new Set()) : [];
+          const acceptedPath = rightPathFirstNode ? processPath(rightPathFirstNode, new Set()) : [];
+
+          const nextDelayNode = nodes.find(n => n.id === leftEdge?.target);
+          const delay = nextDelayNode?.data?.days || 0;
 
           steps[stepCounter] = {
             action_type: actions.find(action => action.label === node.data.label)?.type,
             next_steps: {
-              accepted: acceptedPath[0] || null,
+              accepted: nodeIndices.get(rightPathFirstNode?.id),
               declined: null,
-              default: notAcceptedPath[0] || null
+              default: nodeIndices.get(leftPathFirstNode?.id)
             },
             delay: `${delay}d`,
           };
@@ -183,16 +188,37 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
             edges.some(e => e.source === nextDelayNode?.id && e.target === n.id)
           );
 
-          const nextStepIndex = nextActionNode?.type === 'actionNode' || !sortedNodes[index + 1]
-            ? null
-            : stepCounter + 1;
+          // Find the next step index based on the node connections
+          const nextStepIndex = (() => {
+            if (nextActionNode?.type === 'actionNode') return null;
+
+            // Find the next connected node through edges
+            const findNextNode = (currentNode: Node) => {
+              const delayEdge = edges.find(e => e.source === currentNode.id);
+              if (!delayEdge) return null;
+              
+              const delayNode = nodes.find(n => n.id === delayEdge.target);
+              if (!delayNode) return null;
+
+              const nextEdge = edges.find(e => e.source === delayNode.id);
+              if (!nextEdge) return null;
+
+              return nodes.find(n => n.id === nextEdge.target);
+            };
+
+            const nextNode = findNextNode(node);
+            if (!nextNode) return null;
+
+            // Get the index from nodeIndices map
+            return nodeIndices.get(nextNode.id);
+          })();
 
           steps[stepCounter] = {
             action_type: actions.find(action => action.label === node.data.label)?.type,
             next_steps: {
               default: nextStepIndex
             },
-            delay: `${delay}d`
+            delay: `${nextDelayNode?.data?.days || 0}d`
           };
         }
 

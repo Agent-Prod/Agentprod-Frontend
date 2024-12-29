@@ -726,6 +726,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         });
     }, [body, emails, title]);
 
+    if (platform === "linkedin" && leads[0]?.type === "omni" && leads[0]?.connected_on_linkedin !== "CONNECTED") {
+      return null;
+    }
+
     if (isLoading) {
       return (
         <div className="m-4 flex flex-row ">

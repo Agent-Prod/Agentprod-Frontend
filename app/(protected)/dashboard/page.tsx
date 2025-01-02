@@ -360,14 +360,18 @@ export default function Page() {
     dashboardData,
     isLoading,
     analyticsData,
+    omniAnalyticsData,
     isAnalyticsLoading,
+    isOmniAnalyticsLoading,
     fetchDashboardDataIfNeeded,
-    fetchAnalyticsDataIfNeeded
+    fetchAnalyticsDataIfNeeded,
+    fetchOmniAnalyticsDataIfNeeded
   } = useDashboardContext();
 
 
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
+  const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();
@@ -379,6 +383,12 @@ export default function Page() {
       fetchAnalyticsDataIfNeeded();
     }
   }, [shouldLoadAnalytics]);
+
+  useEffect(() => {
+    if (shouldLoadOmniAnalytics) {
+      fetchOmniAnalyticsDataIfNeeded();
+    }
+  }, [shouldLoadOmniAnalytics, fetchOmniAnalyticsDataIfNeeded]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
@@ -604,53 +614,53 @@ export default function Page() {
               </Card>
             </div>
             <div className="col-span-3">
-            <Card className=" shadow-sm">
-              <ScrollArea className="h-[28rem]">
-                <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Multi-Channel Campaign</CardTitle>
-                    {!shouldLoadAnalytics && (
-                      <Button
-                        onClick={() => setShouldLoadAnalytics(true)}
-                        className="bg-gradient-to-r from-primary to-primary/90 text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200"
-                      >
-                        Load Analytics
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="px-6 pb-4 pt-0">
-                  <div className="relative w-full h-full">
-                    {!shouldLoadAnalytics ? (
-                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
-                      </div>
-                    ) : (
-                      <TopPerformingCampaignsTable
-                        campaigns={analyticsData?.map(campaign => ({
-                          campaign_id: campaign.campaign_id,
-                          sent_count: campaign.sent_count,
-                          delivered_count: campaign.delivered_count,
-                          clicked_count: campaign.clicked_count,
-                          spam_count: campaign.spam_count,
-                          bounced_count: campaign.bounced_count,
-                          user_id: campaign.user_id,
-                          open_count: campaign.open_count,
-                          campaign_name: campaign.campaign_name,
-                          responded: campaign.responded,
-                          engaged_leads: 0,
-                          response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                          bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                          open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                          total_leads: campaign.total_leads
-                        }))}
-                        isLoading={isAnalyticsLoading}
-                      />
-                    )}
-                  </div>
-                </CardContent>
-              </ScrollArea>
-            </Card>
+              <Card className=" shadow-sm">
+                <ScrollArea className="h-[28rem]">
+                  <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
+                    <div className="flex justify-between items-center">
+                      <CardTitle>Multi-Channel Campaign</CardTitle>
+                      {!shouldLoadOmniAnalytics && (
+                        <Button
+                          onClick={() => setShouldLoadOmniAnalytics(true)}
+                          className="bg-gradient-to-r from-primary to-primary/90 text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200"
+                        >
+                          Load Analytics
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-6 pb-4 pt-0">
+                    <div className="relative w-full h-full">
+                      {!shouldLoadOmniAnalytics ? (
+                        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                          <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
+                        </div>
+                      ) : (
+                        <TopPerformingCampaignsTable
+                          campaigns={omniAnalyticsData?.map(campaign => ({
+                            campaign_id: campaign.campaign_id,
+                            sent_count: campaign.sent_count,
+                            delivered_count: campaign.delivered_count,
+                            clicked_count: campaign.clicked_count,
+                            spam_count: campaign.spam_count,
+                            bounced_count: campaign.bounced_count,
+                            user_id: campaign.user_id,
+                            open_count: campaign.open_count,
+                            campaign_name: campaign.campaign_name,
+                            responded: campaign.responded,
+                            engaged_leads: 0,
+                            response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                            bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                            open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
+                            total_leads: campaign.total_leads
+                          }))}
+                          isLoading={isOmniAnalyticsLoading}
+                        />
+                      )}
+                    </div>
+                  </CardContent>
+                </ScrollArea>
+              </Card>
             </div>
           </div>
         </div>

@@ -27,8 +27,8 @@ interface AutoGenerateContextType {
   setPreviewType: (
     previewType: "previewFromTemplate" | "previewFromAI"
   ) => void;
-  channel: "Linkedin" | "Email";
-  setChannel: (channel: "Linkedin" | "Email") => void;
+  channel: any;
+  setChannel: (channel: any) => void;
 }
 
 const AutoGenerateContext = createContext<AutoGenerateContextType | undefined>(

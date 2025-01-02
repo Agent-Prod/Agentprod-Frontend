@@ -67,10 +67,11 @@ export default function Training() {
   const [testCampLoading, setTestCampLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number>(80);
   const [customPrompt, setCustomPrompt] = useState('');
+  const [linkedinCustomPrompt, setLinkedinCustomPrompt] = useState('');
   const [startCampaignIsLoading, setStartCampaignIsLoading] = React.useState(false);
   const [customEmail, setCustomEmail] = useState<string>("");
   const [testLoading, setTestLoading] = useState(false);
-
+  
   const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
@@ -359,11 +360,17 @@ export default function Training() {
         customInstructions.push(customPrompt);
       }
 
+      const linkedinCustomInstructions = [];
+      if (linkedinCustomPrompt) {
+        linkedinCustomInstructions.push(linkedinCustomPrompt);
+      }
+
       const personaData = {
         user_id: user.id,
         campaign_id: params.campaignId,
         custom_instructions: customInstructions,
         length_of_email: selectedOption,
+        custom_instructions_linkedin: linkedinCustomInstructions,
       };
 
       const res = await axiosInstance.put(
@@ -638,20 +645,39 @@ export default function Training() {
                     </RadioGroup>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label htmlFor="custom-instructions" className="text-base font-medium">
-                      Custom Instructions (Optional)
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Add specific instructions to guide the AI in generating your message
-                    </p>
-                    <Textarea
-                      id="custom-instructions"
-                      placeholder="E.g., Use a professional tone, focus on benefits, include a clear call to action..."
-                      value={customPrompt}
-                      onChange={(e) => setCustomPrompt(e.target.value)}
-                      className="min-h-[120px] resize-none"
-                    />
+                  <div className="flex w-max space-x-10">
+
+
+                    {channel !== "Linkedin" && <div className="space-y-3">
+                      <Label htmlFor="custom-instructions" className="text-base font-medium">
+                        Email Custom Instructions (Optional)
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add specific instructions to guide the AI in generating your message
+                      </p>
+                      <Textarea
+                        id="custom-instructions"
+                        placeholder="E.g., Use a professional tone, focus on benefits, include a clear call to action..."
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                      />
+                    </div>}
+                    {channel !== "mail" && <div className="space-y-3 ">
+                      <Label htmlFor="linkedin-custom-instructions" className="text-base font-medium">
+                        LinkedIn Custom Instructions (Optional)
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add specific instructions to guide the AI in generating your LinkedIn message
+                      </p>
+                      <Textarea
+                        id="linkedin-custom-instructions"
+                        placeholder="E.g., Use a professional tone, focus on benefits, include a clear call to action..."
+                        value={linkedinCustomPrompt}
+                        onChange={(e) => setLinkedinCustomPrompt(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                      />
+                    </div>}
                   </div>
                 </div>
 

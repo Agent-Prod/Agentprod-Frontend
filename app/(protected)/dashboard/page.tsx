@@ -355,6 +355,70 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 
 DashboardMetrics.displayName = 'DashboardMetrics';
 
+interface MultiChannelCampaign {
+  campaign_id: string;
+  campaign_name: string;
+  total_leads: number;
+  emails_sent: number;
+  linkedin_requests_sent: number;
+  linkedin_requests_accepted: number;
+  total_replies: number;
+  likes_and_comments: number;
+  sequences_completed: number;
+}
+
+const MultiChannelCampaignsTable = memo(({ campaigns, isLoading }: {
+  campaigns: MultiChannelCampaign[];
+  isLoading: boolean;
+}) => {
+  return (
+    <Table className="border-collapse [&_tr:hover]:bg-accent/40 transition-colors">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead className="text-center">Emails Sent</TableHead>
+          <TableHead className="text-center">LinkedIn Requests</TableHead>
+          <TableHead className="text-center">Connections</TableHead>
+          <TableHead className="text-center">Total Replies</TableHead>
+          <TableHead className="text-center">Engagements</TableHead>
+          <TableHead className="text-center">Sequences</TableHead>
+          <TableHead className="text-center">Total Leads</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              <LoadingCircle />
+            </TableCell>
+          </TableRow>
+        ) : !campaigns?.length ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              No multi-channel campaigns available.
+            </TableCell>
+          </TableRow>
+        ) : (
+          campaigns.map((campaign) => (
+            <TableRow key={campaign.campaign_id}>
+              <TableCell>{campaign.campaign_name}</TableCell>
+              <TableCell className="text-center">{campaign.emails_sent}</TableCell>
+              <TableCell className="text-center">{campaign.linkedin_requests_sent}</TableCell>
+              <TableCell className="text-center">{campaign.linkedin_requests_accepted}</TableCell>
+              <TableCell className="text-center">{campaign.total_replies}</TableCell>
+              <TableCell className="text-center">{campaign.likes_and_comments}</TableCell>
+              <TableCell className="text-center">{campaign.sequences_completed}</TableCell>
+              <TableCell className="text-center">{campaign.total_leads}</TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+});
+
+MultiChannelCampaignsTable.displayName = 'MultiChannelCampaignsTable';
+
 export default function Page() {
   const {
     dashboardData,
@@ -636,24 +700,8 @@ export default function Page() {
                           <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
                         </div>
                       ) : (
-                        <TopPerformingCampaignsTable
-                          campaigns={omniAnalyticsData?.map(campaign => ({
-                            campaign_id: campaign.campaign_id,
-                            sent_count: campaign.sent_count,
-                            delivered_count: campaign.delivered_count,
-                            clicked_count: campaign.clicked_count,
-                            spam_count: campaign.spam_count,
-                            bounced_count: campaign.bounced_count,
-                            user_id: campaign.user_id,
-                            open_count: campaign.open_count,
-                            campaign_name: campaign.campaign_name,
-                            responded: campaign.responded,
-                            engaged_leads: 0,
-                            response_rate: (campaign.responded / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                            bounce_rate: (campaign.bounced_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                            open_rate: (campaign.open_count / (campaign.delivered_count + campaign.bounced_count)) * 100,
-                            total_leads: campaign.total_leads
-                          }))}
+                        <MultiChannelCampaignsTable
+                          campaigns={omniAnalyticsData}
                           isLoading={isOmniAnalyticsLoading}
                         />
                       )}

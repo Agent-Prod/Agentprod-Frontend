@@ -54,16 +54,14 @@ type AnalyticsData = {
 
 type OmniAnalyticsData = {
   campaign_id: string;
-  delivered_count: number;
-  clicked_count: number;
-  spam_count: number;
-  bounced_count: number;
-  user_id: string;
-  open_count: number;
   campaign_name: string;
-  responded: number;
-  sent_count: number;
   total_leads: number;
+  emails_sent: number;
+  linkedin_requests_sent: number;
+  linkedin_requests_accepted: number;
+  total_replies: number;
+  likes_and_comments: number;
+  sequences_completed: number;
 }[];
 
 interface DashboardContextType {

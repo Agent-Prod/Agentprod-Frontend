@@ -290,7 +290,7 @@ export const nodeTemplates: Record<string, Template> = {
       },
     ],
   },
-  linkedin_followup: {
+  linkedin_follow_up: {
     nodes: [
       {
         id: "linkedin-followup",

@@ -16,7 +16,7 @@ export const actions = [
   { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
   // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
   { label: 'Send LinkedIn Message', type: 'linkedin_message' },
-  { label: 'Send LinkedIn Follow-up', type: 'linkedin_followup' },
+  { label: 'Send LinkedIn Follow-up', type: 'linkedin_follow_up' },
   { label: 'Like and Comment on Post', type: 'like_post' },
   { label: 'Withdraw Connection Request', type: 'withdraw_request' },
 ];
@@ -56,7 +56,7 @@ function SideBar({
       case 'linkedin_message':
         return true;
 
-      case 'linkedin_followup':
+      case 'linkedin_follow_up':
         return existingNodes.includes('linkedin_connection') || existingNodes.includes('linkedin_message');
 
       default:
@@ -76,7 +76,7 @@ function SideBar({
     if (channel === 'mail') {
       return ['first_email', 'follow_up_email'].includes(action.type);
     } else if (channel === 'Linkedin') {
-      return ['linkedin_connection', 'linkedin_message', 'like_post', 'withdraw_request', 'linkedin_followup'].includes(action.type);
+      return ['linkedin_connection', 'linkedin_message', 'like_post', 'withdraw_request', 'linkedin_follow_up'].includes(action.type);
     }
     return true;
   });

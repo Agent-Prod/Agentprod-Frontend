@@ -94,10 +94,10 @@ interface NotificationProps {
   } | null;
 }
 
-const Notification: React.FC<NotificationProps> = ({ 
-  email, 
-  isLatestEmail, 
-  linkedInInteractions 
+const Notification: React.FC<NotificationProps> = ({
+  email,
+  isLatestEmail,
+  linkedInInteractions
 }) => {
   const [title, setTitle] = React.useState("");
   const [body, setBody] = React.useState("");

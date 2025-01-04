@@ -129,6 +129,38 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   const { toggleSidebar, setItemId } = useLeadSheetSidebar();
   const { leads, setLeads } = useLeads();
 
+  const [linkedInInteractions, setLinkedInInteractions] = useState<{
+    like_comment_date?: any;
+    comment?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (thread?.length > 0) {
+      const linkedInInteractionTime = thread[0]?.like_comment_date ? new Date(thread[0].like_comment_date) : null;
+
+      if (linkedInInteractionTime) {
+        const appropriateEmail = thread.reduce((latest, email) => {
+          const emailTime = new Date(email.created_at);
+          if (emailTime <= linkedInInteractionTime) {
+            if (!latest || emailTime > new Date(latest.created_at)) {
+              return email;
+            }
+          }
+          return latest;
+        }, null as EmailMessage | null);
+
+        if (appropriateEmail) {
+          setLinkedInInteractions({
+            like_comment_date: thread[0].like_comment_date,
+            comment: thread[0].comment
+          });
+        } else {
+          setLinkedInInteractions(null);
+        }
+      }
+    }
+  }, [thread]);
+
   useEffect(() => {
     setIsLoading(true);
     axiosInstance
@@ -489,7 +521,23 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </CardContent>
             </Card>
           </div>
-          <Notification email={email} />
+          <Notification
+            email={email}
+            isLatestEmail={false}
+            linkedInInteractions={
+              email.created_at && linkedInInteractions?.like_comment_date
+                ? new Date(email.created_at) >= new Date(linkedInInteractions.like_comment_date)
+                  ? null
+                  : new Date(email.created_at).getTime() ===
+                    Math.max(...thread
+                      .filter(e => e.created_at && new Date(e.created_at) <= new Date(linkedInInteractions.like_comment_date))
+                      .map(e => new Date(e.created_at).getTime())
+                    )
+                    ? linkedInInteractions
+                    : null
+                : null
+            }
+          />
         </div>
       );
     }
@@ -916,7 +964,10 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             {thread?.length > 0 && (
               <div>
                 {thread.map((email, index) => (
-                  <EmailComponent key={index} email={email} />
+                  <EmailComponent
+                    key={index}
+                    email={email}
+                  />
                 ))}
               </div>
             )}

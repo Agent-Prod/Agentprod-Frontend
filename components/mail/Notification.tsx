@@ -87,9 +87,18 @@ interface EmailMessage {
 
 interface NotificationProps {
   email: EmailMessage;
+  isLatestEmail: boolean;
+  linkedInInteractions: {
+    like_comment_date?: string;
+    comment?: string;
+  } | null;
 }
 
-const Notification: React.FC<NotificationProps> = ({ email }) => {
+const Notification: React.FC<NotificationProps> = ({ 
+  email, 
+  isLatestEmail, 
+  linkedInInteractions 
+}) => {
   const [title, setTitle] = React.useState("");
   const [body, setBody] = React.useState("");
   const [editable, setEditable] = React.useState(false);
@@ -1019,7 +1028,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
-      {email?.like_comment_date && (
+      {linkedInInteractions?.like_comment_date && (
         <div className="flex items-center gap-3">
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
             <ThumbsUp className="h-4 w-4 text-gray-400" />
@@ -1028,22 +1037,22 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             Liked on Recipient&apos;s LinkedIn post
           </p>
           <span className="text-gray-400 text-xs">
-            {formatDate(email.like_comment_date)}
+            {formatDate(linkedInInteractions.like_comment_date)}
           </span>
         </div>
       )}
 
-      {email?.comment && (
+      {linkedInInteractions?.comment && (
         <div className="flex items-center gap-3">
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
             <MessageSquare className="h-4 w-4 text-gray-400" />
           </div>
           <p className="ml-1 text-xs">
-            Commented on Recipient&apos;s LinkedIn post: "{email.comment.trim().slice(0, 50)}
-            {email.comment.length > 50 ? '...' : ''}"
+            Commented on Recipient&apos;s LinkedIn post: "{linkedInInteractions.comment.trim().slice(0, 20)}
+            {linkedInInteractions.comment.length > 50 ? '...' : ''}"
           </p>
           <span className="text-gray-400 text-xs">
-            {email.like_comment_date && formatDate(email.like_comment_date)}
+            {linkedInInteractions.like_comment_date && formatDate(linkedInInteractions.like_comment_date)}
           </span>
         </div>
       )}

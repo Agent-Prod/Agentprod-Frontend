@@ -7,6 +7,8 @@ import React, {
 } from "react";
 
 export interface EmailMessage {
+  comment: any;
+  like_comment_date: any;
   id: string;
   conversation_id: string;
   received_datetime: Date | null;

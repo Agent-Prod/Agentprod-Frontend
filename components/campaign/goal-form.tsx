@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, Plus, Minus } from "lucide-react";
+import { ChevronDown, Plus, Minus, Mail, Linkedin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -114,6 +114,7 @@ export function GoalForm() {
   const [withdrawInvite, setWithdrawInvite] = useState<number>(0);
   const [flowData, setFlowData] = useState(null);
   const [minimumMarkAsLost, setMinimumMarkAsLost] = useState(0);
+  const [linkedInAccounts, setLinkedInAccounts] = useState<any[]>([]);
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
     defaultValues,
@@ -340,6 +341,21 @@ export function GoalForm() {
     }
   }, [minimumMarkAsLost, form]);
 
+  useEffect(() => {
+    const fetchLinkedInAccounts = async () => {
+      if (campaignChannel === 'omni') {
+        try {
+          const response = await axiosInstance.get('v2/linkedin/active-account/');
+          setLinkedInAccounts(response.data.data);
+        } catch (error) {
+          console.error('Error fetching LinkedIn accounts:', error);
+        }
+      }
+    };
+
+    fetchLinkedInAccounts();
+  }, [campaignChannel]);
+
   const isFormValid = () => {
     const formValues = form.getValues();
 
@@ -361,9 +377,9 @@ export function GoalForm() {
       }
     } else if (campaignChannel === 'omni') {
       // For omni campaigns, check if at least one email AND one LinkedIn account is selected
-      if ((!formValues.emails || formValues.emails.length === 0) || selectedLinkedInId.length === 0) {
-        return false;
-      }
+      // if ((!formValues.emails || formValues.emails.length === 0) || selectedLinkedInId.length === 0) {
+      //   return false;
+      // }
     }
 
     // Check if success metric is selected
@@ -396,7 +412,7 @@ export function GoalForm() {
   };
 
   const handleTotalDelayChange = (totalDays: number) => {
-    setMinimumMarkAsLost(totalDays+2);
+    setMinimumMarkAsLost(totalDays + 2);
   };
 
   return (<>
@@ -493,7 +509,7 @@ export function GoalForm() {
           />
         )}
 
-        {(campaignChannel === 'mail' || campaignChannel === 'omni') && (
+        {(campaignChannel === 'mail') && (
           <FormField
             control={form.control}
             name="emails"
@@ -581,7 +597,7 @@ export function GoalForm() {
           />
         )}
 
-        {(campaignChannel === 'Linkedin' || campaignChannel === 'omni') && (
+        {(campaignChannel === 'Linkedin') && (
           <FormField
             control={form.control}
             name="emails"
@@ -641,6 +657,119 @@ export function GoalForm() {
                                   </div>
                                 </DropdownMenuItem>
                               ))
+                          ) : (
+                            <div className="text-sm m-2 text-center">
+                              <p>No LinkedIn accounts connected.</p>
+                              <p>
+                                You can add a LinkedIn account on the{" "}
+                                <Link
+                                  href="/settings/mailbox"
+                                  className="text-blue-600 underline"
+                                >
+                                  Settings
+                                </Link>{" "}
+                                page.
+                              </p>
+                            </div>
+                          )}
+                        </DropdownMenuGroup>
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {(campaignChannel === 'omni') && (
+          <FormField
+            control={form.control}
+            name="emails"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <div>
+                  <FormLabel>Select Account</FormLabel>
+                  <FormDescription>
+                    Email address to send campaigns from
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center justify-between w-1/4"
+                      >
+                        <span className="truncate">
+                          {selectedLinkedInId.length > 0
+                            ? `${selectedLinkedInId.length} LinkedIn account(s) selected`
+                            : 'Select LinkedIn Account'}
+                        </span>
+                        <ChevronDown size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[400px]" align="start">
+                      <ScrollArea className="h-auto">
+                        <DropdownMenuGroup className="p-2">
+                          {linkedInAccounts && linkedInAccounts.length > 0 ? (
+                            linkedInAccounts.map((account) => (
+                              <DropdownMenuItem
+                                key={account.id}
+                                className="p-0 focus:bg-transparent"
+                              >
+                                <div
+                                  className="flex items-center space-x-2 w-full px-2 py-1.5 hover:bg-accent hover:text-accent-foreground rounded-sm"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <Checkbox
+                                    checked={selectedLinkedInId.includes(account.id.toString()) || emailFields.some(
+                                      (emailField) => emailField.value === account.email
+                                    )}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        // Add to LinkedIn IDs array
+                                        onLinkedInAppend(account.linkedin_url, {
+                                          id: account.id
+                                        });
+                                        
+                                        // Add to emails array if email exists
+                                        if (account.email) {
+                                          onEmailAppend(account.email, {
+                                            id: account.id,
+                                            platform: 'mail'
+                                          });
+                                        }
+                                      } else {
+                                        // Remove from LinkedIn IDs array
+                                        onLinkedInRemove(account.linkedin_url, {
+                                          id: account.id
+                                        });
+                                        
+                                        // Remove from emails array if email exists
+                                        if (account.email) {
+                                          onEmailRemove(account.email);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <label className="text-sm font-medium leading-none cursor-pointer flex-1">
+                                    <div>{account.name}</div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {account.linkedin_url && <span className="inline-flex items-center gap-1">
+                                        <Linkedin className="h-3 w-3 text-blue-500" />
+                                        {account.linkedin_url}</span>}
+
+                                      {account.email && <span className="inline-flex items-center gap-1">
+                                        <Mail className="h-3 w-3 text-green-500" />
+                                        {account.email}
+                                      </span>}
+                                    </div>
+                                  </label>
+                                </div>
+                              </DropdownMenuItem>
+                            ))
                           ) : (
                             <div className="text-sm m-2 text-center">
                               <p>No LinkedIn accounts connected.</p>
@@ -813,7 +942,7 @@ export function GoalForm() {
               <FormControl>
                 <Input
                   type="number"
-                  min = {minimumMarkAsLost}
+                  min={minimumMarkAsLost}
                   placeholder={`Minimum ${minimumMarkAsLost} days`}
                   {...field}
                   value={field.value ?? minimumMarkAsLost}

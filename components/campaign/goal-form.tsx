@@ -704,8 +704,8 @@ export function GoalForm() {
                       >
                         <span className="truncate">
                           {selectedLinkedInId.length > 0
-                            ? `${selectedLinkedInId.length} LinkedIn account(s) selected`
-                            : 'Select LinkedIn Account'}
+                            ? `${selectedLinkedInId.length} account(s) selected`
+                            : 'Select Account'}
                         </span>
                         <ChevronDown size={20} />
                       </Button>
@@ -733,7 +733,7 @@ export function GoalForm() {
                                         onLinkedInAppend(account.linkedin_url, {
                                           id: account.id
                                         });
-                                        
+
                                         // Add to emails array if email exists
                                         if (account.email) {
                                           onEmailAppend(account.email, {
@@ -746,7 +746,7 @@ export function GoalForm() {
                                         onLinkedInRemove(account.linkedin_url, {
                                           id: account.id
                                         });
-                                        
+
                                         // Remove from emails array if email exists
                                         if (account.email) {
                                           onEmailRemove(account.email);

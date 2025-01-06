@@ -388,9 +388,9 @@ export function GoalForm() {
     }
 
     // Check if sequence data exists
-    if (!flowData) {
-      return false;
-    }
+    // if (!flowData) {
+    //   return false;
+    // }
 
     return true;
   };
@@ -799,7 +799,7 @@ export function GoalForm() {
           />
         )}
 
-        <div>
+        {campaignChannel === 'mail' ? (<div></div>) : (<div>
           {/* <FormLabel className="tex-sm font-medium">Make your Workflow</FormLabel> */}
           <div
             className="flex gap-4 items-center mt-3"
@@ -825,7 +825,7 @@ export function GoalForm() {
               </div>
             </div>
           </div>
-        </div>
+        </div>)}
 
         {/* {campaignChannel === 'Linkedin' && (<div>
             <FormLabel className="tex-sm font-medium">LinkedIn Account Information</FormLabel>
@@ -879,7 +879,7 @@ export function GoalForm() {
             </div>
           </div>)} */}
 
-        {/* <div>
+        {campaignChannel === 'mail' && (<div>
             <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
 
             <div className="flex gap-4 items-center mt-3">
@@ -895,10 +895,9 @@ export function GoalForm() {
                         {...field}
                         onChange={(e) => {
                           const value = e.target.value;
-                          const numberValue =
-                            value === "" ? undefined : Number(value);
-                          field.onChange(numberValue);
+                          field.onChange(value === "" ? undefined : Number(value));
                         }}
+                        value={field.value ?? ""}
                         min="0"
                       />
                     </FormControl>
@@ -919,10 +918,9 @@ export function GoalForm() {
                         {...field}
                         onChange={(e) => {
                           const value = e.target.value;
-                          const numberValue =
-                            value === "" ? undefined : Number(value);
-                          field.onChange(numberValue);
+                          field.onChange(value === "" ? undefined : Number(value));
                         }}
+                        value={field.value ?? ""}
                         min="0"
                       />
                     </FormControl>
@@ -931,7 +929,7 @@ export function GoalForm() {
                 )}
               />
             </div>
-          </div> */}
+          </div>)}
 
         <FormField
           control={form.control}

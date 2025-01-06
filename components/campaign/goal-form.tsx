@@ -724,47 +724,50 @@ export function GoalForm() {
                                   onClick={(event) => event.stopPropagation()}
                                 >
                                   <Checkbox
-                                    checked={selectedLinkedInId.includes(account.id.toString()) || emailFields.some(
-                                      (emailField) => emailField.value === account.email
-                                    )}
+                                    checked={selectedLinkedInId.includes(account.id.toString())}
                                     onCheckedChange={(checked) => {
                                       if (checked) {
                                         // Add to LinkedIn IDs array
-                                        onLinkedInAppend(account.linkedin_url, {
-                                          id: account.id
-                                        });
+                                        if (!selectedLinkedInId.includes(account.id.toString())) {
+                                          setSelectedLinkedInId(prev => [...prev, account.id.toString()]);
+                                        }
 
                                         // Add to emails array if email exists
                                         if (account.email) {
-                                          onEmailAppend(account.email, {
-                                            id: account.id,
-                                            platform: 'mail'
-                                          });
+                                          const emailExists = emailFields.some(field => field.value === account.email);
+                                          if (!emailExists) {
+                                            appendEmail({ value: account.email });
+                                          }
                                         }
                                       } else {
                                         // Remove from LinkedIn IDs array
-                                        onLinkedInRemove(account.linkedin_url, {
-                                          id: account.id
-                                        });
+                                        setSelectedLinkedInId(prev => prev.filter(id => id !== account.id.toString()));
 
                                         // Remove from emails array if email exists
                                         if (account.email) {
-                                          onEmailRemove(account.email);
+                                          const emailIndex = emailFields.findIndex(field => field.value === account.email);
+                                          if (emailIndex !== -1) {
+                                            removeEmail(emailIndex);
+                                          }
                                         }
                                       }
                                     }}
                                   />
                                   <label className="text-sm font-medium leading-none cursor-pointer flex-1">
                                     <div>{account.name}</div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      {account.linkedin_url && <span className="inline-flex items-center gap-1">
-                                        <Linkedin className="h-3 w-3 text-blue-500" />
-                                        {account.linkedin_url}</span>}
-
-                                      {account.email && <span className="inline-flex items-center gap-1">
-                                        <Mail className="h-3 w-3 text-green-500" />
-                                        {account.email}
-                                      </span>}
+                                    <div className="text-xs text-gray-500 mt-1 flex flex-col gap-1">
+                                      {account.linkedin_url && (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Linkedin className="h-3 w-3 text-blue-500" />
+                                          {account.linkedin_url}
+                                        </span>
+                                      )}
+                                      {account.email && (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Mail className="h-3 w-3 text-green-500" />
+                                          {account.email}
+                                        </span>
+                                      )}
                                     </div>
                                   </label>
                                 </div>

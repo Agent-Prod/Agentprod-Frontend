@@ -14,7 +14,7 @@ export const actions = [
   { label: 'Send First Email', type: 'first_email' },
   { label: 'Send Follow-up Email', type: 'follow_up_email' },
   { label: 'Send LinkedIn Connection', type: 'linkedin_connection' },
-  // { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
+  { label: 'Send LinkedIn InMail', type: 'linkedin_inmail' },
   { label: 'Send LinkedIn Message', type: 'linkedin_message' },
   { label: 'Send LinkedIn Follow-up', type: 'linkedin_follow_up' },
   { label: 'Like and Comment on Post', type: 'like_post' },
@@ -76,7 +76,7 @@ function SideBar({
     if (channel === 'mail') {
       return ['first_email', 'follow_up_email'].includes(action.type);
     } else if (channel === 'Linkedin') {
-      return ['linkedin_connection', 'linkedin_message', 'like_post', 'withdraw_request', 'linkedin_follow_up'].includes(action.type);
+      return ['linkedin_connection', 'linkedin_message', 'linkedin_inmail', 'like_post', 'withdraw_request', 'linkedin_follow_up'].includes(action.type);
     }
     return true;
   });

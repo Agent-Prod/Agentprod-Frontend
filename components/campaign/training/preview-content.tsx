@@ -44,7 +44,9 @@ function PreviewContent() {
     previewType,
     channel,
     linkedinMessage,
-    setLinkedinMessage
+    setLinkedinMessage,
+    linkedinComment,
+    setLinkedinComment,
   } = useAutoGenerate();
   const params = useParams<{ campaignId: string }>();
   const { fieldsList, body, subject } = useFieldsList();
@@ -421,6 +423,28 @@ function PreviewContent() {
                     />}
                   </div>
                 )}
+              </>
+            )}
+
+            {(channel === "Linkedin" || channel === "omni") && (
+              <>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-muted-foreground">
+                        LinkedIn Comment
+                      </h3>
+                    </div>
+                    <Textarea
+                      className={cn(
+                        "min-h-[150px] text-sm leading-relaxed bg-background/50",
+                        "focus:ring-[#0077b5]"
+                      )}
+                      value={"wd"}
+                      readOnly
+                    />
+                  </div>
+                </Card>
               </>
             )}
           </div>

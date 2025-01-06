@@ -71,7 +71,7 @@ export default function Training() {
   const [startCampaignIsLoading, setStartCampaignIsLoading] = React.useState(false);
   const [customEmail, setCustomEmail] = useState<string>("");
   const [testLoading, setTestLoading] = useState(false);
-  
+  const [linkedinCommentCustomPrompt, setLinkedinCommentCustomPrompt] = useState('');
   const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
   const router = useRouter();
@@ -107,6 +107,7 @@ export default function Training() {
           setSelectedOption(parseInt(response.data.length_of_email));
           setCustomPrompt(response.data.custom_instructions?.[0] || '');
           setLinkedinCustomPrompt(response.data.custom_instructions_linkedin?.[0] || "")
+          setLinkedinCommentCustomPrompt(response.data.custom_instructions_comment?.[0] || "")
         }
       } catch (error) {
         console.error('Error fetching custom instructions:', error);
@@ -371,12 +372,18 @@ export default function Training() {
         linkedinCustomInstructions.push(linkedinCustomPrompt);
       }
 
+      const linkedinCommentCustomInstructions = [];
+      if (linkedinCommentCustomPrompt) {
+        linkedinCommentCustomInstructions.push(linkedinCommentCustomPrompt);
+      }
+
       const personaData = {
         user_id: user.id,
         campaign_id: params.campaignId,
         custom_instructions: customInstructions,
         length_of_email: selectedOption,
         custom_instructions_linkedin: linkedinCustomInstructions,
+        custom_instructions_comment: linkedinCommentCustomInstructions
       };
 
       const res = await axiosInstance.put(
@@ -683,7 +690,26 @@ export default function Training() {
                         onChange={(e) => setLinkedinCustomPrompt(e.target.value)}
                         className="min-h-[120px] resize-none"
                       />
-                    </div>}
+                    </div>
+                    
+                    }
+                    {channel !== "mail" && <div className="space-y-3 ">
+                      <Label htmlFor="linkedin-custom-instructions" className="text-base font-medium">
+                        LinkedIn Comment Custom Instructions (Optional)
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add specific instructions to guide the AI in generating your LinkedIn comment
+                      </p>
+                      <Textarea
+                        id="linkedin-comment-custom-instructions"
+                        placeholder="E.g., Use a professional tone, focus on benefits, include a clear call to action..."
+                        value={linkedinCommentCustomPrompt}
+                        onChange={(e) => setLinkedinCommentCustomPrompt(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                      />
+                    </div>
+                    
+                    }
                   </div>
                 </div>
 

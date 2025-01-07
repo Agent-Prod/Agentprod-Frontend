@@ -104,6 +104,84 @@ const REQUIRED_MAPPINGS: MappedColumn[] = [
     label: "Phone",
     key: "phone",
     description: "Contact's phone number"
+  },
+  {
+    required: false,
+    label: "Company City",
+    key: "company_city",
+    description: "City where the company is located"
+  },
+  {
+    required: false,
+    label: "Company State",
+    key: "company_state",
+    description: "State where the company is located"
+  },
+  {
+    required: false,
+    label: "Company Country",
+    key: "company_country",
+    description: "Country where the company is located"
+  },
+  {
+    required: false,
+    label: "Company Address",
+    key: "company_address",
+    description: "Address of the company"
+  },
+  {
+    required: false,
+    label: "Company Zip",
+    key: "company_zip",
+    description: "Zip code of the company location"
+  },
+  {
+    required: false,
+    label: "Company Website",
+    key: "company_website",
+    description: "Website of the company"
+  },
+  {
+    required: false,
+    label: "Company LinkedIn",
+    key: "company_linkedin",
+    description: "LinkedIn URL of the company"
+  },
+  {
+    required: false,
+    label: "Company Facebook",
+    key: "company_facebook",
+    description: "Facebook URL of the company"
+  },
+  {
+    required: false,
+    label: "Company Twitter",
+    key: "company_twitter",
+    description: "Twitter URL of the company"
+  },
+  {
+    required: false,
+    label: "Industry",
+    key: "industry",
+    description: "Industry of the company"
+  },
+  {
+    required: false,
+    label: "Employee Count",
+    key: "employee_count",
+    description: "Number of employees in the company"
+  },
+  {
+    required: false,
+    label: "Annual Revenue",
+    key: "annual_revenue",
+    description: "Annual revenue of the company"
+  },
+  {
+    required: false,
+    label: "Technologies",
+    key: "technologies",
+    description: "Technologies used by the company"
   }
 ];
 

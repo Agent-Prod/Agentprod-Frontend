@@ -70,7 +70,7 @@ const REQUIRED_MAPPINGS: MappedColumn[] = [
     description: "Contact's first name"
   },
   {
-    required: true,
+    required: false,
     label: "Last Name",
     key: "last_name",
     description: "Contact's last name"
@@ -683,7 +683,7 @@ export const ImportAudience = () => {
 
     const ColumnMappingDialog = () => {
       return (
-        <Dialog open={showMapping} onOpenChange={setShowMapping}>
+        <Dialog open={showMapping} onOpenChange={setShowMapping} modal={false}>
           <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Map CSV Columns</DialogTitle>

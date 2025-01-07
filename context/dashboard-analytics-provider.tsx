@@ -52,14 +52,29 @@ type AnalyticsData = {
   total_leads: number;
 }[];
 
+type OmniAnalyticsData = {
+  campaign_id: string;
+  campaign_name: string;
+  total_leads: number;
+  emails_sent: number;
+  linkedin_requests_sent: number;
+  linkedin_requests_accepted: number;
+  total_replies: number;
+  likes_and_comments: number;
+  sequences_completed: number;
+}[];
+
 interface DashboardContextType {
   dashboardData: DashboardData;
   analyticsData: AnalyticsData;
+  omniAnalyticsData: OmniAnalyticsData;
   isLoading: boolean;
   isAnalyticsLoading: boolean;
+  isOmniAnalyticsLoading: boolean;
   setDashboardData: (dashboardData: DashboardData) => void;
   fetchDashboardDataIfNeeded: () => Promise<void>;
   fetchAnalyticsDataIfNeeded: () => Promise<void>;
+  fetchOmniAnalyticsDataIfNeeded: () => Promise<void>;
 }
 
 const defaultDashboardState: DashboardContextType = {
@@ -102,11 +117,14 @@ const defaultDashboardState: DashboardContextType = {
     ],
   },
   analyticsData: [],
+  omniAnalyticsData: [],
   isLoading: false,
   isAnalyticsLoading: false,
+  isOmniAnalyticsLoading: false,
   setDashboardData: () => { },
   fetchDashboardDataIfNeeded: async () => { },
   fetchAnalyticsDataIfNeeded: async () => { },
+  fetchOmniAnalyticsDataIfNeeded: async () => { },
 };
 
 const DashboardContext = createContext<DashboardContextType>(
@@ -130,6 +148,9 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>([]);
   const [hasDashboardLoaded, setHasDashboardLoaded] = useState(false);
   const [hasAnalyticsLoaded, setHasAnalyticsLoaded] = useState(false);
+  const [omniAnalyticsData, setOmniAnalyticsData] = useState<OmniAnalyticsData>([]);
+  const [isOmniAnalyticsLoading, setIsOmniAnalyticsLoading] = React.useState(false);
+  const [hasOmniAnalyticsLoaded, setHasOmniAnalyticsLoaded] = useState(false);
 
   const fetchDashboardDataIfNeeded = async () => {
     if (!user?.id || hasDashboardLoaded) return;
@@ -173,17 +194,51 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     }
   };
 
+  const fetchOmniAnalyticsDataIfNeeded = async () => {
+    if (!user?.id || hasOmniAnalyticsLoaded) return;
+
+    setIsOmniAnalyticsLoading(true);
+    try {
+      const omniAnalyticsResponse = await axiosInstance.get<OmniAnalyticsData>(
+        `v2/campaign/omni/analytics/`
+      );
+
+      if (omniAnalyticsResponse.data) {
+        setOmniAnalyticsData(omniAnalyticsResponse.data);
+      }
+      setHasOmniAnalyticsLoaded(true);
+    } catch (error: any) {
+      console.error("Error fetching omni analytics data:", error);
+      setError(error.message || "Failed to load omni analytics data.");
+    } finally {
+      setIsOmniAnalyticsLoading(false);
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       dashboardData,
       analyticsData,
+      omniAnalyticsData,
       isLoading,
       isAnalyticsLoading,
+      isOmniAnalyticsLoading,
       setDashboardData,
       fetchDashboardDataIfNeeded,
       fetchAnalyticsDataIfNeeded,
+      fetchOmniAnalyticsDataIfNeeded,
     }),
-    [dashboardData, analyticsData, isLoading, isAnalyticsLoading, hasDashboardLoaded, hasAnalyticsLoaded]
+    [
+      dashboardData,
+      analyticsData,
+      omniAnalyticsData,
+      isLoading,
+      isAnalyticsLoading,
+      isOmniAnalyticsLoading,
+      hasDashboardLoaded,
+      hasAnalyticsLoaded,
+      hasOmniAnalyticsLoaded
+    ]
   );
 
   return (

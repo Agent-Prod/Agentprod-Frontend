@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/use-toast";
 
 export interface GoalDataWithId extends GoalData {
   id: string;
+  sequence?: any;
 }
 
 export const getCampaignById = async (

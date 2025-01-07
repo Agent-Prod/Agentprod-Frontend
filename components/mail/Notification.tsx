@@ -23,6 +23,8 @@ import {
   TimerReset,
   Trash2,
   UserX,
+  MessageSquare,
+  UserMinus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MdInfoOutline, MdOutlineScheduleSend } from "react-icons/md";
@@ -77,13 +79,26 @@ interface EmailMessage {
   spam_datetime: any;
   channel?: any;
   connected_on_linkedin?: any;
+  like_comment_date?: string;
+  withdraw_time?: string;
+  post_id?: string;
+  comment?: string | null;
 }
 
 interface NotificationProps {
   email: EmailMessage;
+  isLatestEmail: boolean;
+  linkedInInteractions: {
+    like_comment_date?: string;
+    comment?: string;
+  } | null;
 }
 
-const Notification: React.FC<NotificationProps> = ({ email }) => {
+const Notification: React.FC<NotificationProps> = ({
+  email,
+  isLatestEmail,
+  linkedInInteractions
+}) => {
   const [title, setTitle] = React.useState("");
   const [body, setBody] = React.useState("");
   const [editable, setEditable] = React.useState(false);
@@ -768,7 +783,7 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
           </div>
         )}
 
-      
+
 
       {email?.status &&
         !email.is_reply &&
@@ -1012,6 +1027,60 @@ const Notification: React.FC<NotificationProps> = ({ email }) => {
             </span>
           </div>
         )}
+
+      {linkedInInteractions?.like_comment_date && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <ThumbsUp className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Liked on Recipient&apos;s LinkedIn post
+          </p>
+          <span className="text-gray-400 text-xs">
+            {formatDate(linkedInInteractions.like_comment_date)}
+          </span>
+        </div>
+      )}
+
+      {linkedInInteractions?.comment && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <MessageSquare className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Commented on Recipient&apos;s LinkedIn post: "{linkedInInteractions.comment.trim().slice(0, 20)}
+            {linkedInInteractions.comment.length > 50 ? '...' : ''}"
+          </p>
+          <span className="text-gray-400 text-xs">
+            {linkedInInteractions.like_comment_date && formatDate(linkedInInteractions.like_comment_date)}
+          </span>
+        </div>
+      )}
+
+      {email?.withdraw_time && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <UserMinus className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Connection request was withdrawn
+          </p>
+          <span className="text-gray-400 text-xs">
+            {formatDate(email.withdraw_time)}
+          </span>
+        </div>
+      )}
+
+      {/* {email?.post_id && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <LinkedinIcon className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            Related to LinkedIn post: {email.post_id}
+          </p>
+        </div>
+      )} */}
     </div>
 
   );

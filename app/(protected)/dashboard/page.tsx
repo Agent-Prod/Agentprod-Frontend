@@ -355,19 +355,87 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 
 DashboardMetrics.displayName = 'DashboardMetrics';
 
+interface MultiChannelCampaign {
+  campaign_id: string;
+  campaign_name: string;
+  total_leads: number;
+  emails_sent: number;
+  linkedin_requests_sent: number;
+  linkedin_requests_accepted: number;
+  total_replies: number;
+  likes_and_comments: number;
+  sequences_completed: number;
+}
+
+const MultiChannelCampaignsTable = memo(({ campaigns, isLoading }: {
+  campaigns: MultiChannelCampaign[];
+  isLoading: boolean;
+}) => {
+  return (
+    <Table className="border-collapse [&_tr:hover]:bg-accent/40 transition-colors">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Campaign Name</TableHead>
+          <TableHead className="text-center">Emails Sent</TableHead>
+          <TableHead className="text-center">LinkedIn Requests</TableHead>
+          <TableHead className="text-center">Connections</TableHead>
+          <TableHead className="text-center">Total Replies</TableHead>
+          <TableHead className="text-center">Engagements</TableHead>
+          <TableHead className="text-center">Sequences</TableHead>
+          <TableHead className="text-center">Total Leads</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              <LoadingCircle />
+            </TableCell>
+          </TableRow>
+        ) : !campaigns?.length ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              No multi-channel campaigns available.
+            </TableCell>
+          </TableRow>
+        ) : (
+          campaigns.map((campaign) => (
+            <TableRow key={campaign.campaign_id}>
+              <TableCell>{campaign.campaign_name}</TableCell>
+              <TableCell className="text-center">{campaign.emails_sent}</TableCell>
+              <TableCell className="text-center">{campaign.linkedin_requests_sent}</TableCell>
+              <TableCell className="text-center">{campaign.linkedin_requests_accepted}</TableCell>
+              <TableCell className="text-center">{campaign.total_replies}</TableCell>
+              <TableCell className="text-center">{campaign.likes_and_comments}</TableCell>
+              <TableCell className="text-center">{campaign.sequences_completed}</TableCell>
+              <TableCell className="text-center">{campaign.total_leads}</TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+});
+
+MultiChannelCampaignsTable.displayName = 'MultiChannelCampaignsTable';
+
 export default function Page() {
   const {
     dashboardData,
     isLoading,
     analyticsData,
+    omniAnalyticsData,
     isAnalyticsLoading,
+    isOmniAnalyticsLoading,
     fetchDashboardDataIfNeeded,
-    fetchAnalyticsDataIfNeeded
+    fetchAnalyticsDataIfNeeded,
+    fetchOmniAnalyticsDataIfNeeded
   } = useDashboardContext();
 
 
   const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
+  const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();
@@ -379,6 +447,12 @@ export default function Page() {
       fetchAnalyticsDataIfNeeded();
     }
   }, [shouldLoadAnalytics]);
+
+  useEffect(() => {
+    if (shouldLoadOmniAnalytics) {
+      fetchOmniAnalyticsDataIfNeeded();
+    }
+  }, [shouldLoadOmniAnalytics, fetchOmniAnalyticsDataIfNeeded]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
@@ -414,7 +488,7 @@ export default function Page() {
       <ScrollArea className="h-full scroll-my-36 bg-gradient-to-br from-background via-background/98 to-background/95">
         <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <div className="flex flex-col col-span-2 gap-4">
+            <div className="flex flex-col col-span-3 gap-4">
               <Card
                 className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm"
                 onClick={() => {
@@ -438,11 +512,11 @@ export default function Page() {
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
-            <Card className="col-span-4 shadow-sm">
+            <Card className="col-span-3 shadow-sm">
               <ScrollArea className="h-[20rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
-                    <CardTitle>Top Performing Campaigns</CardTitle>
+                    <CardTitle>Email Campaign</CardTitle>
                     {!shouldLoadAnalytics && (
                       <Button
                         onClick={() => setShouldLoadAnalytics(true)}
@@ -513,7 +587,7 @@ export default function Page() {
               </ScrollArea>
             </Card>
 
-            <Card className="col-span-2">
+            <Card className="col-span-1">
               <ScrollArea className="h-[16rem]">
                 <CardHeader>
                   <CardTitle>Hot Leads</CardTitle>
@@ -554,53 +628,88 @@ export default function Page() {
               </ScrollArea>
             </Card>
 
-            <Card className="col-span-2">
-              <ScrollArea className="lg:h-56 md:h-[26rem]">
-                <CardHeader>
-                  <CardTitle>Mailbox Health</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <MailboxHealth healthData={dashboardData?.mailbox_health} isLoading={isLoading} />
-                </CardContent>
-              </ScrollArea>
-            </Card>
+            <div className="col-span-2 grid grid-cols-1 gap-4">
+              <Card>
+                <ScrollArea className="h-[16rem]">
+                  <CardHeader>
+                    <CardTitle>Mailbox Health</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <MailboxHealth healthData={dashboardData?.mailbox_health} isLoading={isLoading} />
+                  </CardContent>
+                </ScrollArea>
+              </Card>
 
-            <Card className="col-span-2 p-4 space-y-16">
-              <div className="flex justify-between items-center gap-5 mb-4">
-                <div>
-                  <div className="text-lg font-semibold">Email Streak</div>
-                  <div className="text-sm text-gray-600">
-                    Approve emails today to start a new streak
-                  </div>
-                </div>
-                <Icons.zap
-                  size={35}
-                  className="fill-purple-500 text-purple-500"
-                />
-              </div>
-
-              <div className="flex items-end justify-between">
-                {allWeekDays.map((day, index) => {
-                  const dayOfWeek = format(parseISO(day), "EEE");
-                  const isActive = activeDaysSet.has(day);
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center justify-center text-gray-400"
-                    >
-                      <span className="text-sm mb-1">{dayOfWeek}</span>
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive
-                          ? "bg-gradient-to-r from-purple-700 to-purple-400 text-purple-400"
-                          : "bg-gray-500"
-                          }`}
-                      ></div>
+              <Card className="p-4 space-y-8">
+                <div className="flex justify-between items-center gap-5 mb-4">
+                  <div>
+                    <div className="text-lg font-semibold">Email Streak</div>
+                    <div className="text-sm text-gray-600">
+                      Approve emails today to start a new streak
                     </div>
-                  );
-                })}
-              </div>
-            </Card>
+                  </div>
+                  <Icons.zap
+                    size={35}
+                    className="fill-purple-500 text-purple-500"
+                  />
+                </div>
+
+                <div className="flex items-end justify-between">
+                  {allWeekDays.map((day, index) => {
+                    const dayOfWeek = format(parseISO(day), "EEE");
+                    const isActive = activeDaysSet.has(day);
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center justify-center text-gray-400"
+                      >
+                        <span className="text-sm mb-1">{dayOfWeek}</span>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive
+                            ? "bg-gradient-to-r from-purple-700 to-purple-400 text-purple-400"
+                            : "bg-gray-500"
+                            }`}
+                        ></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+            <div className="col-span-3">
+              <Card className=" shadow-sm">
+                <ScrollArea className="h-[28rem]">
+                  <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
+                    <div className="flex justify-between items-center">
+                      <CardTitle>Multi-Channel Campaign</CardTitle>
+                      {!shouldLoadOmniAnalytics && (
+                        <Button
+                          onClick={() => setShouldLoadOmniAnalytics(true)}
+                          className="bg-gradient-to-r from-primary to-primary/90 text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200"
+                        >
+                          Load Analytics
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-6 pb-4 pt-0">
+                    <div className="relative w-full h-full">
+                      {!shouldLoadOmniAnalytics ? (
+                        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                          <p className="text-muted-foreground text-sm">Load analytics data to view campaign performance</p>
+                        </div>
+                      ) : (
+                        <MultiChannelCampaignsTable
+                          campaigns={omniAnalyticsData}
+                          isLoading={isOmniAnalyticsLoading}
+                        />
+                      )}
+                    </div>
+                  </CardContent>
+                </ScrollArea>
+              </Card>
+            </div>
           </div>
         </div>
       </ScrollArea>

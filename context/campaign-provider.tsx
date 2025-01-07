@@ -31,7 +31,7 @@ export interface OfferingFormData {
 
 export interface GoalFormData {
   success_metric: string;
-  scheduling_link: string;
+  scheduling_link?: string;
   emails: { value: string }[];
   follow_up_days: number;
   follow_up_times: number;
@@ -39,6 +39,7 @@ export interface GoalFormData {
   linkedin_accounts?: string[];
   like_post?: number;
   withdraw_invite?: number;
+  sequence?: any
 }
 
 export interface GoalData {
@@ -136,7 +137,7 @@ interface CampaignContextType {
   editCampaign: (data: CampaignFormData, campaignId: string) => void;
   deleteCampaign: (campaignId: string) => void;
   createOffering: (data: OfferingFormData, campaignId: string) => void;
-  editOffering: (data: OfferingFormData, offering:string, campaignId: string) => void;
+  editOffering: (data: OfferingFormData, offering: string, campaignId: string) => void;
   createGoal: (data: GoalFormData, campaignId: string) => void;
   editGoal: (data: GoalFormData, goalId: string, campaignId: string) => void;
   toggleCampaignIsActive: (campaignId: string) => void;
@@ -318,7 +319,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       });
   };
 
-  const editOffering = (data: OfferingFormData,offering:string, campaignId: string) => {
+  const editOffering = (data: OfferingFormData, offering: string, campaignId: string) => {
     axiosInstance
       .put(`v2/offerings/${offering}`, data)
       .then((response) => {
@@ -347,6 +348,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       linkedin_accounts: data.linkedin_accounts,
       like_post: data.like_post,
       withdraw_invite: data.withdraw_invite,
+      sequence: data.sequence,
     };
 
     axiosInstance
@@ -383,6 +385,7 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       linkedin_accounts: data.linkedin_accounts,
       like_post: data.like_post,
       withdraw_invite: data.withdraw_invite,
+      sequence: data.sequence,
     };
 
     axiosInstance

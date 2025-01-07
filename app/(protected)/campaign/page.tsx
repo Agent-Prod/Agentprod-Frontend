@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
-import { MailIcon, Plus } from "lucide-react";
+import { MailIcon, Plus, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useCampaignContext } from "@/context/campaign-provider";
 import { Icons } from "@/components/icons";
@@ -293,13 +293,22 @@ export default function CampaignPage() {
             variant="outline"
             className={campaignItem?.channel?.toLowerCase() === "linkedin"
               ? "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300"
-              : "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300"
+              : campaignItem?.channel?.toLowerCase() === "omni"
+                ? "bg-pink-100 dark:bg-pink-900/20 text-pink-800 dark:text-pink-300"
+                : "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300"
             }
           >
             {campaignItem?.channel?.toLowerCase() === "linkedin" ? (
               <div className="flex items-center gap-1">
                 <Linkedin className="w-3 h-3" />
                 LinkedIn
+              </div>
+            ) : campaignItem?.channel?.toLowerCase() === "omni" ? (
+              <div className="flex items-center gap-1">
+                <MailIcon className="w-3 h-3" />
+                <PlusIcon className="w-3 h-3" />
+                <Linkedin className="w-3 h-3" />
+                Multi-Channel
               </div>
             ) : (
               <div className="flex items-center gap-1">

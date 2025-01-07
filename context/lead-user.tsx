@@ -93,6 +93,7 @@ export interface Lead {
   connected_on_linkedin?: any;
   social_monitoring_data: string;
   personalized_social_info?: string;
+  sequence_count?: number;
 }
 
 export interface Contact {
@@ -145,6 +146,7 @@ export interface Contact {
   connected_on_linkedin?: any;
   social_monitoring_data: string;
   personalized_social_info?: string;
+  sequence_count?: number;
 }
 
 // Define the state structure for our context

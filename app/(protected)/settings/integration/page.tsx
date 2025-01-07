@@ -68,6 +68,12 @@ const FormSchema = z.object({
   }),
 });
 
+interface EmailData {
+  id: number;
+  mailbox: string;
+  // Add other fields if needed
+}
+
 export default function Page() {
   const [isHubspotMailboxOpen, setIsHubspotMailboxOpen] = React.useState(false);
   const [isConnectedToHubspot, setIsConnectedToHubspot] = React.useState(false);
@@ -97,6 +103,9 @@ export default function Page() {
   const [captchaLoaded, setCaptchaLoaded] = React.useState(false);
   const [otpValue, setOtpValue] = React.useState('');
   const [connectedAccounts, setConnectedAccounts] = React.useState('');
+  const [emails, setEmails] = React.useState<EmailData[]>([]);
+  const [selectedEmail, setSelectedEmail] = React.useState('');
+
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
@@ -209,8 +218,8 @@ export default function Page() {
         password: linkedInPassword,
         name: linkedInName,
         designation: linkedInDesignation,
-        country: linkedInCountry
-
+        country: linkedInCountry,
+        email: selectedEmail
       };
 
       const response = await axiosInstance.post('/v2/linkedin/login', payload);
@@ -346,6 +355,23 @@ export default function Page() {
       toast.error("An error occurred while verifying the OTP. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const fetchEmails = async () => {
+      try {
+        const response = await axiosInstance.get('v2/settings/emails');
+        setEmails(response.data.emails);
+        if (response.data.emails.length > 0) {
+          setSelectedEmail(response.data.emails[0].mailbox);
+        }
+      } catch (error) {
+        console.error('Failed to fetch emails:', error);
+        toast.error('Failed to load email addresses');
+      }
+    };
+
+    fetchEmails();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -699,6 +725,21 @@ export default function Page() {
                           onChange={(e) => setLinkedInCountry(e.target.value)}
                         />
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-select">Select Email</Label>
+                      <select
+                        id="email-select"
+                        value={selectedEmail}
+                        onChange={(e) => setSelectedEmail(e.target.value)}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        {emails.map((email) => (
+                          <option key={email?.id as number} value={email?.mailbox}>
+                            {email?.mailbox}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>

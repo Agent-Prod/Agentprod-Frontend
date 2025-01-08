@@ -16,11 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { deleteCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 
 export default function AuthenticationPage() {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) {
@@ -29,6 +31,12 @@ export default function AuthenticationPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (window.location.hash.includes('access_token')) {
+      handlePasswordResetRedirect(window.location.href);
+    }
+  }, []);
+
   if (user) {
     redirect("/dashboard");
   }
@@ -36,12 +44,43 @@ export default function AuthenticationPage() {
   const handlePasswordReset = async () => {
     setLoading(true);
     try {
-      // await resetPassword({ email });
       toast.success("Password reset email sent!");
     } catch (error) {
       toast.error("Error sending email " + error);
     }
     setLoading(false);
+  };
+
+  const handlePasswordResetRedirect = (url: string) => {
+    try {
+      const hashPart = url.split('#')[1];
+      if (hashPart) {
+        const params = new URLSearchParams(hashPart);
+        
+        const tokens = {
+          accessToken: params.get('access_token'),
+          refreshToken: params.get('refresh_token'),
+          expiresAt: params.get('expires_at'),
+          expiresIn: params.get('expires_in'),
+          tokenType: params.get('token_type'),
+          type: params.get('type')
+        };
+
+        const queryParams = new URLSearchParams({
+          code: tokens.accessToken || '',
+          refresh_token: tokens.refreshToken || '',
+          expires_at: tokens.expiresAt || '',
+          expires_in: tokens.expiresIn || '',
+          token_type: tokens.tokenType || '',
+          type: tokens.type || ''
+        });
+
+        router.push(`/reset?${queryParams.toString()}`);
+      }
+    } catch (error) {
+      console.error('Error processing reset URL:', error);
+      toast.error('Error processing reset link');
+    }
   };
 
   return (

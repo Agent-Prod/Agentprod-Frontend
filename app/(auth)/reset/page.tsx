@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
+import axiosInstance from "@/utils/axiosInstance";
 
 function Page() {
   const { user } = useAuth();
@@ -15,13 +16,51 @@ function Page() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const accessToken = searchParams.get("code");
-    setAccessToken(accessToken);
+    if (typeof window !== 'undefined') {
+      // First check URL parameters
+      const code = searchParams.get("code");
+      const refreshTokenParam = searchParams.get("refresh_token");
+
+      if (code && refreshTokenParam) {
+        setAccessToken(code);
+        setRefreshToken(refreshTokenParam);
+      } else {
+        // If not in URL params, check hash
+        const hash = window.location.hash;
+        if (hash) {
+          const params = new URLSearchParams(hash.replace('#', ''));
+          const tokens = {
+            accessToken: params.get('access_token'),
+            refreshToken: params.get('refresh_token'),
+            expiresAt: params.get('expires_at'),
+            expiresIn: params.get('expires_in'),
+            tokenType: params.get('token_type'),
+            type: params.get('type')
+          };
+
+          if (tokens.accessToken) {
+            setAccessToken(tokens.accessToken);
+            setRefreshToken(tokens.refreshToken);
+          }
+        }
+      }
+    }
   }, [searchParams]);
+
+  useEffect(() => {
+    // Cleanup function
+    return () => {
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('expires_at');
+      localStorage.removeItem('token_type');
+    };
+  }, []);
 
   if (user) {
     router.push("/dashboard");
@@ -47,33 +86,50 @@ function Page() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+    if (isSubmitting) return;
 
-    if (!validatePassword(password)) {
-      setError(
-        "Password must be at least 8 characters long and contain at least one letter and one number."
-      );
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
-      if (!accessToken) {
-        toast.error("Token is missing");
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
         return;
       }
 
-      // const res = await resetPasswordMain(password, accessToken);
-      // if (!res) {
-      //   toast.error("Password reset failed");
-      // } else {
-      //   toast.success("Password reset successful");
-      //   router.push("/");
-      // }
+      if (!validatePassword(password)) {
+        setError(
+          "Password must be at least 8 characters long and contain at least one letter and one number."
+        );
+        return;
+      }
+
+      if (!accessToken) {
+        toast.error("Access token is missing");
+        return;
+      }
+
+      if (!refreshToken) {
+        toast.error("Refresh token is missing");
+        return;
+      }
+
+      const response = await axiosInstance.post('/v2/users/update-password', {
+        password: password,
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      const data = response.data;
+
+      if (data.status === "success") {
+        toast.success("Password reset successful");
+        router.push("/");
+      } else {
+        toast.error("Password reset failed");
+      }
     } catch (err) {
-      toast.error("err.message");
+      console.error('Password reset error:', err);
+      toast.error(err instanceof Error ? err.message : "Password reset failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,8 +200,12 @@ function Page() {
             </div>
           </div>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-          <Button type="submit" className="w-full mt-4">
-            Reset Password
+          <Button
+            type="submit"
+            className="w-full mt-4"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Resetting Password..." : "Reset Password"}
           </Button>
         </form>
       </div>

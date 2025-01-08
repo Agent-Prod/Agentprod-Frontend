@@ -55,6 +55,136 @@ interface FileData {
   [key: string]: string;
 }
 
+interface MappedColumn {
+  required: boolean;
+  label: string;
+  key: string;
+  description: string;
+}
+
+const REQUIRED_MAPPINGS: MappedColumn[] = [
+  {
+    required: true,
+    label: "First Name",
+    key: "first_name",
+    description: "Contact's first name"
+  },
+  {
+    required: false,
+    label: "Last Name",
+    key: "last_name",
+    description: "Contact's last name"
+  },
+  {
+    required: true,
+    label: "Email",
+    key: "email",
+    description: "Contact's email address"
+  },
+  {
+    required: true,
+    label: "Company Name",
+    key: "organization_name",
+    description: "Company/Organization name"
+  },
+  {
+    required: false,
+    label: "LinkedIn URL",
+    key: "linkedin_url",
+    description: "Contact's LinkedIn profile URL"
+  },
+  {
+    required: false,
+    label: "Title",
+    key: "title",
+    description: "Job title/position"
+  },
+  {
+    required: false,
+    label: "Phone",
+    key: "phone",
+    description: "Contact's phone number"
+  },
+  {
+    required: false,
+    label: "Company City",
+    key: "company_city",
+    description: "City where the company is located"
+  },
+  {
+    required: false,
+    label: "Company State",
+    key: "company_state",
+    description: "State where the company is located"
+  },
+  {
+    required: false,
+    label: "Company Country",
+    key: "company_country",
+    description: "Country where the company is located"
+  },
+  {
+    required: false,
+    label: "Company Address",
+    key: "company_address",
+    description: "Address of the company"
+  },
+  {
+    required: false,
+    label: "Company Zip",
+    key: "company_zip",
+    description: "Zip code of the company location"
+  },
+  {
+    required: false,
+    label: "Company Website",
+    key: "company_website",
+    description: "Website of the company"
+  },
+  {
+    required: false,
+    label: "Company LinkedIn",
+    key: "company_linkedin",
+    description: "LinkedIn URL of the company"
+  },
+  {
+    required: false,
+    label: "Company Facebook",
+    key: "company_facebook",
+    description: "Facebook URL of the company"
+  },
+  {
+    required: false,
+    label: "Company Twitter",
+    key: "company_twitter",
+    description: "Twitter URL of the company"
+  },
+  {
+    required: false,
+    label: "Industry",
+    key: "industry",
+    description: "Industry of the company"
+  },
+  {
+    required: false,
+    label: "Employee Count",
+    key: "employee_count",
+    description: "Number of employees in the company"
+  },
+  {
+    required: false,
+    label: "Annual Revenue",
+    key: "annual_revenue",
+    description: "Annual revenue of the company"
+  },
+  {
+    required: false,
+    label: "Technologies",
+    key: "technologies",
+    description: "Technologies used by the company"
+  }
+];
+
 export const ImportAudience = () => {
   const [fileData, setFileData] = useState<FileData[]>();
   const [file, setFile] = useState<File>();
@@ -87,7 +217,7 @@ export const ImportAudience = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files[0];
-      
+
       if (file.size > 50 * 1024 * 1024) {
         toast.error("File size exceeds 50MB limit");
         return;
@@ -507,7 +637,7 @@ export const ImportAudience = () => {
     setShowProviderDialog(true);
   };
 
-  
+
 
   const DirectImportTable = ({ data }: { data: FileData[] }) => {
     // Add record count check
@@ -543,17 +673,129 @@ export const ImportAudience = () => {
     const [dailyLimit, setDailyLimit] = useState<number>(25); // Default value of 50
     const [isSaving, setIsSaving] = useState(false);
 
+    const [showMapping, setShowMapping] = useState(selectedProvider === 'csv');
+    const [mappedColumns, setMappedColumns] = useState<Record<string, string>>({});
+
+    // Add this helper function to determine if mapping is needed
+    const shouldShowMapping = () => {
+      return selectedProvider === 'csv';
+    };
+
+    const ColumnMappingDialog = () => {
+      return (
+        <Dialog open={showMapping} onOpenChange={setShowMapping} modal={false}>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Map CSV Columns</DialogTitle>
+              <DialogDescription>
+                Map your CSV columns to required fields. Fields marked with * are required.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto pr-6 -mr-6">
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-[200px]">Required Field</TableHead>
+                      <TableHead>CSV Column</TableHead>
+                      <TableHead>Sample Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {REQUIRED_MAPPINGS.map((mapping) => (
+                      <TableRow key={mapping.key}>
+                        <TableCell className="font-medium">
+                          {mapping.label} {mapping.required && "*"}
+                          <div className="text-xs text-muted-foreground">
+                            {mapping.description}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={mappedColumns[mapping.key] || ""}
+                            onValueChange={(value) => {
+                              setMappedColumns(prev => ({
+                                ...prev,
+                                [mapping.key]: value
+                              }));
+                            }}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select column" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              <SelectGroup>
+                                {Object.keys(data[0]).map((column) => (
+                                  <SelectItem key={column} value={column}>
+                                    {column}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {mappedColumns[mapping.key] ? data[0][mappedColumns[mapping.key]] : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <DialogFooter className="mt-4 border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowImportCards(true);
+                  setFile(undefined);
+                  setFileData(undefined);
+                  setDirectImportData(undefined);
+                  setImportMethod(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const requiredFields = REQUIRED_MAPPINGS.filter(m => m.required).map(m => m.key);
+                  const missingFields = requiredFields.filter(field => !mappedColumns[field]);
+
+                  if (missingFields.length > 0) {
+                    toast.error(`Please map all required fields: ${missingFields.join(", ")}`);
+                    return;
+                  }
+
+                  setShowMapping(false);
+                }}
+              >
+                Continue
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      );
+    };
+
     const handleSaveContacts = async () => {
       setIsSaving(true);
       try {
+        const mappedData = filteredData.map(row => {
+          const mapped: Record<string, any> = {};
+          Object.entries(mappedColumns).forEach(([key, csvColumn]) => {
+            mapped[key] = row[csvColumn];
+          });
+          return mapped;
+        });
+
         const payload = {
           user_id: user?.id,
           campaign_id: params.campaignId,
           daily_limit: dailyLimit,
           provider: selectedProvider,
-          leads: filteredData.map(lead => ({
-            ...lead,
-          }))
+          leads: mappedData
         };
 
         const response = await axiosInstance.post('v2/contacts/bulk-import', payload);
@@ -561,7 +803,7 @@ export const ImportAudience = () => {
         const getRecData = await axiosInstance.get(
           `v2/campaigns/${params.campaignId}`
         );
-        
+
         if (getRecData.data.schedule_type === "recurring") {
           const recurringResponse = await axiosInstance.post(
             "v2/recurring_campaign_request",
@@ -619,156 +861,201 @@ export const ImportAudience = () => {
           setTimeout(poll, pollInterval);
         };
 
-        poll(); 
+        poll();
 
 
 
       } catch (error) {
         console.error("Error saving contacts:", error);
         toast.error("Failed to save contacts. Please try again.", { id: "import" });
-      } 
+      }
+    };
+
+    // Add this to get mapped columns for display
+    const getMappedHeaders = () => {
+      return Object.entries(mappedColumns)
+        .filter(([_, value]) => value) // Only include columns that have been mapped
+        .map(([key, value]) => ({
+          originalHeader: value,
+          mappedHeader: REQUIRED_MAPPINGS.find(m => m.key === key)?.label || key
+        }));
+    };
+
+    // Add this to transform data for display
+    const getDisplayData = () => {
+      return filteredData.map(row => {
+        const displayRow: Record<string, string> = {};
+        Object.entries(mappedColumns).forEach(([mappedKey, originalColumn]) => {
+          if (originalColumn) { // Only include mapped columns
+            const label = REQUIRED_MAPPINGS.find(m => m.key === mappedKey)?.label || mappedKey;
+            displayRow[label] = row[originalColumn];
+          }
+        });
+        return displayRow;
+      });
     };
 
     return (
       <div className="mt-4 space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold">Preview Import Data</h3>
-            <p className="text-sm text-muted-foreground">
-              Showing {Math.min(endIndex, filteredData.length)} of {filteredData.length} total records
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card">
-          <div className="relative max-w-[calc(100vw-2rem)]">
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
-
-            <div className="overflow-x-auto">
-              <div className="min-w-max">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      {Object.keys(filteredData[0]).map((header) => (
-                        <TableHead
-                          key={header}
-                          className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider whitespace-nowrap"
-                        >
-                          {header}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredData.slice(startIndex, endIndex).map((row, index) => (
-                      <TableRow
-                        key={index}
-                        className="hover:bg-muted/50 transition-colors border-b last:border-0"
-                      >
-                        {Object.values(row).map((value, i) => (
-                          <TableCell
-                            key={i}
-                            className="py-2.5 text-sm whitespace-nowrap px-4"
-                          >
-                            {value && value !== 'Empty' ? (
-                              <span className="truncate max-w-[200px] block">
-                                {value}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground italic text-xs">
-                                -
-                              </span>
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+        {shouldShowMapping() && <ColumnMappingDialog />}
+        {(!shouldShowMapping() || !showMapping) && ( // Show preview if not CSV or mapping is complete
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {shouldShowMapping() ? "Preview Mapped Data" : "Preview Import Data"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Showing {Math.min(endIndex, filteredData.length)} of {filteredData.length} total records
+                </p>
               </div>
             </div>
-          </div>
 
-          <div className="border-t bg-muted/50 p-4 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {hasMoreRecords ? (
-                <div
-                  className="cursor-pointer hover:text-primary transition-colors"
-                  onClick={handleLoadMore}
-                >
-                  + Show {filteredData.length - endIndex} more records
+            <div className="rounded-lg border bg-card">
+              <div className="relative max-w-[calc(100vw-2rem)]">
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+
+                <div className="overflow-x-auto">
+                  <div className="min-w-max">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          {shouldShowMapping() ? (
+                            getMappedHeaders().map(({ mappedHeader }, index) => (
+                              <TableHead
+                                key={index}
+                                className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider whitespace-nowrap"
+                              >
+                                {mappedHeader}
+                              </TableHead>
+                            ))
+                          ) : (
+                            Object.keys(filteredData[0]).map((header) => (
+                              <TableHead
+                                key={header}
+                                className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider whitespace-nowrap"
+                              >
+                                {header}
+                              </TableHead>
+                            ))
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(shouldShowMapping() ? getDisplayData() : filteredData)
+                          .slice(startIndex, endIndex)
+                          .map((row, rowIndex) => (
+                            <TableRow
+                              key={rowIndex}
+                              className="hover:bg-muted/50 transition-colors border-b last:border-0"
+                            >
+                              {Object.values(row).map((value, cellIndex) => (
+                                <TableCell
+                                  key={cellIndex}
+                                  className="py-2.5 text-sm whitespace-nowrap px-4"
+                                >
+                                  {value && value !== 'Empty' ? (
+                                    <span className="truncate max-w-[200px] block">
+                                      {value}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground italic text-xs">
+                                      -
+                                    </span>
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-              ) : (
-                `Showing all ${filteredData.length} records`
-              )}
+              </div>
+
+              <div className="border-t bg-muted/50 p-4 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {hasMoreRecords ? (
+                    <div
+                      className="cursor-pointer hover:text-primary transition-colors"
+                      onClick={handleLoadMore}
+                    >
+                      + Show {filteredData.length - endIndex} more records
+                    </div>
+                  ) : (
+                    `Showing all ${filteredData.length} records`
+                  )}
+                </div>
+              </div>
             </div>
 
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="dailyLimit"
-            className="text-sm text-muted-foreground whitespace-nowrap"
-          >
-            Number of leads to be contacted per day:
-          </label>
-          <Input
-            id="dailyLimit"
-            type="number"
-            min={1}
-            max={200}
-            value={dailyLimit}
-            onChange={(e) => setDailyLimit(Number(e.target.value))}
-            className="w-[100px] h-9"
-            placeholder="50"
-          />
-        </div>
-        <div className="text-sm text-muted-foreground pb-4">
-          Your Campaign would be completed in {Math.ceil(filteredData.length / dailyLimit)} days
-        </div>
-        <div className="flex gap-3 ">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setShowImportCards(true);
-              setFile(undefined);
-              setFileData(undefined);
-              setDirectImportData(undefined);
-              setImportMethod(null);
-            }}
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveContacts}
-            disabled={isSaving || filteredData.length === 0}
-            className="min-w-[140px]"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                Save {filteredData.length} Contacts
-              </>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="dailyLimit"
+                className="text-sm text-muted-foreground whitespace-nowrap"
+              >
+                Number of leads to be contacted per day:
+              </label>
+              <Input
+                id="dailyLimit"
+                type="number"
+                min={1}
+                max={200}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+                className="w-[100px] h-9"
+                placeholder="50"
+              />
+            </div>
+
+            <div className="text-sm text-muted-foreground pb-4">
+              Your Campaign would be completed in {Math.ceil(filteredData.length / dailyLimit)} days
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowImportCards(true);
+                  setFile(undefined);
+                  setFileData(undefined);
+                  setDirectImportData(undefined);
+                  setImportMethod(null);
+                }}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveContacts}
+                disabled={isSaving || filteredData.length === 0}
+                className="min-w-[140px]"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Save {filteredData.length} Contacts
+                  </>
+                )}
+              </Button>
+            </div>
+            {isSaving && (
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-card p-6 rounded-lg shadow-lg text-center space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                  <p className="text-lg font-medium">Processing your contacts...</p>
+                  <p className="text-sm text-muted-foreground">
+                    This may take a few moments. Please don't close this window.
+                  </p>
+                </div>
+              </div>
             )}
-          </Button>
-        </div>
-
-        {isSaving && (
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-card p-6 rounded-lg shadow-lg text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              <p className="text-lg font-medium">Processing your contacts...</p>
-              <p className="text-sm text-muted-foreground">
-                This may take a few moments. Please don't close this window.
-              </p>
-            </div>
-          </div>
+          </>
         )}
       </div>
     );

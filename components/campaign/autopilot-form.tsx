@@ -35,6 +35,9 @@ const autopilotFormSchema = z.object({
   demo: z.boolean().optional(),
   not_interested: z.boolean().optional(),
   linkedin: z.boolean().optional(),
+  linkedin_first_message: z.boolean().optional(),
+  linkedin_demo_replies: z.boolean().optional(),
+  linkedin_replies: z.boolean().optional(),
 });
 
 type AutopilotFormValues = z.infer<typeof autopilotFormSchema>;
@@ -53,6 +56,9 @@ const defaultValues: Partial<AutopilotFormValues> = {
   demo: false,
   not_interested: false,
   linkedin: false,
+  linkedin_first_message: false,
+  linkedin_demo_replies: false,
+  linkedin_replies: false,
 };
 
 const setFormValues = (setValue: any, values: Partial<AutopilotFormValues>) => {
@@ -91,6 +97,9 @@ export function AutopilotForm() {
       demo: allMessagesActions,
       not_interested: allMessagesActions,
       linkedin: allMessagesActions,
+      linkedin_first_message: allMessagesActions,
+      linkedin_demo_replies: allMessagesActions,
+      linkedin_replies: allMessagesActions,
     });
   }, [allMessagesActions, setValue]);
 
@@ -106,6 +115,9 @@ export function AutopilotForm() {
       demo: reply,
       not_interested: reply,
       linkedin: reply,
+      linkedin_first_message: reply,
+      linkedin_demo_replies: reply,
+      linkedin_replies: reply,
     });
   }, [reply, setValue]);
 
@@ -247,6 +259,21 @@ export function AutopilotForm() {
               "linkedin",
               "LinkedIn Message",
               "Send a LinkedIn message if the lead is connected."
+            )}
+            {renderSwitchField(
+              "linkedin_first_message",
+              "LinkedIn First Message",
+              "Send a first message to the lead if they are connected."
+            )}
+            {renderSwitchField(
+              "linkedin_demo_replies",
+              "LinkedIn Demo Replies",
+              "Send a demo reply to the lead if they are connected."
+            )}
+            {renderSwitchField(
+              "linkedin_replies",
+              "LinkedIn Replies",
+              "Send a reply to the lead if they are connected."
             )}
           </div>
 

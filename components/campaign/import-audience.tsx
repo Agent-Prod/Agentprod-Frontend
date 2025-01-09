@@ -683,8 +683,15 @@ export const ImportAudience = () => {
 
     const ColumnMappingDialog = () => {
       return (
-        <Dialog open={showMapping} onOpenChange={setShowMapping} modal={false}>
-          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <Dialog
+          open={showMapping}
+          onOpenChange={setShowMapping}
+          modal={false}
+        >
+          <DialogContent
+            className="max-w-2xl max-h-[80vh] flex flex-col"
+            onPointerDownOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>Map CSV Columns</DialogTitle>
               <DialogDescription>

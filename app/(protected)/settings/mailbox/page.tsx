@@ -476,9 +476,13 @@ export default function Page() {
     setMailboxes([...mailboxes, mailbox]);
   };
 
-  const removeMailbox = async (sender_id: any) => {
+  const removeMailbox = async (sender_id: any, platform: any) => {
     try {
-      await axiosInstance.delete(`/v2/user/mailbox/${sender_id}`);
+      if (platform && platform.toLowerCase() === "linkedin") {
+        await axiosInstance.delete(`/v2/user/linkedin/${sender_id}`);
+      } else {
+        await axiosInstance.delete(`/v2/user/mailbox/${sender_id}`);
+      }
       setMailboxes((prevState) =>
         prevState.filter((mailbox) => mailbox.sender_id !== sender_id)
       );
@@ -1073,7 +1077,7 @@ export default function Page() {
                           <Button
                             type="submit"
                             variant={"destructive"}
-                            onClick={() => removeMailbox(mailbox.sender_id)}
+                            onClick={() => removeMailbox(mailbox.sender_id, mailbox.platform)}
                           >
                             Delete
                           </Button>

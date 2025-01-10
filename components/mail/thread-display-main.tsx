@@ -54,6 +54,7 @@ interface ThreadDisplayMainProps {
   campaign_name: string;
   campaign_id: string;
   contact_id: string;
+  linkedinSender: string;
 }
 
 const initials = (name: string) => {
@@ -116,6 +117,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   name,
   campaign_name,
   contact_id,
+  linkedinSender
 }) => {
   const {
     conversationId,
@@ -133,6 +135,29 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     like_comment_date?: any;
     comment?: string;
   } | null>(null);
+
+  const [linkedinSenderName, setLinkedinSenderName] = useState<string>('');
+
+  useEffect(() => {
+    async function fetchLinkedinSenderName() {
+      if (!linkedinSender) return;
+
+      try {
+        const res = await axiosInstance.post(
+          'v2/linkedin/user-linkedin-name/',
+          {
+            url: linkedinSender
+          }
+        );
+        setLinkedinSenderName(res.data.name);
+      } catch (error) {
+        console.error("Error fetching LinkedIn sender name:", error);
+        toast.error("Failed to load LinkedIn sender information.");
+      }
+    }
+
+    fetchLinkedinSenderName();
+  }, [linkedinSender]);
 
   useEffect(() => {
     if (thread?.length > 0) {
@@ -554,19 +579,19 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           </div>
           {leads[0]?.connected_on_linkedin === "SENT" ? (
             <p className="ml-1 text-xs">
-              {name} has been sent a connection request
+              {name} has been sent a connection request from {linkedinSenderName || linkedinSender}
             </p>
           ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
             <p className="ml-1 text-xs">
-              {name} has rejected your connection request
+              {name} has rejected your connection request from {linkedinSenderName || linkedinSender}
             </p>
           ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
             <p className="ml-1 text-xs">
-              {name} has accepted your connection request
+              {name} has accepted your connection request from {linkedinSenderName || linkedinSender}
             </p>
           ) : (
             <p className="ml-1 text-xs">
-              Connection request scheduled for {name}
+              Connection request scheduled for {name} from {linkedinSenderName || linkedinSender}
             </p>
           )}
         </div>
@@ -973,7 +998,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             )}
 
             {(thread?.length === 0 ||
-              (thread?.[thread?.length - 1]?.is_reply === false )) && (
+              (thread?.[thread?.length - 1]?.is_reply === false)) && (
                 <>
                   <DraftEmailComponent />
                   {mailStatus === "LOST" && (

@@ -963,7 +963,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
             {thread?.length > 0 && (
               <div>
-                {thread.map((email, index) => (
+                {thread?.map((email, index) => (
                   <EmailComponent
                     key={index}
                     email={email}

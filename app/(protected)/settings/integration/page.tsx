@@ -292,6 +292,7 @@ export default function Page() {
         user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
+        email: selectedEmail,
         designation: linkedInDesignation
       };
 
@@ -337,6 +338,7 @@ export default function Page() {
         user_id: user?.id,
         country: linkedInCountry,
         name: linkedInName,
+        email: selectedEmail,
         designation: linkedInDesignation
       };
 

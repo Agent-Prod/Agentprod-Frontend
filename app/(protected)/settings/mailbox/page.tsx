@@ -103,6 +103,11 @@ const createEmailSchema = (domain: any) =>
       .nonempty(),
   });
 
+const capitalizeFirstLetter = (string: string | undefined) => {
+  if (!string) return '-';
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+};
+
 export default function Page() {
   const [getDomainName, setGetDomainName] = useState<string[]>([]);
   const [isPresentDomain, setIsPresentDomain] = useState();
@@ -613,7 +618,9 @@ export default function Page() {
                 <TableHead>NAME ACCOUNT</TableHead>
                 <TableHead className="text-center">WARM-UP</TableHead>
                 <TableHead className="text-left">DAILY LIMIT</TableHead>
-                <TableHead className="text-center">Health</TableHead>
+                <TableHead className="text-left">ACCOUNT TYPE</TableHead>
+
+                <TableHead className="text-center">HEALTH</TableHead>
                 <TableHead className="text-center">STATUS</TableHead>
                 <TableHead className="text-center">DNS</TableHead>
                 <TableHead> </TableHead>
@@ -679,6 +686,7 @@ export default function Page() {
                   </TableCell>
 
                   <TableCell>{mailbox.daily_limit}</TableCell>
+                  <TableCell>{capitalizeFirstLetter(mailbox.account_type)}</TableCell>
                   <TableCell>
                     {mailbox.health > 0 ? (
                       <CircularProgressbar

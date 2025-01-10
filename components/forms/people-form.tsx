@@ -319,6 +319,9 @@ export default function PeopleForm(): JSX.Element {
 
   const [openDropdown, setOpenDropdown] = useState<DropdownSection | null>(null);
 
+  // Add this near the top with other state declarations
+  const [sumCount, setSumCount] = useState<any>(null);
+
   useEffect(() => {
     const callApi = async () => {
       const response = await axiosInstance.get(`v2/campaigns/${params.campaignId}`);
@@ -485,6 +488,20 @@ export default function PeopleForm(): JSX.Element {
     fetchCampaign();
   }, [params.campaignId]);
 
+  useEffect(() => {
+    const fetchLinkedinUserSummary = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await axiosInstance.get(`v2/linkedin/user-sum/${params.campaignId}`);
+        setSumCount(response.data.count);
+      } catch (error) {
+        console.error('Error fetching LinkedIn user summary:', error);
+      }
+    };
+
+    fetchLinkedinUserSummary();
+  }, [params.campaignId, user?.id]); // Dependencies array includes campaignId and user.id
 
   const onTabChange = async (value: any) => {
     if (isSubmitting) {
@@ -1901,7 +1918,7 @@ export default function PeopleForm(): JSX.Element {
                       value={likelyToEngage}
                     >
                       <div className="flex space-x-4">
-                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
                           <RadioGroupItem value="" id="all" />
                           <Label htmlFor="all" className="text-sm cursor-pointer">
                             All
@@ -1940,38 +1957,22 @@ export default function PeopleForm(): JSX.Element {
                             placeholder={"Enter the number of leads you want"}
                             className="sm:min-w-[450px] outline-none"
                             value={field.value || leadsNum}
-                            min={25}
-                            max={200}
-                            step={25}
+                            min={0}
+                            max={linkedinSelectionType === "Linkedin" || linkedinSelectionType === "omni" ? sumCount : 200}
                             onChange={(e) => {
                               const value = e.target.value;
-                              if (value === "") {
-                                field.onChange(undefined);
-                                return;
-                              }
-
-                              const numberValue = Math.round(Number(value) / 25) * 25;
-                              const boundedValue = Math.max(25, Math.min(500, numberValue));
-
-                              field.onChange(boundedValue);
-                            }}
-                            onBlur={(e) => {
-                              const value = e.target.value;
-                              if (value) {
-                                const numberValue = Math.round(Number(value) / 25) * 25;
-                                const boundedValue = Math.max(25, Math.min(500, numberValue));
-                                field.onChange(boundedValue);
-                              }
+                              const numberValue = value === "" ? undefined : Number(value);
+                              field.onChange(numberValue);
                             }}
                           />
                         </div>
                       </FormControl>
                       <FormDescription>
                         These are the number of leads that you&apos;re
-                        interested in select between 1 - 125.
+                        interested in select between 1 - {linkedinSelectionType === "Linkedin" || linkedinSelectionType === "omni" ? sumCount : 200}.
                       </FormDescription>
-                      <FormDescription>
-                        Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription>
+                      {/* <FormDescription>
+                        Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription> */}
                       <FormMessage />
                     </FormItem>
                   )}

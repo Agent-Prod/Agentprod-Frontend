@@ -889,11 +889,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 <Button
                   variant={platform === "linkedin" ? "default" : "secondary"}
                   className="ml-2"
+                  disabled={
+                    isLoadingButton ||
+                    (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
+                  }
                   onClick={() => handleSendNow(emails)}
-                // disabled={
-                //   isLoadingButton ||
-                //   (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
-                // }
                 >
                   {isLoadingButton ? <LoadingCircle /> : "Send Now"}
                 </Button>

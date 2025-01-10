@@ -973,8 +973,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             )}
 
             {(thread?.length === 0 ||
-              (thread?.[thread?.length - 1]?.is_reply === false &&
-                thread?.[0]?.channel !== "Linkedin")) && (
+              (thread?.[thread?.length - 1]?.is_reply === false )) && (
                 <>
                   <DraftEmailComponent />
                   {mailStatus === "LOST" && (

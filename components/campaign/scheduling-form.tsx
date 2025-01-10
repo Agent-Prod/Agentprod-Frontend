@@ -175,6 +175,8 @@ export function SchedulingForm() {
     }
   }, [campaignData]);
 
+  const showSchedule = form.watch("channelType") !== "Linkedin";
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mb-5">
@@ -337,37 +339,40 @@ export function SchedulingForm() {
           )}
         />
 
-
-        <h1>Schedule</h1>
-        <div className="flex w-[400px] justify-between">
-          <h1>Weekdays</h1>
-          <div className="flex gap-2">
-            <FormField
-              control={form.control}
-              name={`schedule.weekdayStartTime`}
-              render={({ field, fieldState: { error } }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage>{error?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`schedule.weekdayEndTime`}
-              render={({ field, fieldState: { error } }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input type="time" placeholder="End Time" {...field} />
-                  </FormControl>
-                  <FormMessage>{error?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+        {showSchedule && (
+          <>
+            <h1>Schedule</h1>
+            <div className="flex w-[400px] justify-between">
+              <h1>Weekdays</h1>
+              <div className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name={`schedule.weekdayStartTime`}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage>{error?.message}</FormMessage>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`schedule.weekdayEndTime`}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="time" placeholder="End Time" {...field} />
+                      </FormControl>
+                      <FormMessage>{error?.message}</FormMessage>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         <Button type="submit" disabled={type === "create" && !form.formState.isValid}>
           {type === "create" ? "Add" : "Update"} Campaign

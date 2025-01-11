@@ -509,11 +509,27 @@ export default function Page() {
                 </CardContent>
               </Card>
 
+              <Card
+                className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm"
+                // onClick={() => {
+                //   const queryParams = new URLSearchParams({
+                //     _filter: 'TO-APPROVE'
+                //   });
+                //   router.push(`/mail?${queryParams.toString()}`);
+                // }}
+              >
+                <CardContent className="flex items-center justify-between pt-6">
+                  <div className="flex items-center gap-3">
+                    <p className="font-medium">Limit reached for account [……….] for the day […………] We will retry tomorrow.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
             <Card className="col-span-3 shadow-sm">
-              <ScrollArea className="h-[20rem]">
+              <ScrollArea className="h-[28rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
                     <CardTitle>Email Campaign</CardTitle>
@@ -575,7 +591,7 @@ export default function Page() {
             </Card>
 
             <Card className="col-span-3">
-              <ScrollArea className="md:h-[26rem]">
+              <ScrollArea className="h-[28rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <CardTitle>LinkedIn Campaign</CardTitle>
                 </CardHeader>
@@ -678,7 +694,7 @@ export default function Page() {
               </Card>
             </div>
             <div className="col-span-3">
-              <Card className=" shadow-sm">
+              <Card className="shadow-sm">
                 <ScrollArea className="h-[28rem]">
                   <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                     <div className="flex justify-between items-center">

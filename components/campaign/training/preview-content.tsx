@@ -320,6 +320,27 @@ function PreviewContent() {
                 )}
               </>
             )}
+            {(channel === "Linkedin") && (
+              <>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-muted-foreground">
+                        LinkedIn Invite Message
+                      </h3>
+                    </div>
+                    <Textarea
+                      className={cn(
+                        "min-h-[150px] text-sm leading-relaxed bg-background/50",
+                        "focus:ring-[#0077b5]"
+                      )}
+                      value={inviteMessage}
+                      readOnly
+                    />
+                  </div>
+                </Card>
+              </>
+            )}
 
             {(channel === "Linkedin" || channel === "omni") && (
               <>
@@ -359,27 +380,7 @@ function PreviewContent() {
               </>
             )}
 
-            {(channel === "Linkedin") && (
-              <>
-                <Card className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-muted-foreground">
-                        LinkedIn Invite Message
-                      </h3>
-                    </div>
-                    <Textarea
-                      className={cn(
-                        "min-h-[150px] text-sm leading-relaxed bg-background/50",
-                        "focus:ring-[#0077b5]"
-                      )}
-                      value={inviteMessage}
-                      readOnly
-                    />
-                  </div>
-                </Card>
-              </>
-            )}
+            
 
             {(channel === "Linkedin" || channel === "omni") && (
               <>

@@ -208,7 +208,7 @@ export function GoalForm() {
           linkedin_send_message_with_request: data.linkedin_send_message_with_request
         };
 
-        console.log("Creating goal with payload:", JSON.stringify(payload, null, 2));
+        console.log("payload", payload);
 
         await createGoal(payload as GoalFormData, params.campaignId);
       }
@@ -956,8 +956,12 @@ export function GoalForm() {
                     Send message with connection request
                   </FormLabel>
                   <FormDescription>
-                    Include a personalized message when sending connection requests
+                    Add a personalized message to your connection requests. 
                   </FormDescription>
+                  <FormDescription>
+                    Note: Message customization is only available with LinkedIn Premium accounts.
+                  </FormDescription>
+
                 </div>
               </FormItem>
             )}

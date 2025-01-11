@@ -144,7 +144,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       try {
         const res = await axiosInstance.post(
-          'v2/linkedin/user-linkedin-name/',
+          'v2/linkedin/user-linkedin-name',
           {
             url: linkedinSender
           }
@@ -569,7 +569,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    if (leads[0]?.type !== "Linkedin") return null;
+    if (linkedinSender === "") return null;
 
     return (
       <div className="m-4">

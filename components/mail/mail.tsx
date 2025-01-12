@@ -706,6 +706,22 @@ export function Mail({
                     <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
                       Delivered
                     </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_CONNECTED")}>
+                    Linkedin Connected
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_SENT")}>
+                    Linkedin Sent
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_WITHDRAWN")}>
+                    Linkedin Withdrawn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_FAILED")}>
+                    Linkedin Failed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
+                    LINKEDIN_PENDING
+                    </DropdownMenuItem>
+                    
                   </DropdownMenuContent>
                 </DropdownMenu>
 

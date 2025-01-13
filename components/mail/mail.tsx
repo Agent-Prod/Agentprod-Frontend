@@ -719,7 +719,7 @@ export function Mail({
                     Linkedin Failed
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
-                    LINKEDIN_PENDING
+                    LINKEDIN PENDING
                     </DropdownMenuItem>
                     
                   </DropdownMenuContent>

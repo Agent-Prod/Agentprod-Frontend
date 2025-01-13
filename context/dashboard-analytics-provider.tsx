@@ -64,6 +64,16 @@ type OmniAnalyticsData = {
   sequences_completed: number;
 }[];
 
+type LinkedInAnalyticsData = {
+  campaign_name: string;
+  connection_sent: number;
+  connection_accepted: number;
+  connection_withdrawn: number;
+  conversations: number;
+  posts_liked: number;
+  id: string;
+}[];
+
 interface DashboardContextType {
   dashboardData: DashboardData;
   analyticsData: AnalyticsData;
@@ -71,10 +81,13 @@ interface DashboardContextType {
   isLoading: boolean;
   isAnalyticsLoading: boolean;
   isOmniAnalyticsLoading: boolean;
+  linkedInAnalyticsData: LinkedInAnalyticsData;
+  isLinkedInAnalyticsLoading: boolean;
   setDashboardData: (dashboardData: DashboardData) => void;
   fetchDashboardDataIfNeeded: () => Promise<void>;
   fetchAnalyticsDataIfNeeded: () => Promise<void>;
   fetchOmniAnalyticsDataIfNeeded: () => Promise<void>;
+  fetchLinkedInAnalyticsDataIfNeeded: () => Promise<void>;
 }
 
 const defaultDashboardState: DashboardContextType = {
@@ -122,10 +135,13 @@ const defaultDashboardState: DashboardContextType = {
   isLoading: false,
   isAnalyticsLoading: false,
   isOmniAnalyticsLoading: false,
+  linkedInAnalyticsData: [],
+  isLinkedInAnalyticsLoading: false,
   setDashboardData: () => { },
   fetchDashboardDataIfNeeded: async () => { },
   fetchAnalyticsDataIfNeeded: async () => { },
   fetchOmniAnalyticsDataIfNeeded: async () => { },
+  fetchLinkedInAnalyticsDataIfNeeded: async () => { },
 };
 
 const DashboardContext = createContext<DashboardContextType>(
@@ -153,6 +169,10 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const [isOmniAnalyticsLoading, setIsOmniAnalyticsLoading] = React.useState(false);
   const [hasOmniAnalyticsLoaded, setHasOmniAnalyticsLoaded] = useState(false);
   const [linkedin_account_status, setLinkedinAccountStatus] = useState<string[]>([]);
+  const [linkedInAnalyticsData, setLinkedInAnalyticsData] = useState<LinkedInAnalyticsData>([]);
+  const [isLinkedInAnalyticsLoading, setIsLinkedInAnalyticsLoading] = useState(false);
+  const [hasLinkedInAnalyticsLoaded, setHasLinkedInAnalyticsLoaded] = useState(false);
+
   const fetchDashboardDataIfNeeded = async () => {
     if (!user?.id || hasDashboardLoaded) return;
 
@@ -216,6 +236,27 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     }
   };
 
+  const fetchLinkedInAnalyticsDataIfNeeded = async () => {
+    if (!user?.id || hasLinkedInAnalyticsLoaded) return;
+
+    setIsLinkedInAnalyticsLoading(true);
+    try {
+      const response = await axiosInstance.get<LinkedInAnalyticsData>(
+        `v2/campaign/linkedin/`
+      );
+
+      if (response.data) {
+        setLinkedInAnalyticsData(response.data);
+      }
+      setHasLinkedInAnalyticsLoaded(true);
+    } catch (error: any) {
+      console.error("Error fetching LinkedIn analytics data:", error);
+      setError(error.message || "Failed to load LinkedIn analytics data.");
+    } finally {
+      setIsLinkedInAnalyticsLoading(false);
+    }
+  };
+
   const contextValue = useMemo(
     () => ({
       dashboardData,
@@ -224,10 +265,13 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
       isLoading,
       isAnalyticsLoading,
       isOmniAnalyticsLoading,
+      linkedInAnalyticsData,
+      isLinkedInAnalyticsLoading,
       setDashboardData,
       fetchDashboardDataIfNeeded,
       fetchAnalyticsDataIfNeeded,
       fetchOmniAnalyticsDataIfNeeded,
+      fetchLinkedInAnalyticsDataIfNeeded,
     }),
     [
       dashboardData,
@@ -238,7 +282,10 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
       isOmniAnalyticsLoading,
       hasDashboardLoaded,
       hasAnalyticsLoaded,
-      hasOmniAnalyticsLoaded
+      hasOmniAnalyticsLoaded,
+      linkedInAnalyticsData,
+      isLinkedInAnalyticsLoading,
+      hasLinkedInAnalyticsLoaded
     ]
   );
 

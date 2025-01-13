@@ -115,6 +115,7 @@ const defaultDashboardState: DashboardContextType = {
         connections_accepted: 0,
       },
     ],
+    linkedin_account_status: [],
   },
   analyticsData: [],
   omniAnalyticsData: [],
@@ -151,7 +152,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
   const [omniAnalyticsData, setOmniAnalyticsData] = useState<OmniAnalyticsData>([]);
   const [isOmniAnalyticsLoading, setIsOmniAnalyticsLoading] = React.useState(false);
   const [hasOmniAnalyticsLoaded, setHasOmniAnalyticsLoaded] = useState(false);
-
+  const [linkedin_account_status, setLinkedinAccountStatus] = useState<string[]>([]);
   const fetchDashboardDataIfNeeded = async () => {
     if (!user?.id || hasDashboardLoaded) return;
 

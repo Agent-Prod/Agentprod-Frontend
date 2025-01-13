@@ -509,21 +509,24 @@ export default function Page() {
                 </CardContent>
               </Card>
 
-              <Card
-                className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm"
-                // onClick={() => {
-                //   const queryParams = new URLSearchParams({
-                //     _filter: 'TO-APPROVE'
-                //   });
-                //   router.push(`/mail?${queryParams.toString()}`);
-                // }}
-              >
-                <CardContent className="flex items-center justify-between pt-6">
-                  <div className="flex items-center gap-3">
-                    <p className="font-medium">Limit reached for account [……….] for the day […………] We will retry tomorrow.</p>
-                  </div>
-                </CardContent>
-              </Card>
+              {dashboardData?.linkedin_account_status?.length > 0 && (
+                <Card className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm">
+                  <CardContent className="flex items-center justify-between pt-6">
+                    <div className="flex items-center gap-3">
+                      <p className="font-medium">
+                        Limit reached for account{dashboardData.linkedin_account_status.length > 1 ? 's ' : ' '}
+                        {dashboardData.linkedin_account_status.map((account, index: number) => (
+                          <span key={index}>
+                            {account}
+                            {index < dashboardData.linkedin_account_status.length - 1 && ', '}
+                          </span>
+                        ))}
+                        {' '}for the day. We will retry tomorrow.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>

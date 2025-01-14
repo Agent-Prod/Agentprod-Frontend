@@ -7,6 +7,8 @@ import React, {
   useContext,
   useMemo,
   ReactNode,
+  useCallback,
+  useEffect,
 } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { DashboardData } from "@/types/dashboard";
@@ -194,7 +196,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     }
   };
 
-  const fetchOmniAnalyticsDataIfNeeded = async () => {
+  const fetchOmniAnalyticsDataIfNeeded = useCallback(async () => {
     if (!user?.id || hasOmniAnalyticsLoaded) return;
 
     setIsOmniAnalyticsLoading(true);
@@ -213,7 +215,11 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
     } finally {
       setIsOmniAnalyticsLoading(false);
     }
-  };
+  }, [user?.id, hasOmniAnalyticsLoaded]);
+
+  useEffect(() => {
+    fetchOmniAnalyticsDataIfNeeded();
+  }, [fetchOmniAnalyticsDataIfNeeded]);
 
   const contextValue = useMemo(
     () => ({
@@ -234,10 +240,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
       omniAnalyticsData,
       isLoading,
       isAnalyticsLoading,
-      isOmniAnalyticsLoading,
-      hasDashboardLoaded,
-      hasAnalyticsLoaded,
-      hasOmniAnalyticsLoaded
+      isOmniAnalyticsLoading
     ]
   );
 

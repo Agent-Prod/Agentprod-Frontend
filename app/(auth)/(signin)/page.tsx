@@ -109,7 +109,7 @@ return (
 
       <Dialog>
         <DialogTrigger asChild>
-          <p className="text-sm text-white/50 text-end cursor-pointer">
+          <p className="text-sm dark:text-white/50 text-end cursor-pointer">
             Forgot Password
           </p>
         </DialogTrigger>

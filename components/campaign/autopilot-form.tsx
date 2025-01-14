@@ -35,7 +35,7 @@ const autopilotFormSchema = z.object({
   demo: z.boolean().optional(),
   not_interested: z.boolean().optional(),
   linkedin: z.boolean().optional(),
-  linkedin_first_message: z.boolean().optional(),
+  linkedin_sequence: z.boolean().optional(),
   linkedin_demo_replies: z.boolean().optional(),
   linkedin_replies: z.boolean().optional(),
 });
@@ -56,7 +56,7 @@ const defaultValues: Partial<AutopilotFormValues> = {
   demo: false,
   not_interested: false,
   linkedin: false,
-  linkedin_first_message: false,
+  linkedin_sequence: false,
   linkedin_demo_replies: false,
   linkedin_replies: false,
 };
@@ -99,7 +99,7 @@ export function AutopilotForm() {
       demo: allMessagesActions,
       not_interested: allMessagesActions,
       linkedin: allMessagesActions,
-      linkedin_first_message: allMessagesActions,
+      linkedin_sequence: allMessagesActions,
       linkedin_demo_replies: allMessagesActions,
       linkedin_replies: allMessagesActions,
     });
@@ -117,7 +117,7 @@ export function AutopilotForm() {
       demo: reply,
       not_interested: reply,
       linkedin: reply,
-      linkedin_first_message: reply,
+      linkedin_sequence: reply,
       linkedin_demo_replies: reply,
       linkedin_replies: reply,
     });
@@ -272,7 +272,7 @@ export function AutopilotForm() {
   const renderLinkedInFields = () => (
     <>
       {renderSwitchField(
-        "linkedin_first_message",
+        "linkedin_sequence",
         "LinkedIn Sequences",
         "Send a Linkedin Comments, Linkedin message and follow up messages."
       )}

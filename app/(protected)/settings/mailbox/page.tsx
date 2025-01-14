@@ -1188,13 +1188,6 @@ export default function Page() {
           </DialogHeader>
           <div className="flex flex-col gap-5">
             <Button
-              onClick={handleOpenGoogleService}
-              className="flex gap-2 items-center"
-            >
-              <FcGoogle className="h-5 w-5" />
-              Continue with Google
-            </Button>
-            <Button
               onClick={handleOpenAgentprodService}
               className="flex items-center gap-2"
             >
@@ -1204,8 +1197,16 @@ export default function Page() {
                 width="20"
                 height="20"
               />
-              Continue with Agentprod Email Service
+              Outlook (Agentprod native integration)
             </Button>
+            <Button
+              onClick={handleOpenGoogleService}
+              className="flex gap-2 items-center"
+            >
+              <FcGoogle className="h-5 w-5" />
+              Continue with Google
+            </Button>
+
           </div>
         </DialogContent>
       </Dialog>

@@ -224,9 +224,7 @@ export const DashboardProvider: React.FunctionComponent<Props> = ({
         `v2/campaign/omni/analytics/`
       );
 
-      if (omniAnalyticsResponse.data) {
-        setOmniAnalyticsData(omniAnalyticsResponse.data);
-      }
+      setOmniAnalyticsData(omniAnalyticsResponse.data);
       setHasOmniAnalyticsLoaded(true);
     } catch (error: any) {
       console.error("Error fetching omni analytics data:", error);

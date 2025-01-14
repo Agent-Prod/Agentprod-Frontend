@@ -34,7 +34,7 @@ export default function UserAuthForm({
   formType: "signin" | "signup";
 }) {
   const { login } = useAuth();
-  const { setUser, setToken } = useAuth();
+  const { setUser, setToken, setRefreshToken } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormValue>({
@@ -58,9 +58,9 @@ export default function UserAuthForm({
 
         if (userData?.session?.access_token) {
           setToken(userData.session.access_token);
-
+          setRefreshToken(userData.session.refresh_token);
           setUser(userData.user);
-
+          localStorage.setItem('login_timestamp', new Date().toISOString());
           toast.success("Sign-in Successful!");
           login({ user_id: userData });
           window.location.href = "/dashboard";

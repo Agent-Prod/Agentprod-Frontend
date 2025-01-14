@@ -502,7 +502,7 @@ export default function Page() {
     if (shouldLoadOmniAnalytics) {
       fetchOmniAnalyticsDataIfNeeded();
     }
-  }, [shouldLoadOmniAnalytics, fetchOmniAnalyticsDataIfNeeded]);
+  }, [shouldLoadOmniAnalytics]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });

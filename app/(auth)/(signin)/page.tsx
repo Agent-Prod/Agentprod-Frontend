@@ -85,8 +85,11 @@ const handlePasswordResetRedirect = (url: string) => {
         token_type: tokens.tokenType || '',
         type: tokens.type || ''
       });
-
-      router.push(`/reset?${queryParams.toString()}`);
+      if(tokens.type === 'signup'){
+        router.push(`/`);
+      }else{
+        router.push(`/reset?${queryParams.toString()}`);
+      }
     }
   } catch (error) {
     console.error('Error processing reset URL:', error);

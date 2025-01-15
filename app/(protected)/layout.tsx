@@ -61,6 +61,7 @@ export default function ParentLayout({
 
     useEffect(() => {
         const checkAndRefreshToken = async () => {
+            setIsRefreshing(true);
             const loginTimestamp = localStorage.getItem('login_timestamp');
             const lastLoginTime = loginTimestamp ? new Date(loginTimestamp) : new Date();
             const currentTime = new Date();
@@ -78,7 +79,9 @@ export default function ParentLayout({
                     setCookie('auth-refresh-token', response.data.refresh_token, { maxAge: 604800 });
                     localStorage.setItem('login_timestamp', new Date().toISOString());
                 }
+                setIsRefreshing(false);
             }
+            setIsRefreshing(false);
         };
 
         checkAndRefreshToken();
@@ -124,7 +127,9 @@ export default function ParentLayout({
         }, 60 * 1000);
     };
 
-
+    if(isRefreshing) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>

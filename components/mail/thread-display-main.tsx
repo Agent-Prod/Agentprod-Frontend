@@ -249,6 +249,24 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             conversation_id: conversationId,
           };
           endpoint = "/v2/linkedin/send-message";
+
+          axiosInstance
+            .post(endpoint, payload)
+            .then((response) => {
+              toast.success("Your LinkedIn message has been sent successfully!");
+              return axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`);
+            })
+            .then((threadResponse) => {
+              setThread(threadResponse.data);
+              updateMailStatus(conversationId, "sent");
+              setIsLoadingButton(false);
+              setSelectedMailId(conversationId);
+            })
+            .catch((error) => {
+              console.error("Failed to send LinkedIn message:", error);
+              toast.error("Failed to send the message. Please try again.");
+              setIsLoadingButton(false);
+            });
         } else {
           payload = {
             conversation_id: conversationId,
@@ -258,22 +276,22 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             body: email.body,
           };
           endpoint = "/v2/mailbox/send/immediately";
-        }
 
-        axiosInstance
-          .post(endpoint, payload)
-          .then((response) => {
-            toast.success("Your message has been sent successfully!");
-            setThread(response.data);
-            updateMailStatus(conversationId, "sent");
-            setIsLoadingButton(false);
-            setSelectedMailId(conversationId);
-          })
-          .catch((error) => {
-            console.error("Failed to send message:", error);
-            toast.error("Failed to send the message. Please try again.");
-            setIsLoadingButton(false);
-          });
+          axiosInstance
+            .post(endpoint, payload)
+            .then((response) => {
+              toast.success("Your message has been sent successfully!");
+              setThread(response.data);
+              updateMailStatus(conversationId, "sent");
+              setIsLoadingButton(false);
+              setSelectedMailId(conversationId);
+            })
+            .catch((error) => {
+              console.error("Failed to send message:", error);
+              toast.error("Failed to send the message. Please try again.");
+              setIsLoadingButton(false);
+            });
+        }
       }, [
         conversationId,
         email.body,
@@ -701,6 +719,26 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           message_id: messageId
         };
         endpoint = "/v2/linkedin/send-message";
+
+        axiosInstance
+          .post(endpoint, payload)
+          .then((response) => {
+            toast.success("Your LinkedIn message has been sent successfully!");
+            return axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`);
+          })
+          .then((threadResponse) => {
+            setThread(threadResponse.data);
+            updateMailStatus(conversationId, "sent");
+            setIsLoadingButton(false);
+            setIsEditing(false);
+            setSelectedMailId(conversationId);
+            refreshThread();
+          })
+          .catch((error) => {
+            console.error("Failed to send LinkedIn message:", error);
+            toast.error("Failed to send the message. Please try again.");
+            setIsLoadingButton(false);
+          });
       } else {
         payload = {
           conversation_id: conversationId,

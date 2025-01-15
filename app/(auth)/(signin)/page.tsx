@@ -85,11 +85,8 @@ const handlePasswordResetRedirect = (url: string) => {
         token_type: tokens.tokenType || '',
         type: tokens.type || ''
       });
-      if(tokens.type === 'signup'){
-        router.push(`/`);
-      }else{
-        router.push(`/reset?${queryParams.toString()}`);
-      }
+
+      router.push(`/reset?${queryParams.toString()}`);
     }
   } catch (error) {
     console.error('Error processing reset URL:', error);
@@ -112,7 +109,7 @@ return (
 
       <Dialog>
         <DialogTrigger asChild>
-          <p className="text-sm text-white/50 text-end cursor-pointer">
+          <p className="text-sm dark:text-white/50 text-end cursor-pointer">
             Forgot Password
           </p>
         </DialogTrigger>

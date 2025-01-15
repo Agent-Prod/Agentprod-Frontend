@@ -37,40 +37,90 @@ interface TopPerformingCampaignsTableProps {
 }
 
 const LinkedinCampaignsTable = memo(() => {
-  const { user } = useAuth();
-  const [campaigns, setCampaigns] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { linkedInAnalyticsData, isLinkedInAnalyticsLoading, fetchLinkedInAnalyticsDataIfNeeded } = useDashboardContext();
   const [shouldLoadLinkedInAnalytics, setShouldLoadLinkedInAnalytics] = useState(false);
-
-  const fetchLinkedInAnalytics = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axiosInstance.get(`v2/campaign/linkedin/`);
-      const data = await response.data;
-      setCampaigns(data);
-    } catch (error) {
-      console.error('Failed to fetch LinkedIn analytics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (shouldLoadLinkedInAnalytics) {
-      fetchLinkedInAnalytics();
+      fetchLinkedInAnalyticsDataIfNeeded();
     }
-  }, [shouldLoadLinkedInAnalytics]);
+  }, [shouldLoadLinkedInAnalytics, fetchLinkedInAnalyticsDataIfNeeded]);
+
+  const handleRowClick = useCallback((campaign: any, columnName: string) => {
+    const filterMap: { [key: string]: string } = {
+      'campaign_name': 'ALL',
+      'connection_sent': 'LINKEDIN_SENT',
+      'connection_accepted': 'LINKEDIN_CONNECTED',
+      'connection_withdrawn': 'LINKEDIN_WITHDRAWN',
+      'conversations': 'ALL',
+      'posts_liked': 'ALL'
+    };
+
+    const filter = filterMap[columnName];
+    if (!filter) return;
+
+    const queryParams = new URLSearchParams({
+      campaign_id: campaign.campaign_id,
+      _filter: filter
+    });
+
+    // Navigate to the mail page with the filters
+    router.push(`/mail?${queryParams.toString()}`);
+  }, [router]);
 
   const renderCampaignRow = useCallback((campaign: any) => (
     <TableRow key={campaign?.campaign_name}>
-      <TableCell>{campaign?.campaign_name}</TableCell>
-      <TableCell className="text-center">{campaign?.connection_sent}</TableCell>
-      <TableCell className="text-center">{campaign?.connection_accepted}</TableCell>
-      <TableCell className="text-center">{campaign?.connection_withdrawn}</TableCell>
-      <TableCell className="text-center">{campaign?.conversations}</TableCell>
-      <TableCell className="text-center">{campaign?.posts_liked}</TableCell>
+      <TableCell>
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'campaign_name')}
+        >
+          {campaign?.campaign_name}
+        </span>
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'connection_sent')}
+        >
+          {campaign?.connection_sent}
+        </span>
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'connection_accepted')}
+        >
+          {campaign?.connection_accepted}
+        </span>
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'connection_withdrawn')}
+        >
+          {campaign?.connection_withdrawn}
+        </span>
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'conversations')}
+        >
+          {campaign?.conversations}
+        </span>
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => handleRowClick(campaign, 'posts_liked')}
+        >
+          {campaign?.posts_liked}
+        </span>
+      </TableCell>
     </TableRow>
-  ), []);
+  ), [handleRowClick]);
 
   return (
     <div className="space-y-4">
@@ -104,20 +154,20 @@ const LinkedinCampaignsTable = memo(() => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLinkedInAnalyticsLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
                   <LoadingCircle />
                 </TableCell>
               </TableRow>
-            ) : !campaigns?.length ? (
+            ) : !linkedInAnalyticsData?.length ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
                   No LinkedIn campaigns available.
                 </TableCell>
               </TableRow>
             ) : (
-              campaigns.map(renderCampaignRow)
+              linkedInAnalyticsData.map(renderCampaignRow)
             )}
           </TableBody>
         </Table>
@@ -452,7 +502,7 @@ export default function Page() {
     if (shouldLoadOmniAnalytics) {
       fetchOmniAnalyticsDataIfNeeded();
     }
-  }, [shouldLoadOmniAnalytics, fetchOmniAnalyticsDataIfNeeded]);
+  }, [shouldLoadOmniAnalytics]);
 
   const getWeekDays = () => {
     let weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
@@ -509,11 +559,30 @@ export default function Page() {
                 </CardContent>
               </Card>
 
+              {dashboardData?.linkedin_account_status?.length > 0 && (
+                <Card className="cursor-pointer hover:bg-accent/50 transition-colors shadow-sm">
+                  <CardContent className="flex items-center justify-between pt-6">
+                    <div className="flex items-center gap-3">
+                      <p className="font-medium">
+                        Limit reached for account{dashboardData.linkedin_account_status.length > 1 ? 's ' : ' '}
+                        {dashboardData.linkedin_account_status.map((account, index: number) => (
+                          <span key={index}>
+                            {account}
+                            {index < dashboardData.linkedin_account_status.length - 1 && ', '}
+                          </span>
+                        ))}
+                        {' '}for the day. We will retry tomorrow.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <DashboardMetrics dashboardData={dashboardData} isLoading={isLoading} />
             </div>
 
             <Card className="col-span-3 shadow-sm">
-              <ScrollArea className="h-[20rem]">
+              <ScrollArea className="h-[28rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
                     <CardTitle>Email Campaign</CardTitle>
@@ -575,7 +644,7 @@ export default function Page() {
             </Card>
 
             <Card className="col-span-3">
-              <ScrollArea className="md:h-[26rem]">
+              <ScrollArea className="h-[28rem]">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <CardTitle>LinkedIn Campaign</CardTitle>
                 </CardHeader>
@@ -678,7 +747,7 @@ export default function Page() {
               </Card>
             </div>
             <div className="col-span-3">
-              <Card className=" shadow-sm">
+              <Card className="shadow-sm">
                 <ScrollArea className="h-[28rem]">
                   <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                     <div className="flex justify-between items-center">

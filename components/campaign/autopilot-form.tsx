@@ -35,7 +35,7 @@ const autopilotFormSchema = z.object({
   demo: z.boolean().optional(),
   not_interested: z.boolean().optional(),
   linkedin: z.boolean().optional(),
-  linkedin_first_message: z.boolean().optional(),
+  linkedin_sequence: z.boolean().optional(),
   linkedin_demo_replies: z.boolean().optional(),
   linkedin_replies: z.boolean().optional(),
 });
@@ -56,7 +56,7 @@ const defaultValues: Partial<AutopilotFormValues> = {
   demo: false,
   not_interested: false,
   linkedin: false,
-  linkedin_first_message: false,
+  linkedin_sequence: false,
   linkedin_demo_replies: false,
   linkedin_replies: false,
 };
@@ -69,9 +69,11 @@ const setFormValues = (setValue: any, values: Partial<AutopilotFormValues>) => {
   });
 };
 
+
 export function AutopilotForm() {
   const params = useParams<{ campaignId: string }>();
   const [type, setType] = useState<"create" | "edit">("create");
+  const [channel, setChannel] = useState('omni');
   const router = useRouter();
 
   const form = useForm<AutopilotFormValues>({
@@ -97,7 +99,7 @@ export function AutopilotForm() {
       demo: allMessagesActions,
       not_interested: allMessagesActions,
       linkedin: allMessagesActions,
-      linkedin_first_message: allMessagesActions,
+      linkedin_sequence: allMessagesActions,
       linkedin_demo_replies: allMessagesActions,
       linkedin_replies: allMessagesActions,
     });
@@ -115,7 +117,7 @@ export function AutopilotForm() {
       demo: reply,
       not_interested: reply,
       linkedin: reply,
-      linkedin_first_message: reply,
+      linkedin_sequence: reply,
       linkedin_demo_replies: reply,
       linkedin_replies: reply,
     });
@@ -146,6 +148,22 @@ export function AutopilotForm() {
     }
     fetchData();
   }, [params.campaignId, setValue]);
+
+  useEffect(() => {
+    async function fetchCampaignData() {
+      try {
+        const res = await axiosInstance.get(
+          `v2/campaigns/${params.campaignId}`
+        );
+        const campaignData = res.data.channel;
+        setChannel(campaignData);
+      } catch (error) {
+        console.error("Error fetching campaign data:", error);
+        toast.error("Failed to load campaign data.");
+      }
+    }
+    fetchCampaignData();
+  }, [params.campaignId]);
 
   async function onSubmit(data: AutopilotFormValues) {
     try {
@@ -189,93 +207,99 @@ export function AutopilotForm() {
     />
   );
 
+  const renderEmailFields = () => (
+    <>
+      {renderSwitchField(
+        "email",
+        "Outbound sequences",
+        "First contact and follow-ups as part of a campaign sequence."
+      )}
+      {renderSwitchField(
+        "replies",
+        "Replies",
+        "Responses and actions to inbound replies."
+      )}
+      <div className="pl-8 space-y-2">
+        {renderSwitchField(
+          "ooo",
+          "Out of office",
+          "Follow-up when they are back at work."
+        )}
+        {renderSwitchField(
+          "positive",
+          "Positive",
+          "Respond towards campaign goal on positive reply."
+        )}
+        {renderSwitchField(
+          "negative",
+          "Negative",
+          "Respond, mark as lost, and block contact on negative reply."
+        )}
+        {renderSwitchField(
+          "neutral",
+          "Neutral",
+          "Respond towards campaign goal on neutral reply."
+        )}
+        {renderSwitchField(
+          "maybe_later",
+          "Maybe later",
+          "Respond and follow-up later towards campaign goal."
+        )}
+        {renderSwitchField(
+          "forwarded",
+          "Forwarded",
+          "Start a new conversation on forwarded reply."
+        )}
+        {renderSwitchField(
+          "error",
+          "Error",
+          "Block contact and mark as lost if an email bounces."
+        )}
+        {renderSwitchField(
+          "demo",
+          "Demo",
+          "Respond send them a calendar link"
+        )}
+        {renderSwitchField(
+          "not_interested",
+          "Not Interested",
+          "Respond, ask for any other help and dont send any future campaign emails."
+        )}
+      </div>
+    </>
+  );
+
+  const renderLinkedInFields = () => (
+    <>
+      {renderSwitchField(
+        "linkedin_sequence",
+        "LinkedIn Sequences",
+        "Send a Linkedin Comments, Linkedin message and follow up messages."
+      )}
+      {renderSwitchField(
+        "linkedin_demo_replies",
+        "LinkedIn Demo Replies",
+        "Send a demo reply to the lead if they are connected."
+      )}
+      {renderSwitchField(
+        "linkedin_replies",
+        "LinkedIn Replies",
+        "Send a reply to the lead if they are connected."
+      )}
+    </>
+  );
+
   return (
     <div className="w-4/5 border p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {renderSwitchField(
+        { channel === 'omni' && renderSwitchField(
             "all_messages_actions",
             "All messages and actions",
             "Turn on autopilot for all messages and actions."
           )}
-          {renderSwitchField(
-            "email",
-            "Outbound sequences",
-            "First contact and follow-ups as part of a campaign sequence."
-          )}
-          {renderSwitchField(
-            "replies",
-            "Replies",
-            "Responses and actions to inbound replies."
-          )}
-
-          <div className="pl-8 space-y-2">
-            {renderSwitchField(
-              "ooo",
-              "Out of office",
-              "Follow-up when they are back at work."
-            )}
-            {renderSwitchField(
-              "positive",
-              "Positive",
-              "Respond towards campaign goal on positive reply."
-            )}
-            {renderSwitchField(
-              "negative",
-              "Negative",
-              "Respond, mark as lost, and block contact on negative reply."
-            )}
-            {renderSwitchField(
-              "neutral",
-              "Neutral",
-              "Respond towards campaign goal on neutral reply."
-            )}
-            {renderSwitchField(
-              "maybe_later",
-              "Maybe later",
-              "Respond and follow-up later towards campaign goal."
-            )}
-            {renderSwitchField(
-              "forwarded",
-              "Forwarded",
-              "Start a new conversation on forwarded reply."
-            )}
-            {renderSwitchField(
-              "error",
-              "Error",
-              "Block contact and mark as lost if an email bounces."
-            )}
-            {renderSwitchField(
-              "demo",
-              "Demo",
-              "Respond send them a calendar link"
-            )}
-            {renderSwitchField(
-              "not_interested",
-              "Not Interested",
-              "Respond, ask for any other help and dont send any future campaign emails."
-            )}
-            {renderSwitchField(
-              "linkedin",
-              "LinkedIn Message",
-              "Send a LinkedIn message if the lead is connected."
-            )}
-            {renderSwitchField(
-              "linkedin_first_message",
-              "LinkedIn First Message",
-              "Send a first message to the lead if they are connected."
-            )}
-            {renderSwitchField(
-              "linkedin_demo_replies",
-              "LinkedIn Demo Replies",
-              "Send a demo reply to the lead if they are connected."
-            )}
-            {renderSwitchField(
-              "linkedin_replies",
-              "LinkedIn Replies",
-              "Send a reply to the lead if they are connected."
-            )}
-          </div>
+          {(channel === 'mail' || channel === 'omni') && renderEmailFields()}
+          {(channel === 'Linkedin' || channel === 'omni') && renderLinkedInFields()}
 
           <Button type="submit">Update notifications</Button>
         </form>

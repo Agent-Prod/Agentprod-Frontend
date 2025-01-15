@@ -56,4 +56,5 @@ export interface DashboardData {
   email_stats: EmailStats;
   linkedin_data: LinkedinData[];
   total_leads: number;
+  linkedin_account_status: string[];
 }

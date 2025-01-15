@@ -42,8 +42,10 @@ interface AuthState {
   session: UserSession | null;
   loading: boolean;
   token: string | null;
+  refreshToken: string | null;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  setRefreshToken: (refreshToken: string | null) => void;
   login: (userData: { user_id: { user: User; session: UserSession } }) => void;
   logout: () => void;
   updateUser: (updatedFields: Partial<User>) => void;
@@ -54,8 +56,10 @@ const defaultState: AuthState = {
   session: null,
   loading: true,
   token: null,
+  refreshToken: null,
   setUser: () => { },
   setToken: () => { },
+  setRefreshToken: () => { },
   login: () => { },
   logout: () => { },
   updateUser: () => { },
@@ -67,6 +71,7 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 const USER_KEY = "user";
 const TOKEN_KEY = "auth-token";
 const SESSION_KEY = "auth-session";
+const REFRESH_TOKEN_KEY = "auth-refresh-token";
 
 // Helper functions for cookie management
 function getUserFromCookies(): User | null {
@@ -82,6 +87,11 @@ function getSessionFromCookies(): UserSession | null {
 function getTokenFromCookies(): string | null {
   const token = getCookie(TOKEN_KEY);
   return token ? (token as string) : null;
+}
+
+function getRefreshTokenFromCookies(): string | null {
+  const refreshToken = getCookie(REFRESH_TOKEN_KEY);
+  return refreshToken ? (refreshToken as string) : null;
 }
 
 function setUserInCookies(user: User | null) {
@@ -111,11 +121,20 @@ function setTokenInCookies(token: string | null) {
   }
 }
 
+function setRefreshTokenInCookies(refreshToken: string | null) {
+  if (refreshToken) {
+    setCookie(REFRESH_TOKEN_KEY, refreshToken, { maxAge: 604800 }); // 1 week
+  } else {
+    deleteCookie(REFRESH_TOKEN_KEY);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(getUserFromCookies());
   const [session, setSession] = useState<UserSession | null>(getSessionFromCookies());
   const [token, setToken] = useState<string | null>(getTokenFromCookies());
+  const [refreshToken, setRefreshToken] = useState<string | null>(getRefreshTokenFromCookies());
   const [loading, setLoading] = useState(true);
 
   // Update cookies when states change
@@ -147,13 +166,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.id]);
 
+  useEffect(() => {
+    setRefreshTokenInCookies(refreshToken);
+  }, [refreshToken]);
+
   const login = (userData: { user_id: { user: User; session: UserSession } }) => {
     const { user: newUser, session: newSession } = userData.user_id;
     const newToken = newSession.access_token;
+    const newRefreshToken = newSession.refresh_token;
 
     setUser(newUser);
     setSession(newSession);
     setToken(newToken);
+    setRefreshToken(newRefreshToken);
     router.push("/dashboard");
   };
 
@@ -161,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setToken(null);
+    setRefreshToken(null);
     router.push("/");
   };
 
@@ -174,8 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       loading,
       token,
+      refreshToken,
       setUser,
       setToken,
+      setRefreshToken,
       login,
       logout,
       updateUser,

@@ -74,6 +74,7 @@ const goalFormSchema = z.object({
     .min(0, { message: "Mark as lost must be a non-negative number" })
     .default(0),
   sequence: z.any().optional(),
+  linkedin_send_message_with_request: z.boolean().optional().default(false),
 }).refine((data) => {
   // Only validate scheduling_link when success_metric is "Meeting scheduled"
   if (data.success_metric === "Meeting scheduled") {
@@ -87,7 +88,9 @@ const goalFormSchema = z.object({
 
 type GoalFormValues = z.infer<typeof goalFormSchema>;
 
-const defaultValues: Partial<GoalFormValues> = {};
+const defaultValues: Partial<GoalFormValues> = {
+  linkedin_send_message_with_request: false,
+};
 
 export function GoalForm() {
   const defaultFormsTracker = {
@@ -201,7 +204,8 @@ export function GoalForm() {
           linkedin_accounts: (campaignChannel === 'Linkedin' || campaignChannel === 'omni') && selectedLinkedInId.length > 0
             ? selectedLinkedInId
             : null,
-          sequence: flowData
+          sequence: flowData,
+          linkedin_send_message_with_request: data.linkedin_send_message_with_request
         };
 
         console.log("payload", payload);
@@ -214,7 +218,8 @@ export function GoalForm() {
           linkedin_accounts: (campaignChannel === 'Linkedin' || campaignChannel === 'omni') && selectedLinkedInId.length > 0
             ? selectedLinkedInId
             : null,
-          sequence: flowData
+          sequence: flowData,
+          linkedin_send_message_with_request: data.linkedin_send_message_with_request
         };
         console.log("payload", payload);
         await editGoal(payload as GoalFormData, goalData?.id as string, params.campaignId);
@@ -879,57 +884,89 @@ export function GoalForm() {
             </div>
           </div>)} */}
 
+
         {campaignChannel === 'mail' && (<div>
-            <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
+          <FormLabel className="tex-sm font-medium">Follow Up</FormLabel>
 
-            <div className="flex gap-4 items-center mt-3">
-              <FormField
-                control={form.control}
-                name="follow_up_days"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <p className="text-sm mb-3">Days between follow-ups</p>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? undefined : Number(value));
-                        }}
-                        value={field.value ?? ""}
-                        min="0"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="flex gap-4 items-center mt-3">
+            <FormField
+              control={form.control}
+              name="follow_up_days"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <p className="text-sm mb-3">Days between follow-ups</p>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : Number(value));
+                      }}
+                      value={field.value ?? ""}
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="follow_up_times"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <p className="text-sm mb-3">Number of follow-ups</p>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? undefined : Number(value));
-                        }}
-                        value={field.value ?? ""}
-                        min="0"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>)}
+            <FormField
+              control={form.control}
+              name="follow_up_times"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <p className="text-sm mb-3">Number of follow-ups</p>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : Number(value));
+                      }}
+                      value={field.value ?? ""}
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>)}
+
+
+
+        {(campaignChannel === 'Linkedin' || campaignChannel === 'omni') && (
+          <FormField
+            control={form.control}
+            name="linkedin_send_message_with_request"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Send message with connection request
+                  </FormLabel>
+                  <FormDescription>
+                    Add a personalized message to your connection requests. 
+                  </FormDescription>
+                  <FormDescription>
+                    Note: Message customization is only available with LinkedIn Premium accounts.
+                  </FormDescription>
+
+                </div>
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

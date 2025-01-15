@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Header from "@/components/layout/header";
 import {
@@ -20,6 +20,7 @@ import { PageHeaderProvider } from "@/context/page-header";
 import axios from "axios";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
+import { setCookie, getCookie } from "cookies-next";
 
 export default function ParentLayout({
     children,
@@ -29,11 +30,13 @@ export default function ParentLayout({
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const { width } = useWindowSize();
     const { user } = useAuth();
+    const [isRefreshing, setIsRefreshing] = useState(true);
 
     const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const verificationAttemptsRef = useRef(0);
     const MAX_VERIFICATION_ATTEMPTS = 20;
     const hasInitializedRef = useRef(false);
+
 
     useEffect(() => {
         if (!user) {
@@ -55,6 +58,35 @@ export default function ParentLayout({
             }
         };
     }, [user]);
+
+    useEffect(() => {
+        const checkAndRefreshToken = async () => {
+            setIsRefreshing(true);
+            const loginTimestamp = localStorage.getItem('login_timestamp');
+            const lastLoginTime = loginTimestamp ? new Date(loginTimestamp) : new Date();
+            const currentTime = new Date();
+            const timeDifference = currentTime.getTime() - lastLoginTime.getTime();
+            console.log("loginTimestamp", timeDifference);
+
+            if (timeDifference > 1000 * 60 * 60 * 24 * 5) {
+                const refreshToken = getCookie('auth-refresh-token');
+                const response = await axiosInstance.post('/v2/users/refresh-token', {
+                    refresh_token: refreshToken
+                });
+
+                if (response.data?.access_token) {
+                    setCookie('auth-token', response.data.access_token, { maxAge: 604800 });
+                    setCookie('auth-refresh-token', response.data.refresh_token, { maxAge: 604800 });
+                    localStorage.setItem('login_timestamp', new Date().toISOString());
+                }
+                setIsRefreshing(false);
+            }
+            setIsRefreshing(false);
+        };
+
+        checkAndRefreshToken();
+
+    }, []);
 
     const startVerification = () => {
         const domain = localStorage.getItem('domainInput');
@@ -94,6 +126,10 @@ export default function ParentLayout({
             }
         }, 60 * 1000);
     };
+
+    if(isRefreshing) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>
@@ -158,3 +194,5 @@ export default function ParentLayout({
         </>
     );
 }
+
+

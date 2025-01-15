@@ -1,7 +1,7 @@
 name: Test Server CI/CD
 on:
   push:
-    branches: [omni]
+    branches: [10jan]
 
 jobs:
   deploy:

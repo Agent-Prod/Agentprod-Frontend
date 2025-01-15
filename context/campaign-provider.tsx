@@ -40,6 +40,7 @@ export interface GoalFormData {
   like_post?: number;
   withdraw_invite?: number;
   sequence?: any
+  linkedin_send_message_with_request?: boolean;
 }
 
 export interface GoalData {
@@ -349,11 +350,15 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       like_post: data.like_post,
       withdraw_invite: data.withdraw_invite,
       sequence: data.sequence,
+      linkedin_send_message_with_request: data.linkedin_send_message_with_request
     };
+
+    console.log("Creating goal with postData:", JSON.stringify(postData, null, 2));
 
     axiosInstance
       .post("v2/goals/", postData)
       .then((response) => {
+        console.log("Goal created with response:", response.data);
         let formsTracker = JSON.parse(
           localStorage.getItem("formsTracker") || "{}"
         );
@@ -386,11 +391,21 @@ export const CampaignProvider: React.FunctionComponent<Props> = ({
       like_post: data.like_post,
       withdraw_invite: data.withdraw_invite,
       sequence: data.sequence,
+      linkedin_send_message_with_request: data.linkedin_send_message_with_request
     };
+
+    console.log("Editing goal with putData:", JSON.stringify(putData, null, 2));
 
     axiosInstance
       .put(`v2/goals/${goalId}`, putData)
       .then((response) => {
+        console.log("Goal edited with response:", response.data);
+        let formsTracker = JSON.parse(
+          localStorage.getItem("formsTracker") || "{}"
+        );
+        formsTracker.goal = true;
+        localStorage.setItem("formsTracker", JSON.stringify(formsTracker));
+
         console.log("Goal edited successfully:", response.data);
         router.push(`/campaign/${campaignId}`);
       })

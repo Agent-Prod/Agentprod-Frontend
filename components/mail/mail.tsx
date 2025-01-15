@@ -73,6 +73,7 @@ export interface Conversations {
   campaign_id: string;
   updated_at: string;
   status: string;
+  linkedin_sender: string;
   name: string;
   photo_url: string | null;
   organization?: {
@@ -705,6 +706,22 @@ export function Mail({
                     <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
                       Delivered
                     </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_CONNECTED")}>
+                    Linkedin Connected
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_SENT")}>
+                    Linkedin Sent
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_WITHDRAWN")}>
+                    Linkedin Withdrawn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_FAILED")}>
+                    Linkedin Failed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
+                    LINKEDIN PENDING
+                    </DropdownMenuItem>
+                    
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -812,6 +829,7 @@ export function Mail({
                 campaign_name={currentMail?.campaign_name || ''}
                 campaign_id={currentMail?.campaign_id || ''}
                 contact_id={currentMail?.contact_id || ''}
+                linkedinSender={currentMail?.linkedin_sender || ''}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

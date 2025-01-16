@@ -38,6 +38,8 @@ export interface EmailMessage {
   channel?: any;
   connected_on_linkedin?: any;
   linkedin_url?: any;
+  connection_sent_time?: any;
+  connection_accepted_time?: any;
 }
 
 export interface Mailbox {
@@ -55,15 +57,15 @@ export interface Mailbox {
 
 const defaultState: Mailbox = {
   conversationId: "",
-  setConversationId: () => {},
+  setConversationId: () => { },
   thread: [],
-  setThread: () => {},
+  setThread: () => { },
   recipientEmail: "",
-  setRecipientEmail: () => {},
+  setRecipientEmail: () => { },
   senderEmail: "",
-  setSenderEmail: () => {},
+  setSenderEmail: () => { },
   isContextBarOpen: false,
-  setIsContextBarOpen: () => {},
+  setIsContextBarOpen: () => { },
 };
 
 // Creating the context

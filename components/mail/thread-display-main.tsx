@@ -138,6 +138,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
   const [linkedinSenderName, setLinkedinSenderName] = useState<string>('');
 
+
   useEffect(() => {
     async function fetchLinkedinSenderName() {
       if (!linkedinSender) return;
@@ -578,6 +579,50 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 ? linkedInInteractions
                 : null;
             })()}
+            connection_sent_time={(() => {
+              if (!email.created_at || !email.connection_sent_time) return null;
+
+              // Get the first message in the thread
+              const firstMessage = thread[0];
+
+              // Show connection sent only with the first message if it happened before the conversation
+              if (new Date(email.connection_sent_time) < new Date(firstMessage.created_at)) {
+                return email.id === firstMessage.id ? email.connection_sent_time : null;
+              }
+
+              // Otherwise, show it after the last message before the connection request
+              const messagesBeforeConnection = thread
+                .filter(e => e.created_at &&
+                  new Date(e.created_at) <= new Date(email.connection_sent_time))
+                .sort((a, b) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+              return messagesBeforeConnection[0]?.id === email.id
+                ? email.connection_sent_time
+                : null;
+            })()}
+            connection_accepted_time={(() => {
+              if (!email.created_at || !email.connection_accepted_time) return null;
+
+              // Get the first message in the thread
+              const firstMessage = thread[0];
+
+              // Show connection accepted only with the first message if it happened before the conversation
+              if (new Date(email.connection_accepted_time) < new Date(firstMessage.created_at)) {
+                return email.id === firstMessage.id ? email.connection_accepted_time : null;
+              }
+
+              // Otherwise, show it after the last message before the connection acceptance
+              const messagesBeforeAcceptance = thread
+                .filter(e => e.created_at &&
+                  new Date(e.created_at) <= new Date(email.connection_accepted_time))
+                .sort((a, b) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+              return messagesBeforeAcceptance[0]?.id === email.id
+                ? email.connection_accepted_time
+                : null;
+            })()}
           />
         </div>
       );
@@ -585,7 +630,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    if (linkedinSender === "") return null;
+    if (leads[0]?.type !== "Linkedin") return null;
 
     return (
       <div className="m-4">

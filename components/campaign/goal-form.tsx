@@ -417,7 +417,7 @@ export function GoalForm() {
   };
 
   const handleTotalDelayChange = (totalDays: number) => {
-    setMinimumMarkAsLost(totalDays + 2);
+    setMinimumMarkAsLost(totalDays);
   };
 
   return (<>
@@ -956,7 +956,7 @@ export function GoalForm() {
                     Send message with connection request
                   </FormLabel>
                   <FormDescription>
-                    Add a personalized message to your connection requests. 
+                    Add a personalized message to your connection requests.
                   </FormDescription>
                   <FormDescription>
                     Note: Message customization is only available with LinkedIn Premium accounts.

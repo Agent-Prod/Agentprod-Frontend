@@ -196,7 +196,7 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
             const findNextNode = (currentNode: Node) => {
               const delayEdge = edges.find(e => e.source === currentNode.id);
               if (!delayEdge) return null;
-              
+
               const delayNode = nodes.find(n => n.id === delayEdge.target);
               if (!delayNode) return null;
 
@@ -1057,15 +1057,64 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
   }, [channel]);
 
   const calculateTotalDelay = useCallback(() => {
-    const delayNodes = nodes.filter(node => node.type === 'delayNode');
-    const totalDays = delayNodes.reduce((sum, node) => sum + (node.data.days || 0), 0);
-    return totalDays;
-  }, [nodes]);
+    // For LinkedIn connection nodes, we need to track left and right paths separately
+    const calculatePathDelay = (startNodeId: string, visited = new Set<string>()): number => {
+      if (visited.has(startNodeId)) return 0;
+      visited.add(startNodeId);
+
+      let totalDelay = 0;
+      const currentNode = nodes.find(node => node.id === startNodeId);
+
+      if (currentNode?.type === 'delayNode') {
+        totalDelay += currentNode.data.days || 0;
+      }
+
+      // Find all outgoing edges from this node
+      const outgoingEdges = edges.filter(edge => edge.source === startNodeId);
+
+      // Calculate delays for all child paths and take the maximum
+      const childDelays = outgoingEdges.map(edge =>
+        calculatePathDelay(edge.target, new Set(visited))
+      );
+
+      return totalDelay + (childDelays.length > 0 ? Math.max(...childDelays) : 0);
+    };
+
+    // Find LinkedIn connection nodes
+    const linkedInNodes = nodes.filter(node => node.type === 'linkedInNode');
+
+    if (linkedInNodes.length > 0) {
+      // For each LinkedIn node, calculate left and right path delays
+      const pathDelays = linkedInNodes.map(linkedInNode => {
+        const leftEdge = edges.find(edge =>
+          edge.source === linkedInNode.id &&
+          edge.sourceHandle === 'source-left'
+        );
+        const rightEdge = edges.find(edge =>
+          edge.source === linkedInNode.id &&
+          edge.sourceHandle === 'source-right'
+        );
+
+        const leftPathDelay = leftEdge ? calculatePathDelay(leftEdge.target) : 0;
+        const rightPathDelay = rightEdge ? calculatePathDelay(rightEdge.target) : 0;
+
+        return Math.max(leftPathDelay, rightPathDelay);
+      });
+
+      // Take the maximum delay from all LinkedIn nodes
+      return Math.max(...pathDelays);
+    } else {
+      // For non-LinkedIn flows, calculate total delay as before
+      const delayNodes = nodes.filter(node => node.type === 'delayNode');
+      return delayNodes.reduce((sum, node) => sum + (node.data.days || 0), 0);
+    }
+  }, [nodes, edges]);
 
   useEffect(() => {
-    const totalDays = calculateTotalDelay();
-    onTotalDelayChange?.(totalDays);
-  }, [nodes, calculateTotalDelay, onTotalDelayChange]);
+    const maxDelay = calculateTotalDelay();
+    // Add 2 days buffer to the maximum delay
+    onTotalDelayChange?.(maxDelay);
+  }, [nodes, edges, calculateTotalDelay, onTotalDelayChange]);
 
   return (
     <Card className="w-full flex flex-col bg-background border rounded-none">

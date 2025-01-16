@@ -415,15 +415,37 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 50, y: 150 },
             data: {
-                label: "2 days",
-                days: 2,
-                defaultDays: 2,
+                label: "1 day",
+                days: 1,
+                defaultDays: 1,
+            },
+        },
+        {
+            id: 'like-and-comment',
+            type: 'emailNode',
+            position: { x: 50, y: 300 },
+            data: {
+                label: 'Like and Comment on Post',
+                onActionClick: () => handlers.handleActionClick('like-and-comment'),
+                onEndClick: () => handlers.handleEndClick('like-and-comment'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-after-like',
+            type: 'delayNode',
+            position: { x: 50, y: 450 },
+            data: {
+                label: "7 days",
+                days: 7,
+                defaultDays: 7,
             },
         },
         {
             id: 'withdraw-request',
             type: 'emailNode',
-            position: { x: 50, y: 300 },
+            position: { x: 50, y: 600 },
             data: {
                 label: 'Withdraw Connection Request',
                 onActionClick: () => handlers.handleActionClick('withdraw-request'),
@@ -435,7 +457,7 @@ export const createDefaultLinkedInFlow = (handlers: {
         {
             id: 'delay-withdraw',
             type: 'delayNode',
-            position: { x: 50, y: 450 },
+            position: { x: 50, y: 750 },
             data: {
                 label: "1 day",
                 days: 1,
@@ -445,8 +467,10 @@ export const createDefaultLinkedInFlow = (handlers: {
         {
             id: 'action-left',
             type: 'actionNode',
-            position: { x: 50, y: 600 },
+            position: { x: 50, y: 900 },
             data: {
+                label: 'Add action',
+                isEnd: false,
                 onActionClick: () => handlers.handleActionClick('action-left'),
                 onEndClick: () => handlers.handleEndClick('action-left'),
                 onChange: handlers.handleDelayChange,
@@ -512,6 +536,8 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'actionNode',
             position: { x: 450, y: 900 },
             data: {
+                label: 'Add action',
+                isEnd: false,
                 onActionClick: () => handlers.handleActionClick('action-right'),
                 onEndClick: () => handlers.handleEndClick('action-right'),
                 onChange: handlers.handleDelayChange,
@@ -532,19 +558,33 @@ export const createDefaultLinkedInFlow = (handlers: {
         {
             id: 'e2-left',
             source: 'delay-not-accepted',
-            target: 'withdraw-request',
+            target: 'like-and-comment',
             type: 'smoothstep',
             style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
         },
         {
             id: 'e3-left',
+            source: 'like-and-comment',
+            target: 'delay-after-like',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e4-left',
+            source: 'delay-after-like',
+            target: 'withdraw-request',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e5-left',
             source: 'withdraw-request',
             target: 'delay-withdraw',
             type: 'smoothstep',
             style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
         },
         {
-            id: 'e4-left',
+            id: 'e6-left',
             source: 'delay-withdraw',
             target: 'action-left',
             type: 'smoothstep',

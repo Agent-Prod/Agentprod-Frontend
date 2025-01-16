@@ -161,27 +161,16 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
   useEffect(() => {
     if (thread?.length > 0) {
-      const linkedInInteractionTime = thread[0]?.like_comment_date ? new Date(thread[0].like_comment_date) : null;
+      // Find the first message with interaction
+      const messageWithInteraction = thread[0];  // Take the first message since all have the same interaction
 
-      if (linkedInInteractionTime) {
-        const appropriateEmail = thread.reduce((latest, email) => {
-          const emailTime = new Date(email.created_at);
-          if (emailTime <= linkedInInteractionTime) {
-            if (!latest || emailTime > new Date(latest.created_at)) {
-              return email;
-            }
-          }
-          return latest;
-        }, null as EmailMessage | null);
-
-        if (appropriateEmail) {
-          setLinkedInInteractions({
-            like_comment_date: thread[0].like_comment_date,
-            comment: thread[0].comment
-          });
-        } else {
-          setLinkedInInteractions(null);
-        }
+      if (messageWithInteraction?.like_comment_date && messageWithInteraction?.comment) {
+        setLinkedInInteractions({
+          like_comment_date: messageWithInteraction.like_comment_date,
+          comment: messageWithInteraction.comment
+        });
+      } else {
+        setLinkedInInteractions(null);
       }
     }
   }, [thread]);
@@ -567,19 +556,28 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           <Notification
             email={email}
             isLatestEmail={false}
-            linkedInInteractions={
-              email.created_at && linkedInInteractions?.like_comment_date
-                ? new Date(email.created_at) >= new Date(linkedInInteractions.like_comment_date)
-                  ? null
-                  : new Date(email.created_at).getTime() ===
-                    Math.max(...thread
-                      .filter(e => e.created_at && new Date(e.created_at) <= new Date(linkedInInteractions.like_comment_date))
-                      .map(e => new Date(e.created_at).getTime())
-                    )
-                    ? linkedInInteractions
-                    : null
-                : null
-            }
+            linkedInInteractions={(() => {
+              if (!email.created_at || !linkedInInteractions?.like_comment_date) return null;
+
+              // Get the first message in the thread
+              const firstMessage = thread[0];
+
+              // Show interaction only with the first message if interaction happened before the conversation
+              if (new Date(linkedInInteractions.like_comment_date) < new Date(firstMessage.created_at)) {
+                return email.id === firstMessage.id ? linkedInInteractions : null;
+              }
+
+              // Otherwise, show it after the last message before the interaction
+              const messagesBeforeInteraction = thread
+                .filter(e => e.created_at &&
+                  new Date(e.created_at) <= new Date(linkedInInteractions.like_comment_date))
+                .sort((a, b) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+              return messagesBeforeInteraction[0]?.id === email.id
+                ? linkedInInteractions
+                : null;
+            })()}
           />
         </div>
       );

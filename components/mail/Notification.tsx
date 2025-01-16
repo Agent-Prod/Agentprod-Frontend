@@ -1045,15 +1045,14 @@ const Notification: React.FC<NotificationProps> = ({
       {linkedInInteractions?.comment && (
         <div className="flex items-center gap-3">
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
-            <MessageSquare className="h-4 w-4 text-gray-400" />
+            <MessageSquare className=" ml-2 mr-2 h-4 w-4 text-gray-400 " />
           </div>
-          <p className="ml-1 text-xs">
-            Commented on Recipient&apos;s LinkedIn post: "{linkedInInteractions.comment.trim().slice(0, 20)}
-            {linkedInInteractions.comment.length > 50 ? '...' : ''}"
+          <p className="ml-1 text-xs ">
+            Commented on Recipient&apos;s LinkedIn post: "{linkedInInteractions.comment}"
           </p>
-          <span className="text-gray-400 text-xs">
+          {/* <span className="text-gray-400 text-xs">
             {linkedInInteractions.like_comment_date && formatDate(linkedInInteractions.like_comment_date)}
-          </span>
+          </span> */}
         </div>
       )}
 

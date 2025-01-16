@@ -109,7 +109,9 @@ const FormSchema = z.object({
       text: z.number(),
     })
     .optional(),
-  per_page: z.number(),
+  per_page: z.number()
+    .min(1, "Number of leads must be at least 1")
+    .max(200, "Number of leads cannot exceed 200"),
   person_titles: z
     .array(
       z.object({
@@ -189,6 +191,10 @@ export default function PeopleForm(): JSX.Element {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      per_page: 10, // Set default value to match initial leadsNum
+      // ... other default values
+    }
   });
   const { leads, setLeads, selectedLeadIds } = useLeads();
   const { isSubscribed } = useSubscription();
@@ -841,7 +847,7 @@ export default function PeopleForm(): JSX.Element {
   };
 
   const min = 0;
-  const [leadsNum, setLeadsNum] = useState<number>(25);
+  const [leadsNum, setLeadsNum] = useState<number>(10);
 
   type CheckboxOptions = {
     name: string;
@@ -1957,12 +1963,20 @@ export default function PeopleForm(): JSX.Element {
                             placeholder={"Enter the number of leads you want"}
                             className="sm:min-w-[450px] outline-none"
                             value={field.value || leadsNum}
-                            min={0}
+                            min={1}
                             max={linkedinSelectionType === "Linkedin" || linkedinSelectionType === "omni" ? sumCount : 200}
                             onChange={(e) => {
                               const value = e.target.value;
-                              const numberValue = value === "" ? undefined : Number(value);
-                              field.onChange(numberValue);
+                              const numberValue = Number(value);
+                              if (!isNaN(numberValue)) {
+                                field.onChange(numberValue);
+                                setLeadsNum(numberValue);
+                              }
+                            }}
+                            onBlur={() => {
+                              if (!field.value) {
+                                field.onChange(leadsNum);
+                              }
                             }}
                           />
                         </div>
@@ -1971,8 +1985,6 @@ export default function PeopleForm(): JSX.Element {
                         These are the number of leads that you&apos;re
                         interested in select between 1 - {linkedinSelectionType === "Linkedin" || linkedinSelectionType === "omni" ? sumCount : 200}.
                       </FormDescription>
-                      {/* <FormDescription>
-                        Enter the number of leads you're interested in, in multiples of 25 (e.g., 25, 50, 75, 100, 125).                      </FormDescription> */}
                       <FormMessage />
                     </FormItem>
                   )}

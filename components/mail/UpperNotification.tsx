@@ -5,28 +5,9 @@ import { Check, LinkedinIcon } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 
-function UpperNotification({ connection_sent_time, connection_accepted_time, linkedin_url, name }: { connection_sent_time: string, connection_accepted_time: string, linkedin_url: string, name: string }) {
-    const [linkedinSenderName, setLinkedinSenderName] = useState<string>('');
-    useEffect(() => {
-        async function fetchLinkedinSenderName() {
-            if (!linkedin_url) return;
+function UpperNotification({ connection_sent_time, connection_accepted_time, linkedin_url, name, message_sent_with_invite, invite_message, linkedin_sender_name }:
+    { connection_sent_time: string, connection_accepted_time: string, linkedin_url: string, name: string, message_sent_with_invite: string, invite_message: string, linkedin_sender_name: string }) {
 
-            try {
-                const res = await axiosInstance.post(
-                    'v2/linkedin/user-linkedin-name',
-                    {
-                        url: linkedin_url
-                    }
-                );
-                setLinkedinSenderName(res.data.name);
-            } catch (error) {
-                console.error("Error fetching LinkedIn sender name:", error);
-                toast.error("Failed to load LinkedIn sender information.");
-            }
-        }
-
-        fetchLinkedinSenderName();
-    }, [linkedin_url]);
     const formatDate = (dateString: string) => {
         if (!dateString) return "";
 
@@ -83,7 +64,7 @@ function UpperNotification({ connection_sent_time, connection_accepted_time, lin
                         <LinkedinIcon className="h-4 w-4 text-gray-400 ml-2 mr-2" />
                     </div>
                     <p className="ml-1 text-xs">
-                        {name} has been sent a connection request from {linkedinSenderName || linkedin_url}
+                        {name} has been sent a connection request from {linkedin_url || linkedin_sender_name}
                     </p>
                     <span className="text-gray-400 text-xs">
                         {formatDate(connection_sent_time)}
@@ -97,11 +78,23 @@ function UpperNotification({ connection_sent_time, connection_accepted_time, lin
                         <Check className="h-4 w-4 text-gray-400 ml-2 mr-2" />
                     </div>
                     <p className="ml-1 text-xs">
-                        {name} has accepted your connection request from {linkedinSenderName || linkedin_url}
+                        {name} has accepted your connection request from {linkedin_url || linkedin_sender_name}
                     </p>
                     <span className="text-gray-400 text-xs">
                         {formatDate(connection_accepted_time)}
                     </span>
+                </div>
+            )}
+
+            {(connection_accepted_time && message_sent_with_invite) && (
+                <div className="flex items-center gap-3 my-2">
+                    <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+                        <Check className="h-4 w-4 text-gray-400 ml-2 mr-2" />
+                    </div>
+                    <p className="ml-1 text-xs">
+                        Linkedin Invite Message: <span className="text-gray-400">{invite_message}</span>
+                    </p>
+
                 </div>
             )}
         </div>

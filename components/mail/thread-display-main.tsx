@@ -552,7 +552,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 : null;
             })()}
             linkedin_url={linkedinSender}
-            name={name} />
+            linkedin_sender_name={linkedinSenderName}
+            name={name}
+            message_sent_with_invite={email.message_sent_with_invite}
+            invite_message={email.invite_message}
+          />
           <div className="flex w-full ">
             <Avatar
               className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"

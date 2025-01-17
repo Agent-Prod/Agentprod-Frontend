@@ -25,6 +25,7 @@ import { useButtonStatus } from "@/context/button-status";
 import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
+import BetaTag from "../ui/tag/BetaTag";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
@@ -223,9 +224,7 @@ export function SchedulingForm() {
                       >
                         {campaignType} {campaignType === "Inbound" ? "/ Upload Your Own Leads" : ""}
                         {(campaignType === "Inbound" || campaignType === "Nurturing") && (
-                          <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
-                            Beta
-                          </span>
+                          <BetaTag />
                         )}
                       </FormLabel>
                     </FormItem>
@@ -311,9 +310,7 @@ export function SchedulingForm() {
                     >
                       Linkedin
                     </FormLabel>
-                    <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
-                      Beta
-                    </span>
+                    <BetaTag />
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
@@ -328,9 +325,7 @@ export function SchedulingForm() {
                     >
                       Multi-Channel
                     </FormLabel>
-                    <span className="ml-2 rounded-full px-2 py-1 text-xs font-semibold text-white/70 border-white/80 border">
-                      Beta
-                    </span>
+                    <BetaTag />
                   </FormItem>
                 </RadioGroup>
               </FormControl>

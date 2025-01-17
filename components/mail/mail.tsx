@@ -736,7 +736,7 @@ export function Mail({
             <div className="bg-background/95 px-4 pt-4 pb-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <form className="relative" onSubmit={(e) => { e.preventDefault(); handleSearchClick(); }}>
                 <Input
-                  placeholder="Search emails..."
+                  placeholder="Search conversations..."
                   className="w-full pl-4 pr-10 h-9 bg-muted/50 border-none"
                   value={filterState.searchTerm}
                   onChange={handleSearchChange}

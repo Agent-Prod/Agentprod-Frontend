@@ -191,7 +191,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isOfferingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isOfferingDisabled ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>
@@ -221,7 +221,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isGoalDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isGoalDisabled ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>
@@ -247,7 +247,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${qualification ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${qualification ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>
@@ -277,7 +277,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAudienceDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAudienceDisabled ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>
@@ -305,7 +305,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAutoPilotDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isAutoPilotDisabled ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>
@@ -335,7 +335,7 @@ export default function Page() {
           </Card>
 
           <Card
-            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isTrainingDisabled ? "bg-gray-100/10 cursor-not-allowed" : ""
+            className={`w-[95%] min-w-[330px] m-2 flex justify-between ${isTrainingDisabled ? "dark:bg-gray-100/10 bg-gray-300 cursor-not-allowed" : ""
               }`}
           >
             <CardHeader>

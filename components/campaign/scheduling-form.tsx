@@ -309,8 +309,8 @@ export function SchedulingForm() {
                       className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
                     >
                       Linkedin
+                      <BetaTag />
                     </FormLabel>
-                    <BetaTag />
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
@@ -324,8 +324,8 @@ export function SchedulingForm() {
                       className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
                     >
                       Multi-Channel
+                      <BetaTag />
                     </FormLabel>
-                    <BetaTag />
                   </FormItem>
                 </RadioGroup>
               </FormControl>

@@ -261,9 +261,9 @@ const MailList: React.FC<MailListProps> = ({
                   )}
                 </div>
                 {item.subject === "" ? (
-                  <LinkedinIcon className="w-3 h-3 text-white" />
+                  <LinkedinIcon className="w-3 h-3 dark:text-white text-black" />
                 ) : (
-                  <Mail className="w-3 h-3 text-white" />
+                  <Mail className="w-3 h-3 dark:text-white text-black" />
                 )}
 
                 <span className="text-xs text-gray-400">

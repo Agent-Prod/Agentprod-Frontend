@@ -251,7 +251,7 @@ export default function Page() {
               }`}
           >
             <CardHeader>
-              <CardTitle>Qualification</CardTitle>
+              <CardTitle>Researcher Agents</CardTitle>
               <CardDescription>
                 How do you qualify your prospects
               </CardDescription>

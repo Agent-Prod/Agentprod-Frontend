@@ -90,7 +90,7 @@ function Qualification() {
   return (
     <div>
       <Card className="text-xl flex justify-between py-4 items-center px-5">
-        <div className="pl-10 ">Qualification</div>
+        <div className="pl-10 ">Researcher Agents</div>
         <Button onClick={submitButton}>
           {type === "create" ? "Start Qualification" : "Edit Qualification"}
         </Button>

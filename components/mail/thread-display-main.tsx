@@ -42,6 +42,7 @@ import SuggestionDisplay from "./suggestionsDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
 import { useAuth } from "@/context/auth-provider";
+import UpperNotification from "./UpperNotification";
 
 
 interface ThreadDisplayMainProps {
@@ -506,6 +507,56 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
       return (
         <div className="flex gap-4 flex-col m-4 h-full ">
+          <UpperNotification connection_sent_time={(() => {
+            if (!email.created_at || !email.connection_sent_time) return null;
+
+            // Get the first message in the thread
+            const firstMessage = thread[0];
+
+            // Show connection sent only with the first message if it happened before the conversation
+            if (new Date(email.connection_sent_time) < new Date(firstMessage.created_at)) {
+              return email.id === firstMessage.id ? email.connection_sent_time : null;
+            }
+
+            // Otherwise, show it after the last message before the connection request
+            const messagesBeforeConnection = thread
+              .filter(e => e.created_at &&
+                new Date(e.created_at) <= new Date(email.connection_sent_time))
+              .sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            return messagesBeforeConnection[0]?.id === email.id
+              ? email.connection_sent_time
+              : null;
+          })()}
+            connection_accepted_time={(() => {
+              if (!email.created_at || !email.connection_accepted_time) return null;
+
+              // Get the first message in the thread
+              const firstMessage = thread[0];
+
+              // Show connection accepted only with the first message if it happened before the conversation
+              if (new Date(email.connection_accepted_time) < new Date(firstMessage.created_at)) {
+                return email.id === firstMessage.id ? email.connection_accepted_time : null;
+              }
+
+              // Otherwise, show it after the last message before the connection acceptance
+              const messagesBeforeAcceptance = thread
+                .filter(e => e.created_at &&
+                  new Date(e.created_at) <= new Date(email.connection_accepted_time))
+                .sort((a, b) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+              return messagesBeforeAcceptance[0]?.id === email.id
+                ? email.connection_accepted_time
+                : null;
+            })()}
+            linkedin_url={linkedinSender}
+            linkedin_sender_name={linkedinSenderName}
+            name={name}
+            message_sent_with_invite={email.message_sent_with_invite}
+            invite_message={email.invite_message}
+          />
           <div className="flex w-full ">
             <Avatar
               className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
@@ -579,50 +630,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 ? linkedInInteractions
                 : null;
             })()}
-            connection_sent_time={(() => {
-              if (!email.created_at || !email.connection_sent_time) return null;
 
-              // Get the first message in the thread
-              const firstMessage = thread[0];
-
-              // Show connection sent only with the first message if it happened before the conversation
-              if (new Date(email.connection_sent_time) < new Date(firstMessage.created_at)) {
-                return email.id === firstMessage.id ? email.connection_sent_time : null;
-              }
-
-              // Otherwise, show it after the last message before the connection request
-              const messagesBeforeConnection = thread
-                .filter(e => e.created_at &&
-                  new Date(e.created_at) <= new Date(email.connection_sent_time))
-                .sort((a, b) =>
-                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-              return messagesBeforeConnection[0]?.id === email.id
-                ? email.connection_sent_time
-                : null;
-            })()}
-            connection_accepted_time={(() => {
-              if (!email.created_at || !email.connection_accepted_time) return null;
-
-              // Get the first message in the thread
-              const firstMessage = thread[0];
-
-              // Show connection accepted only with the first message if it happened before the conversation
-              if (new Date(email.connection_accepted_time) < new Date(firstMessage.created_at)) {
-                return email.id === firstMessage.id ? email.connection_accepted_time : null;
-              }
-
-              // Otherwise, show it after the last message before the connection acceptance
-              const messagesBeforeAcceptance = thread
-                .filter(e => e.created_at &&
-                  new Date(e.created_at) <= new Date(email.connection_accepted_time))
-                .sort((a, b) =>
-                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-              return messagesBeforeAcceptance[0]?.id === email.id
-                ? email.connection_accepted_time
-                : null;
-            })()}
           />
         </div>
       );
@@ -631,7 +639,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
   const renderLinkedInStatus = () => {
     if (leads[0]?.type !== "Linkedin") return null;
-
+    if (thread.length > 0) return null;
     return (
       <div className="m-4">
         <div className="flex items-center gap-3">

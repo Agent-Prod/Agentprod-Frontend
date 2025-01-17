@@ -40,6 +40,8 @@ export interface EmailMessage {
   linkedin_url?: any;
   connection_sent_time?: any;
   connection_accepted_time?: any;
+  invite_message?: any;
+  message_sent_with_invite?: any;
 }
 
 export interface Mailbox {

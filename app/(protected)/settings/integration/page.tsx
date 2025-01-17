@@ -105,6 +105,8 @@ export default function Page() {
   const [connectedAccounts, setConnectedAccounts] = React.useState('');
   const [emails, setEmails] = React.useState<EmailData[]>([]);
   const [selectedEmail, setSelectedEmail] = React.useState('');
+  const [selectedAccountType, setSelectedAccountType] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const updateHubspotLeadType = async () => {
     setLoading(true);
@@ -209,7 +211,13 @@ export default function Page() {
     resolver: zodResolver(FormSchema),
   });
 
+  const fetchConnectedAccounts = async () => {
+    const response = await axiosInstance.get(`v2/linkedin/active-account/`);
+    setConnectedAccounts(response.data.total_count);
+  };
+
   const handleLinkedInConnect = async () => {
+    setIsLoading(true);
     try {
       const payload = {
         user_id: user?.id,
@@ -219,7 +227,8 @@ export default function Page() {
         name: linkedInName,
         designation: linkedInDesignation,
         country: linkedInCountry,
-        email: selectedEmail
+        email: selectedEmail,
+        account_type: selectedAccountType
       };
 
       const response = await axiosInstance.post('/v2/linkedin/login', payload);
@@ -237,6 +246,8 @@ export default function Page() {
           setLinkedInName('')
           setLinkedInDesignation('')
           setLinkedInCountry('')
+          // Fetch updated account count
+          await fetchConnectedAccounts();
         } else {
           // CAPTCHA required
           const checkpointData = response.data;
@@ -253,6 +264,8 @@ export default function Page() {
       }
     } catch (error) {
       console.error("Error connecting LinkedIn account:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -283,6 +296,7 @@ export default function Page() {
   };
 
   const handleSolveCaptcha = async () => {
+    setIsLoading(true);
     try {
       const payload = {
         code: captchaToken,
@@ -293,7 +307,8 @@ export default function Page() {
         country: linkedInCountry,
         name: linkedInName,
         email: selectedEmail,
-        designation: linkedInDesignation
+        designation: linkedInDesignation,
+        account_type: selectedAccountType
       };
 
       const response = await axiosInstance.post('/v2/linkedin/solve', payload);
@@ -301,9 +316,8 @@ export default function Page() {
       if (response.status === 200 && response.data.object === "AccountCreated") {
         toast.success("LinkedIn account connected successfully!");
         setIsLinkedInMailboxOpen(false);
-        // Reset the LinkedIn connection state
         setLinkedInStep(1);
-
+        await fetchConnectedAccounts();
       } else if (response.data.type === "errors/invalid_credentials") {
         toast.error("Invalid LinkedIn credentials. Please try again.");
         setLinkedInStep(1);
@@ -324,11 +338,14 @@ export default function Page() {
       console.error("Error verifying CAPTCHA:", error);
       toast.error("An error occurred while verifying the CAPTCHA. Please try again.");
       setIsCaptchaSolved(false);
-      loadCaptcha(); // Reload CAPTCHA for another attempt
+      loadCaptcha();
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleOTPVerification = async () => {
+    setIsLoading(true);
     try {
       const payload = {
         code: otpValue,
@@ -339,7 +356,8 @@ export default function Page() {
         country: linkedInCountry,
         name: linkedInName,
         email: selectedEmail,
-        designation: linkedInDesignation
+        designation: linkedInDesignation,
+        account_type: selectedAccountType
       };
 
       const response = await axiosInstance.post('/v2/linkedin/solve', payload);
@@ -349,12 +367,15 @@ export default function Page() {
         setIsLinkedInMailboxOpen(false);
         setLinkedInStep(1);
         setOtpValue('');
+        await fetchConnectedAccounts();
       } else {
         toast.error("Invalid OTP. Please try again.");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       toast.error("An error occurred while verifying the OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -363,9 +384,7 @@ export default function Page() {
       try {
         const response = await axiosInstance.get('v2/settings/emails');
         setEmails(response.data.emails);
-        if (response.data.emails.length > 0) {
-          setSelectedEmail(response.data.emails[0].mailbox);
-        }
+
       } catch (error) {
         console.error('Failed to fetch emails:', error);
         toast.error('Failed to load email addresses');
@@ -701,7 +720,7 @@ export default function Page() {
                       <Label htmlFor="linkedin-name">Name</Label>
                       <Input
                         id="linkedin-name"
-                        placeholder="John Foe"
+                        placeholder="John Doe"
                         value={linkedInName}
                         onChange={(e) => setLinkedInName(e.target.value)}
                       />
@@ -736,12 +755,14 @@ export default function Page() {
                         onChange={(e) => setSelectedEmail(e.target.value)}
                         className="w-full p-2 border rounded-md"
                       >
+                        <option value="">Select an email</option>
                         {emails.map((email) => (
                           <option key={email?.id as number} value={email?.mailbox}>
                             {email?.mailbox}
                           </option>
                         ))}
                       </select>
+                      <div className="text-xs text-gray-500">Note: Connect an email mailbox and select it  here in case of multichannel outreach, for linkedin outreach you dont have to connect an mailbox</div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
@@ -751,6 +772,22 @@ export default function Page() {
                         value={linkedInUrl}
                         onChange={(e) => setLinkedInUrl(e.target.value)}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-select">Select Account Type</Label>
+                      <select
+                        id="account-type"
+                        value={selectedAccountType}
+                        onChange={(e) => setSelectedAccountType(e.target.value)}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="">Select an LinkedIn Account Type</option>
+                        <option value="normal">Normal Account</option>
+                        <option value="premium">Premium Account</option>
+                        <option value="recruiter">Recruiter Account</option>
+                        <option value="sales_navigator">Sales Navigator Account</option>
+
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="linkedin-email">LinkedIn Email</Label>
@@ -779,14 +816,21 @@ export default function Page() {
                 {linkedInStep === 2 && (
                   <div className="space-y-4">
                     {showCaptchaButton && (
-                      <Button onClick={loadCaptcha}>
+                      <Button onClick={loadCaptcha} disabled={isLoading}>
                         Show CAPTCHA
                       </Button>
                     )}
                     <div id="linkedin-captcha-container" className="min-h-[450px]"></div>
                     {captchaLoaded && captchaToken && (
-                      <Button onClick={handleSolveCaptcha}>
-                        Verify CAPTCHA
+                      <Button onClick={handleSolveCaptcha} disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <LoadingCircle />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify CAPTCHA"
+                        )}
                       </Button>
                     )}
                   </div>
@@ -818,19 +862,33 @@ export default function Page() {
                     <Button
                       className="w-full"
                       onClick={handleOTPVerification}
-                      disabled={otpValue.length !== 6}
+                      disabled={otpValue.length !== 6 || isLoading}
                     >
-                      Verify OTP
+                      {isLoading ? (
+                        <>
+                          <LoadingCircle />
+                          Verifying...
+                        </>
+                      ) : (
+                        "Verify OTP"
+                      )}
                     </Button>
                   </div>
                 )}
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsLinkedInMailboxOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsLinkedInMailboxOpen(false)} disabled={isLoading}>
                     {linkedInStep === 3 ? "Close" : "Cancel"}
                   </Button>
                   {linkedInStep === 1 && (
-                    <Button onClick={handleLinkedInConnect}>
-                      Next
+                    <Button onClick={handleLinkedInConnect} disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <LoadingCircle />
+                          Connecting...
+                        </>
+                      ) : (
+                        "Next"
+                      )}
                     </Button>
                   )}
                 </DialogFooter>

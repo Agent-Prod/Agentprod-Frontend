@@ -180,7 +180,7 @@ export async function startCampaign(
     user_id: userId,
   };
   await axiosInstance
-    .post(`/v2/send/contacts?without_template=${type}`, postData)
+    .post(`/v2/contacts/left?without_template=${type}`, postData)
     .then((response) => {
       const data = response.data;
       console.log(data);

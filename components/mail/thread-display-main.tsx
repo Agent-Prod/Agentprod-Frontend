@@ -4,7 +4,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useCallback, useEffect, useState, memo, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import {
   Card,
@@ -209,7 +209,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     fetchLeadInfo();
   }, [recipientEmail, contact_id]);
 
-  const EmailComponent = memo(
+  const EmailComponent = (
     ({ email }: { email: EmailMessage }) => {
       const [isEditing, setIsEditing] = useState(false);
       const [editableSubject, setEditableSubject] = useState(
@@ -668,7 +668,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     );
   };
 
-  const DraftEmailComponent = memo(() => {
+  const DraftEmailComponent = (() => {
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
@@ -760,6 +760,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       let endpoint;
 
       if (platform === "linkedin") {
+        console.log("thread", thread);
+        console.log("emails", emails);
         const messageId = thread[thread.length - 1].id;
         payload = {
           receiver: recipientEmail,
@@ -771,25 +773,24 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         };
         endpoint = "/v2/linkedin/send-message";
 
-        axiosInstance
-          .post(endpoint, payload)
-          .then((response) => {
-            toast.success("Your LinkedIn message has been sent successfully!");
-            return axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`);
-          })
-          .then((threadResponse) => {
-            setThread(threadResponse.data);
-            updateMailStatus(conversationId, "sent");
-            setIsLoadingButton(false);
-            setIsEditing(false);
-            setSelectedMailId(conversationId);
-            refreshThread();
-          })
-          .catch((error) => {
-            console.error("Failed to send LinkedIn message:", error);
-            toast.error("Failed to send the message. Please try again.");
-            setIsLoadingButton(false);
-          });
+        // axiosInstance
+        //   .post(endpoint, payload)
+        //   .then((response) => {
+        //     toast.success("Your LinkedIn message has been sent successfully!");
+        //     return axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`);
+        //   })
+        //   .then((threadResponse) => {
+        //     setThread(threadResponse.data);
+        //     updateMailStatus(conversationId, "sent");
+        //     setIsLoadingButton(false);
+        //     setIsEditing(false);
+        //     setSelectedMailId(conversationId);
+        //   })
+        //   .catch((error) => {
+        //     console.error("Failed to send LinkedIn message:", error);
+        //     toast.error("Failed to send the message. Please try again.");
+        //     setIsLoadingButton(false);
+        //   });
       } else {
         payload = {
           conversation_id: conversationId,

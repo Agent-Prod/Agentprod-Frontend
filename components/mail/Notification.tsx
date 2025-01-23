@@ -85,6 +85,8 @@ interface EmailMessage {
   comment?: string | null;
   connection_sent_time?: string;
   connection_accepted_time?: string;
+  scheduled_at?: string;
+  follow_up_number?: number;
 }
 
 interface NotificationProps {
@@ -724,6 +726,19 @@ const Notification: React.FC<NotificationProps> = ({
               : `Your draft was scheduled to be sent at ${formatDate(
                 email.scheduled_datetime
               )}`}
+          </p>
+        </div>
+      )}
+
+      {email?.scheduled_at && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <Bell className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            {`We will try to schedule follow-up ${email?.follow_up_number} at  ${formatDate(
+              email.scheduled_at
+            )}`}
           </p>
         </div>
       )}

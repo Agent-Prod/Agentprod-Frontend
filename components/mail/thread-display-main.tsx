@@ -586,17 +586,19 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   </span>
                 </div>
               </div>
-              <CardHeader>
-                {email.subject === "" ? (<></>) : (<CardTitle className="text-sm flex -mt-8 -ml-3">
-                  <Input
-                    value={email.subject}
-                    className="text-xs"
-                    placeholder="Subject"
-                    readOnly
-                  />
-                </CardTitle>)}
-              </CardHeader>
-              <CardContent className={`text-xs -ml-3 ${email.subject === "" ? "-mt-12" : "-mt-3"} `}>
+              {email.subject && (
+                <CardHeader>
+                  <CardTitle className="text-sm flex -mt-8 -ml-3">
+                    <Input
+                      value={email.subject}
+                      className="text-xs"
+                      placeholder="Subject"
+                      readOnly
+                    />
+                  </CardTitle>
+                </CardHeader>
+              )}
+              <CardContent className={`text-xs -ml-3 ${!email.subject ? "" : "-mt-3"}`}>
                 <ContentDisplay
                   content={email.body}
                   className="text-xs h-max"
@@ -632,7 +634,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             })()}
 
           />
-        </div>
+        </div >
       );
     }
   );

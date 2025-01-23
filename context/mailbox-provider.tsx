@@ -42,6 +42,8 @@ export interface EmailMessage {
   connection_accepted_time?: any;
   invite_message?: any;
   message_sent_with_invite?: any;
+  scheduled_at?: any;
+  follow_up_number?: number;
 }
 
 export interface Mailbox {

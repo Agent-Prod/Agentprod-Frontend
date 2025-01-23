@@ -705,7 +705,7 @@ export default function PeopleForm(): JSX.Element {
     const newApolloUrl = constructApolloUrl(data);
     setApolloUrl(newApolloUrl);
 
-    setCalculatedPages((pages - 1) * 2 + 1,);
+    setCalculatedPages(pages);
 
 
     const existingLeadsResponse = await axiosInstance.get(
@@ -1057,7 +1057,7 @@ export default function PeopleForm(): JSX.Element {
               apollo_url: apolloUrl,
               page: calculatedPages + 1,
               is_active: false,
-              leads_count: calculatedPages * 25,
+              leads_count: formData.per_page,
             }
           );
           console.log("Recurring campaign request: ", recurringResponse.data);

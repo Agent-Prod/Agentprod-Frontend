@@ -61,6 +61,12 @@ interface CampaignEntry {
   meetings_booked?: number;
 }
 
+interface RecurringCampaignData {
+  campaign_id: string;
+  is_active: boolean;
+  leads_count?: number;
+}
+
 const DeleteConfirmationDialog = ({
   isOpen,
   onClose,
@@ -100,11 +106,7 @@ export default function CampaignPage() {
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
-  const [recurringCampaignData, setRecurringCampaignData] = useState<Array<{
-    campaign_id: string;
-    is_active: boolean;
-    leads_count?: number;
-  }>>([]);
+  const [recurringCampaignData, setRecurringCampaignData] = useState<RecurringCampaignData[]>([]);
   const { user } = useAuth();
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -155,7 +157,7 @@ export default function CampaignPage() {
             campaign_id: campaign.id,
             is_active: response.data.is_active,
             leads_count: response.data.leads_count
-          };
+          } as RecurringCampaignData;
         } catch (error) {
           console.error(
             `Failed to fetch recurring data for campaign ${campaign.id}`,
@@ -166,9 +168,9 @@ export default function CampaignPage() {
       });
 
       const results = await Promise.all(recurringDataPromises);
-      const filteredResults = results.filter((result) => result !== null);
+      const filteredResults = results.filter((result): result is RecurringCampaignData => result !== null);
 
-      setRecurringCampaignData(prevData => [
+      setRecurringCampaignData((prevData: RecurringCampaignData[]) => [
         ...prevData,
         ...filteredResults
       ]);

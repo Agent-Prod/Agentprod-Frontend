@@ -100,7 +100,11 @@ export default function CampaignPage() {
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
-  const [recurringCampaignData, setRecurringCampaignData] = useState<any[]>([]);
+  const [recurringCampaignData, setRecurringCampaignData] = useState<Array<{
+    campaign_id: string;
+    is_active: boolean;
+    leads_count?: number;
+  }>>([]);
   const { user } = useAuth();
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -150,6 +154,7 @@ export default function CampaignPage() {
           return {
             campaign_id: campaign.id,
             is_active: response.data.is_active,
+            leads_count: response.data.leads_count
           };
         } catch (error) {
           console.error(
@@ -287,7 +292,11 @@ export default function CampaignPage() {
 
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300">
-            {campaignItem?.schedule_type === "recurring" ? "Recurring" : "One-time"}
+            {campaignItem?.schedule_type === "recurring" ? (
+              <>
+                Recurring ({recurringCampaignData.find(data => data.campaign_id === campaignItem.id)?.leads_count || 0} leads)
+              </>
+            ) : "One-time"}
           </Badge>
           <Badge
             variant="outline"

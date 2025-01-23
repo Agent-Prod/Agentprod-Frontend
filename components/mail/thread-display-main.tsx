@@ -1080,12 +1080,21 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
             {thread?.length > 0 && (
               <div>
-                {thread?.map((email, index) => (
-                  <EmailComponent
-                    key={index}
-                    email={email}
-                  />
-                ))}
+                {thread
+                  ?.sort((a, b) => {
+                    if (a.follow_up_number && b.follow_up_number) {
+                      return new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime();
+                    }
+                    if (a.follow_up_number) return 1;
+                    if (b.follow_up_number) return -1;
+                    return 0;
+                  })
+                  .map((email, index) => (
+                    <EmailComponent
+                      key={index}
+                      email={email}
+                    />
+                  ))}
               </div>
             )}
 

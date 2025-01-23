@@ -705,7 +705,7 @@ export default function PeopleForm(): JSX.Element {
     const newApolloUrl = constructApolloUrl(data);
     setApolloUrl(newApolloUrl);
 
-    setCalculatedPages(pages);
+    setCalculatedPages((pages - 1) * 2 + 1);
 
 
     const existingLeadsResponse = await axiosInstance.get(

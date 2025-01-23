@@ -223,12 +223,12 @@ const Notification: React.FC<NotificationProps> = ({
 
   React.useEffect(() => {
     if (email.action_draft) {
-      const lastSubject = thread[thread.length - 1].subject;
-      const newSubject = lastSubject.startsWith("Re:") ? lastSubject : `Re: ${lastSubject}`;
+      const lastSubject = thread?.length > 0 ? thread[thread.length - 1].subject : email.subject;
+      const newSubject = lastSubject?.startsWith("Re:") ? lastSubject : `Re: ${lastSubject || ''}`;
       setTitle(newSubject);
       setBody(email.action_draft);
     }
-  }, [email.action_draft]);
+  }, [email.action_draft, thread, email.subject]);
 
   const handleInputChange = (index: number, value: string) => {
     const newAnswers = [...answers];

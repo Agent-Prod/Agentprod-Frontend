@@ -296,7 +296,7 @@ export const nodeTemplates: Record<string, Template> = {
         id: "linkedin-followup",
         type: "emailNode",
         position: { x: 0, y: 0 },
-        data: { label: "Send LinkedIn Follow-up Message" },
+        data: { label: "Send LinkedIn Follow-up" },
       },
       {
         id: "delay-linkedin-followup",

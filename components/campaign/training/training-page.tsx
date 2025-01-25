@@ -96,7 +96,8 @@ export default function Training() {
     setFollowUps,
     setInviteMessage,
     setMessageAfterInvite,
-    setLinkedinFollowUp
+    setLinkedinFollowUp,
+    setReasoning,
   } = useAutoGenerate();
 
   const { fieldsList, body, subject, followUp, followUpOne, subjectOptions } = useFieldsList();
@@ -365,6 +366,7 @@ export default function Training() {
         }
       }
       setContact(response.contact);
+      setReasoning(response.email.reasoning);
       setLinkedinInformation(response.linkedin_information);
       setPosts(response.posts)
       setPreviewType("previewFromAI");

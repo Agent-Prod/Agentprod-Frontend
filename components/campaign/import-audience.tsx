@@ -410,8 +410,8 @@ export const ImportAudience = () => {
       // Step 3: Update user details
       toast.info("Updating user details, please wait...");
       let attempts = 0;
-      const maxAttempts = 10;
-      const pollInterval = 6000; // 7 seconds
+      const maxAttempts = 13;
+      const pollInterval = 7000; // 7 seconds
 
       const checkLeads = async () => {
         try {
@@ -421,6 +421,7 @@ export const ImportAudience = () => {
           if (Array.isArray(response.data) && response.data.length >= 1) {
             setIsCreateBtnLoading(false);
             setTimeout(() => {
+              setIsEnrichmentLoading(false);
               router.push(`/campaign/${params.campaignId}`);
             }, 4000);
 
@@ -454,7 +455,7 @@ export const ImportAudience = () => {
       console.error("Error enriching leads:", error);
     }
     finally {
-      setIsEnrichmentLoading(false);
+
     }
 
   };
@@ -1463,6 +1464,17 @@ export const ImportAudience = () => {
 
                 Back to Mapping
               </Button>
+              {isEnrichmentLoading && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+                  <div className="bg-card p-6 rounded-lg shadow-lg text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="text-lg font-medium">Processing your contacts...</p>
+                    <p className="text-sm text-muted-foreground">
+                      This may take a few moments. Please don't close this window.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>

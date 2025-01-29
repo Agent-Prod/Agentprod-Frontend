@@ -214,6 +214,10 @@ export const ImportAudience = () => {
 
   const [selectedProvider, setSelectedProvider] = useState<any | null>(null);
 
+  const [showMappedTable, setShowMappedTable] = useState(false);
+  const [mappedData, setMappedData] = useState<any[]>([]);
+  const [dailyLimit, setDailyLimit] = useState<number>(50);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files[0];
@@ -355,125 +359,104 @@ export const ImportAudience = () => {
   const enrichmentHandler = async () => {
     setIsEnrichmentLoading(true);
     setShowCard(false);
-    toast.loading("Enriching leads...", { id: "enrichment" });
-
-    const leadsToEnrich = fileData?.map((row) => {
-      const mappedRow: { [key: string]: string } = {};
-      selectedValue.forEach(({ presetValue, fileColumnName }) => {
-        if (row[fileColumnName]) {
-          if (presetValue === "company_name") {
-            mappedRow["organization_name"] = row[fileColumnName];
-          } else {
-            mappedRow[presetValue] = row[fileColumnName];
-          }
-        }
-      });
-      return mappedRow;
-    });
-
-    if (!leadsToEnrich || leadsToEnrich.length === 0) {
-      setError("No leads to enrich.");
-      return;
-    }
-
     try {
-      setIsLoading(true);
+      const response = await axiosInstance.post(`v2/apollo/leads/bulk_enrich`, {
+        user_id: user?.id,
+        campaign_id: params.campaignId,
+        details: mappedData,
+        apollo_url: "",
+        daily_limit: dailyLimit
 
-      // Prepare the data for the new endpoint, excluding empty fields
-      const enrichmentData = leadsToEnrich.map(lead => {
-        const enrichmentEntry: any = {};
-
-        if (lead.first_name || (lead.name && lead.name.split(" ")[0])) {
-          enrichmentEntry.first_name = lead.first_name || lead.name.split(" ")[0];
-        }
-
-        if (lead.last_name || (lead.name && lead.name.split(" ")[1])) {
-          enrichmentEntry.last_name = lead.last_name || lead.name.split(" ")[1];
-        }
-
-        if (lead.email) enrichmentEntry.email = lead.email;
-        if (lead.organization_website_url) enrichmentEntry.organization_website_url = lead.organization_website_url;
-        if (lead.organization_name) enrichmentEntry.organization_name = lead.organization_name;
-        if (lead.linkedin_url) enrichmentEntry.linkedin_url = lead.linkedin_url;
-
-        return enrichmentEntry;
       });
-
-      // Call the new endpoint
-      const response = await axiosInstance.post(
-        'v2/apollo/leads/bulk_enrich',
-        { user_id: user?.id, campaign_id: params?.campaignId, apollo_url: "", details: enrichmentData }
+      console.log(response.data);
+      const leadBulkEnrichResponse = await axiosInstance.post(`v2/lead/bulk/`, {
+        user_id: user?.id,
+        campaign_id: params.campaignId,
+        leads: response.data
+      });
+      console.log(leadBulkEnrichResponse.data);
+      const getRecData = await axiosInstance.get(
+        `v2/campaigns/${params.campaignId}`
       );
 
-      const enrichedLeads = response.data;
-
-      // Process enriched leads
-      const processedLeads = enrichedLeads.map((lead: any): Lead => ({
-        type: "prospective",
+      if (getRecData.data.schedule_type === "recurring") {
+        const recurringResponse = await axiosInstance.post(
+          "v2/recurring_campaign_request",
+          {
+            campaign_id: params.campaignId,
+            user_id: user?.id,
+            apollo_url: "",
+            page: dailyLimit,
+            is_active: false,
+            leads_count: dailyLimit,
+          }
+        );
+      }
+      const postBody = {
         campaign_id: params.campaignId,
-        id: lead.id || uuid(),
-        first_name: lead.first_name,
-        last_name: lead.last_name,
-        name: `${lead.first_name} ${lead.last_name}`,
-        title: lead.title,
-        linkedin_url: lead.linkedin_url,
-        email_status: lead.email_status,
-        photo_url: lead.photo_url,
-        twitter_url: lead.twitter_url,
-        github_url: lead.github_url,
-        facebook_url: lead.facebook_url,
-        extrapolated_email_confidence: lead.extrapolated_email_confidence,
-        headline: lead.headline,
-        email: lead.email,
-        employment_history: lead.employment_history,
-        state: lead.state,
-        city: lead.city,
-        country: lead.country,
-        is_likely_to_engage: lead.is_likely_to_engage,
-        departments: lead.departments || [],
-        subdepartments: lead.subdepartments || [],
-        functions: lead.functions || [],
-        phone_numbers: lead.phone_numbers,
-        intent_strength: lead.intent_strength,
-        show_intent: lead.show_intent,
-        is_responded: false,
-        company_linkedin_url: lead.organization?.linkedin_url,
-        pain_points: [],
-        value: [],
-        metrics: [],
-        compliments: [],
-        lead_information: "",
-        is_b2b: "false",
-        score: null,
-        qualification_details: "",
-        company: lead.organization?.name,
-        phone: lead.phone_numbers?.[0]?.phone || null,
-        technologies: [],
-        organization: lead.organization?.name,
-        organization_id: lead.organization_id,
-        seniority: lead.seniority || "",
-        revealed_for_current_team: lead.revealed_for_current_team || false,
-        linkedin_posts: [],
-        linkedin_bio: lead.linkedin_bio || "",
-        social_monitoring_data: lead.social_monitoring_data || "",
-        personalized_social_info: lead.personalized_social_info || "",
-        sequence_count: lead.sequence_count || 0,
-      }));
+        audience_type: "prospective",
+        filters_applied: {},
+      };
+      const audienceResponse = await axiosInstance.post(
+        "v2/audience/",
+        postBody
+      );
+      const audienceData = audienceResponse.data;
+      console.log("Audience created:", audienceData);
 
-      setLeads(processedLeads);
-      console.log("Processed leads:", processedLeads);
-      setIsDialogOpen(false);
-      setIsLeadsTableActive(true);
+      setPageCompletion("audience", true);
+      toast.success("Audience created successfully");
 
-      toast.success("Leads enriched successfully", { id: "enrichment" });
+      // Step 3: Update user details
+      toast.info("Updating user details, please wait...");
+      let attempts = 0;
+      const maxAttempts = 10;
+      const pollInterval = 6000; // 7 seconds
+
+      const checkLeads = async () => {
+        try {
+          const response = await axiosInstance.get(
+            `v2/lead/campaign/${params.campaignId}`
+          );
+          if (Array.isArray(response.data) && response.data.length >= 1) {
+            setIsCreateBtnLoading(false);
+            setTimeout(() => {
+              router.push(`/campaign/${params.campaignId}`);
+            }, 4000);
+
+            return true;
+          }
+        } catch (error) {
+          console.error("Error checking leads:", error);
+        }
+        return false;
+      };
+
+      const poll = async () => {
+        const success = await checkLeads();
+        if (success) {
+          return;
+        }
+
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.log("Max attempts reached. Stopping polling.");
+          toast.error("Failed to update leads. Please try again later.");
+          setIsCreateBtnLoading(false);
+          return;
+        }
+
+        setTimeout(poll, pollInterval);
+      };
+
+      poll();
     } catch (error) {
-      console.error("Error in enrichment process:", error);
-      setError("Failed to enrich leads.");
-      toast.error("Failed to enrich leads", { id: "enrichment" });
-    } finally {
-      setIsLoading(false);
+      console.error("Error enriching leads:", error);
+    }
+    finally {
       setIsEnrichmentLoading(false);
     }
+
   };
 
   function mapLeadsToBodies(leads: Lead[]): Contact[] {
@@ -1218,6 +1201,7 @@ export const ImportAudience = () => {
     );
   };
 
+
   return (
     <>
       {showImportCards && (
@@ -1296,80 +1280,192 @@ export const ImportAudience = () => {
       {error && <div className="text-red-500">{error}</div>}
       {isLoading && <LoadingCircle />}
       {importMethod === 'enhance' && fileData && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Map File Columns</DialogTitle>
-              <DialogDescription>
-                Map the file columns to appropriate fields.
-              </DialogDescription>
-            </DialogHeader>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[150px] font-semibold">Column Name</TableHead>
-                  <TableHead className="w-[150px] font-semibold">Select Type</TableHead>
-                  <TableHead className="w-[150px] font-semibold">Samples</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.keys(fileData[0]).map((column, index) => (
-                  <TableRow
-                    key={index}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <TableCell className="font-medium text-primary">{column}</TableCell>
-                    <TableCell>
-                      <Select onValueChange={handleSelectChange}>
-                        <SelectTrigger className="w-[180px] border-primary/20">
-                          <SelectValue placeholder="Select type..." />
-                        </SelectTrigger>
-                        <SelectContent className="h-60">
-                          <SelectGroup>
-                            <SelectLabel className="font-semibold">Options</SelectLabel>
-                            {filteredOptions.map((option, index) => (
-                              <SelectItem
-                                key={index}
-                                value={`${option.toLowerCase().replace(/ /g, "_")}~${column}`}
-                                className="cursor-pointer hover:bg-primary/10"
-                              >
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground italic">
-                      {fileData[0][column]}
-                    </TableCell>
+        <>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Map File Columns</DialogTitle>
+                <DialogDescription>
+                  Map the file columns to appropriate fields.
+                </DialogDescription>
+              </DialogHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[150px] font-semibold">Column Name</TableHead>
+                    <TableHead className="w-[150px] font-semibold">Select Type</TableHead>
+                    <TableHead className="w-[150px] font-semibold">Samples</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <DialogFooter className="flex sm:justify-start">
-              <Button
-                onClick={enrichmentHandler}
-                className="w-1/3"
-                disabled={isEnrichmentLoading}
-              >
-                {isEnrichmentLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Enriching...
-                  </>
-                ) : (
-                  "Confirm"
-                )}
-              </Button>
-              <DialogClose asChild>
-                <Button variant="outline" className="w-1/3">
-                  Cancel
+                </TableHeader>
+                <TableBody>
+                  {Object.keys(fileData[0]).map((column, index) => (
+                    <TableRow
+                      key={index}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell className="font-medium text-primary">{column}</TableCell>
+                      <TableCell>
+                        <Select onValueChange={handleSelectChange}>
+                          <SelectTrigger className="w-[180px] border-primary/20">
+                            <SelectValue placeholder="Select type..." />
+                          </SelectTrigger>
+                          <SelectContent className="h-60">
+                            <SelectGroup>
+                              <SelectLabel className="font-semibold">Options</SelectLabel>
+                              {filteredOptions.map((option, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={`${option.toLowerCase().replace(/ /g, "_")}~${column}`}
+                                  className="cursor-pointer hover:bg-primary/10"
+                                >
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground italic">
+                        {fileData[0][column]}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <DialogFooter className="flex sm:justify-start">
+                <Button
+                  onClick={() => {
+                    // Transform data based on selected mappings
+                    const transformedData = fileData.map(row => {
+                      const mappedRow: Record<string, string> = {};
+                      selectedValue.forEach(({ presetValue, fileColumnName }) => {
+                        mappedRow[presetValue] = row[fileColumnName];
+                      });
+                      return mappedRow;
+                    });
+
+                    setMappedData(transformedData);
+                    setShowMappedTable(true);
+                    setIsDialogOpen(false);
+                  }}
+                  className="w-1/3"
+                >
+                  Confirm
                 </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                <DialogClose asChild>
+                  <Button variant="outline" className="w-1/3">
+                    Cancel
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {showMappedTable && (
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Preview Mapped Data</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Showing {mappedData.length} records
+                  </p>
+                </div>
+                <Button
+                  onClick={enrichmentHandler}
+                  disabled={isEnrichmentLoading}
+                >
+                  {isEnrichmentLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enrich Contacts
+                    </>
+                  ) : (
+                    "Enrich Contacts"
+                  )}
+                </Button>
+              </div>
+
+              <div className="rounded-lg border bg-card">
+                <div className="relative overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {Object.keys(mappedData[0] || {}).map((header) => (
+                          <TableHead
+                            key={header}
+                            className="bg-muted/50 py-3 text-xs font-medium uppercase tracking-wider"
+                          >
+                            {header.replace(/_/g, ' ')}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {mappedData.slice(0, 10).map((row, rowIndex) => (
+                        <TableRow
+                          key={rowIndex}
+                          className="hover:bg-muted/50 transition-colors"
+                        >
+                          {Object.values(row).map((value, cellIndex) => (
+                            <TableCell
+                              key={cellIndex}
+                              className="py-2.5 text-sm"
+                            >
+                              {value === null || value === undefined ? '-' : String(value)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {mappedData.length > 10 && (
+                  <div className="border-t bg-muted/50 p-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing first 10 of {mappedData.length} records
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="dailyLimit"
+                  className="text-sm text-muted-foreground whitespace-nowrap"
+                >
+                  Number of leads to be contacted per day:
+                </label>
+                <Input
+                  id="dailyLimit"
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={dailyLimit}
+                  onChange={(e) => setDailyLimit(Number(e.target.value))}
+                  className="w-[100px] h-9"
+                  placeholder="50"
+                />
+              </div>
+
+              <div className="text-sm text-muted-foreground pb-4">
+                Your Campaign would be completed in {Math.ceil(mappedData.length / dailyLimit)} days
+              </div>
+
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMappedTable(false);
+                  setIsDialogOpen(true);
+                }}
+                className="mt-4"
+              >
+
+                Back to Mapping
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {importMethod === 'direct' && directImportData && (

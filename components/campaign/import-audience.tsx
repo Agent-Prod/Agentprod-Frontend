@@ -50,6 +50,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { useSubscription } from "@/hooks/userSubscription";
 
 interface FileData {
   [key: string]: string;
@@ -217,6 +218,7 @@ export const ImportAudience = () => {
   const [showMappedTable, setShowMappedTable] = useState(false);
   const [mappedData, setMappedData] = useState<any[]>([]);
   const [dailyLimit, setDailyLimit] = useState<number>(50);
+  const { isSubscribed } = useSubscription();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -1211,12 +1213,13 @@ export const ImportAudience = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
-              className="cursor-pointer transition-all h-60 border-primary hover:shadow-lg"
-              onClick={handleCardClick}
+              className={` transition-all h-60 border-primary hover:shadow-lg ${!isSubscribed ? 'opacity-50 cursor-not-allowed' : ' cursor-pointer'
+                }`}
+              onClick={isSubscribed ? handleCardClick : undefined}
             >
               <CardHeader>
                 <CardTitle className="text-2xl mb-2 flex items-center">
-                  <FileIcon className="mr-2" /> Enhance Your Contact List
+                  <FileIcon className="mr-2" /> Enhance Your Contact List {!isSubscribed && "*"}
                 </CardTitle>
                 <CardDescription>
                   <ul className="list-disc list-inside space-y-2">
@@ -1250,6 +1253,12 @@ export const ImportAudience = () => {
               </CardHeader>
             </Card>
           </div>
+
+          {!isSubscribed && (
+            <p className="text-sm text-gray-500 italic mt-4">
+              * Contact enrichment is available with our premium plan. Contact support to unlock all features.
+            </p>
+          )}
 
           <Input
             ref={fileInputRef}

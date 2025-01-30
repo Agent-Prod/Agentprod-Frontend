@@ -26,6 +26,7 @@ import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
 import BetaTag from "../ui/tag/BetaTag";
+import { useSubscription } from "@/hooks/userSubscription";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 
@@ -65,6 +66,7 @@ export function SchedulingForm() {
     resolver: zodResolver(campaignFormSchema),
     defaultValues,
   });
+  const { isSubscribed } = useSubscription();
 
   const { user } = useAuth();
   const [campaignData, setCampaignData] = useState<CampaignEntry>();
@@ -177,7 +179,7 @@ export function SchedulingForm() {
   }, [campaignData]);
 
   const showSchedule = form.watch("channelType") !== "Linkedin";
-
+  console.log(isSubscribed);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mb-5">
@@ -215,14 +217,25 @@ export function SchedulingForm() {
                       <FormControl>
                         <RadioGroupItem
                           value={campaignType}
-                          disabled={type === "edit"}
-                          className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                          disabled={
+                            type === "edit" ||
+                            (!isSubscribed && campaignType === "Nurturing")
+                          }
+                          className={
+                            (type === "edit" || (!isSubscribed && campaignType === "Nurturing"))
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }
                         />
                       </FormControl>
                       <FormLabel
-                        className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                        className={`font-normal ${
+                          (type === "edit" || (!isSubscribed && campaignType === "Nurturing"))
+                            ? "text-gray-500"
+                            : ""
+                        }`}
                       >
-                        {campaignType} {campaignType === "Inbound" ? "/ Upload Your Own Leads" : ""}
+                        {campaignType} {!isSubscribed && campaignType === "Nurturing" && "*"} {campaignType === "Inbound" ? "/ Upload Your Own Leads" : ""}
                         {(campaignType === "Inbound" || campaignType === "Nurturing") && (
                           <BetaTag />
                         )}
@@ -287,14 +300,20 @@ export function SchedulingForm() {
                     <FormControl>
                       <RadioGroupItem
                         value="mail"
-                        disabled={type === "edit"}
-                        className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                        disabled={type === "edit" || !isSubscribed}
+                        className={
+                          (type === "edit" || !isSubscribed)
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }
                       />
                     </FormControl>
                     <FormLabel
-                      className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                      className={`font-normal ${
+                        (type === "edit" || !isSubscribed) ? "text-gray-500" : ""
+                      }`}
                     >
-                      Email
+                      Email {!isSubscribed && "*"}
                     </FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -316,14 +335,20 @@ export function SchedulingForm() {
                     <FormControl>
                       <RadioGroupItem
                         value="omni"
-                        disabled={type === "edit"}
-                        className={type === "edit" ? "opacity-50 cursor-not-allowed" : ""}
+                        disabled={type === "edit" || !isSubscribed}
+                        className={
+                          (type === "edit" || !isSubscribed)
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }
                       />
                     </FormControl>
                     <FormLabel
-                      className={`font-normal ${type === "edit" ? "text-gray-500" : ""}`}
+                      className={`font-normal ${
+                        (type === "edit" || !isSubscribed) ? "text-gray-500" : ""
+                      }`}
                     >
-                      Multi-Channel
+                      Multi-Channel {!isSubscribed && "*"}
                       <BetaTag />
                     </FormLabel>
                   </FormItem>
@@ -367,6 +392,12 @@ export function SchedulingForm() {
               </div>
             </div>
           </>
+        )}
+
+        {!isSubscribed && (
+          <p className="text-sm text-gray-500 italic">
+            * These features are available with our premium plan. Contact support to unlock all features.
+          </p>
         )}
 
         <Button type="submit" disabled={type === "create" && !form.formState.isValid}>

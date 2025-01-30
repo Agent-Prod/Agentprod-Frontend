@@ -1256,7 +1256,7 @@ export const ImportAudience = () => {
 
           {!isSubscribed && (
             <p className="text-sm text-gray-500 italic mt-4">
-              * Contact enrichment is available with our premium plan. Contact support to unlock all features.
+              * Contact enrichment is available with our paid plans. Contact support to unlock all features.
             </p>
           )}
 

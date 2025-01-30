@@ -229,11 +229,10 @@ export function SchedulingForm() {
                         />
                       </FormControl>
                       <FormLabel
-                        className={`font-normal ${
-                          (type === "edit" || (!isSubscribed && campaignType === "Nurturing"))
-                            ? "text-gray-500"
-                            : ""
-                        }`}
+                        className={`font-normal ${(type === "edit" || (!isSubscribed && campaignType === "Nurturing"))
+                          ? "text-gray-500"
+                          : ""
+                          }`}
                       >
                         {campaignType} {!isSubscribed && campaignType === "Nurturing" && "*"} {campaignType === "Inbound" ? "/ Upload Your Own Leads" : ""}
                         {(campaignType === "Inbound" || campaignType === "Nurturing") && (
@@ -309,9 +308,8 @@ export function SchedulingForm() {
                       />
                     </FormControl>
                     <FormLabel
-                      className={`font-normal ${
-                        (type === "edit" || !isSubscribed) ? "text-gray-500" : ""
-                      }`}
+                      className={`font-normal ${(type === "edit" || !isSubscribed) ? "text-gray-500" : ""
+                        }`}
                     >
                       Email {!isSubscribed && "*"}
                     </FormLabel>
@@ -344,9 +342,8 @@ export function SchedulingForm() {
                       />
                     </FormControl>
                     <FormLabel
-                      className={`font-normal ${
-                        (type === "edit" || !isSubscribed) ? "text-gray-500" : ""
-                      }`}
+                      className={`font-normal ${(type === "edit" || !isSubscribed) ? "text-gray-500" : ""
+                        }`}
                     >
                       Multi-Channel {!isSubscribed && "*"}
                       <BetaTag />
@@ -396,7 +393,7 @@ export function SchedulingForm() {
 
         {!isSubscribed && (
           <p className="text-sm text-gray-500 italic">
-            * These features are available with our premium plan. Contact support to unlock all features.
+            * These features are available with our paid plans. Contact support to unlock all features.
           </p>
         )}
 

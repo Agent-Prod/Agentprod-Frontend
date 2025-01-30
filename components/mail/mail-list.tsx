@@ -105,14 +105,17 @@ const MailList: React.FC<MailListProps> = ({
   }, [inView, hasMore, loading, loadMore]);
 
   const handleMailClick = useCallback(
-    (item: Conversations) => {
-      setMail((prevMail) => ({ ...prevMail, selected: item.id }));
-      setSelectedMailId(item.id);
+    async (item: Conversations) => {
+
       setConversationId(item.id);
+
+
+      setSelectedMailId(item.id);
       setRecipientEmail(item.recipient);
       setSenderEmail(item.sender);
+      setMail((prevMail) => ({ ...prevMail, selected: item.id }));
     },
-    [setMail, setSelectedMailId, setConversationId, setRecipientEmail]
+    [setConversationId, setSelectedMailId, setRecipientEmail, setSenderEmail, setMail]
   );
 
   const handleDelete = useCallback(
@@ -187,20 +190,87 @@ const MailList: React.FC<MailListProps> = ({
         };
 
         return (
-          <Badge className={`gap-1 text-xs items-center rounded-full ${color}`}>
-            {icon}
-            {category.trim() === "Later"
-              ? "Later"
-              : category.trim() === "Information Required"
-                ? "Info Req"
-                : category.trim() === "Not Interested"
-                  ? "Disinterested"
-                  : category.trim() === "Forwarded"
-                    ? "Referral"
-                    : category.trim() === "Forwarded to"
-                      ? "Forwarded"
-                      : category}
-          </Badge>
+          <button
+            key={item.id}
+            className={cn(
+              "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
+              selectedMailId === item.id && "bg-muted"
+            )}
+            onClick={() => handleMailClick(item)}
+            onMouseEnter={() => setHoveredMailId(item.id)}
+            onMouseLeave={() => setHoveredMailId(null)}
+          >
+            <div className="flex w-full flex-col gap-1">
+              <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <Avatar className="flex h-8 w-8 items-center justify-center space-y-0 border bg-white">
+                    <AvatarImage src={(item.photo_url ?? item?.organization?.logo_url) || ""} alt="avatar" />
+                    <AvatarFallback className="bg-yellow-400 text-black text-xs">
+                      {item.name
+                        ? item.name
+                          .split(" ")
+                          .map((namePart, index, arr) =>
+                            index === 0 || (index === 1 && arr.length > 1)
+                              ? namePart[0]
+                              : ""
+                          )
+                          .join("")
+                        : ""}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="font-medium text-sm w-72 truncate text-foreground/90">
+                    {`${item.name || "unknown"} `}
+                    <span className="text-muted-foreground/70">
+                      from {item.company_name || "unknown company"}
+                    </span>
+                  </div>
+                  <span className="text-xs">
+                    {item.category && getCategoryBadge(item.category)}
+                  </span>
+                </div>
+
+                <div
+                  className={cn(
+                    "ml-auto text-xs flex gap-2 items-center",
+                    selectedMailId === item.id
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <div className="text-muted-foreground flex items-center gap-[2px]">
+                    {[...Array(Math.min(Number(item.sequence_count) || 0, 15))].map((_, index) => (
+                      <div key={index} className="text-pink-500 text-sm font-extrabold">|</div>
+                    ))}
+                    {(Number(item.sequence_count) || 0) > 15 && (
+                      <span className="text-xs text-pink-500 ml-1">+{(Number(item.sequence_count) || 0) - 15}</span>
+                    )}
+                  </div>
+                  {item.subject === "" ? (
+                    <LinkedinIcon className="w-3 h-3 dark:text-white text-black" />
+                  ) : (
+                    <Mail className="w-3 h-3 dark:text-white text-black" />
+                  )}
+
+                  <span className="text-xs text-gray-400">
+                    {item.updated_at && formatDate(item.updated_at)}
+                  </span>
+                </div>
+              </div>
+              <div className="text-xs font-medium ml-10">{item.subject}</div>
+              <div className="line-clamp-2 text-xs text-muted-foreground ml-10 flex flex-row justify-between items-center">
+                {(item.body_substr as string)?.substring(0, 80)}
+                {hoveredMailId === item.id && (
+                  <Trash2Icon
+                    className="w-4 h-4 dark:hover:text-white hover:text-black cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </button>
         );
       };
 
@@ -313,4 +383,14 @@ const MailList: React.FC<MailListProps> = ({
   );
 };
 
-export default React.memo(MailList);
+const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
+  return (
+    prevProps.items === nextProps.items &&
+    prevProps.selectedMailId === nextProps.selectedMailId &&
+    prevProps.hasMore === nextProps.hasMore &&
+    prevProps.loading === nextProps.loading &&
+    JSON.stringify(prevProps.items) === JSON.stringify(nextProps.items)
+  );
+});
+
+export default MemoizedMailList;

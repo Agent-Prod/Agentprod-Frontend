@@ -177,37 +177,57 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     }
   }, [thread]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    axiosInstance
-      .get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`)
-      .then((response) => {
-        setThread(response.data);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching conversation:", error);
-        setIsLoading(false);
-      });
-  }, [conversationId]);
+  const fetchConversation = useCallback(async () => {
+    if (!conversationId) return;
 
-  console.log('contact_id:', contact_id);
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get<EmailMessage[]>(
+        `v2/mailbox/conversation/${conversationId}`
+      );
+      setThread(response.data);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      toast.error("Failed to load conversation");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [conversationId, setThread]);
+
+  const fetchLeadInfo = useCallback(async () => {
+    if (!contact_id) return;
+
+    try {
+      const response = await axiosInstance.get<Lead>(`v2/lead/info/${contact_id}`);
+      setItemId(response.data.id);
+      setLeads([response.data]);
+    } catch (error) {
+      console.error("Error fetching lead info:", error);
+      toast.error("Failed to load lead information");
+    }
+  }, [contact_id, setItemId, setLeads]);
+
 
   React.useEffect(() => {
-    const fetchLeadInfo = async () => {
-      try {
-        console.log('Using email endpoint for:', contact_id);
-        const response = await axiosInstance.get<Lead>(`v2/lead/info/${contact_id}`);
-        setItemId(response.data.id);
-        setLeads([response.data]);
-      } catch (error) {
-        console.error("Error fetching lead info:", error);
-        toast.error("Failed to load lead information");
-      }
-    };
+    let mounted = true;
+    const controller = new AbortController();
 
-    fetchLeadInfo();
-  }, [recipientEmail, contact_id]);
+    if (conversationId) {
+      setThread([]);
+      fetchConversation();
+    }
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+  }, [conversationId, fetchConversation]);
+
+  React.useEffect(() => {
+    if (contact_id) {
+      fetchLeadInfo();
+    }
+  }, [contact_id, fetchLeadInfo]);
 
   const EmailComponent = (
     ({ email }: { email: EmailMessage }) => {
@@ -1045,6 +1065,18 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         setIsLoading(false);
       });
   }, [conversationId, contact_id, setThread, setItemId, setLeads]);
+
+  if (isLoading || !thread) {
+    return (
+      <div className="m-4 flex flex-row">
+        <Skeleton className="h-7 w-7 rounded-full" />
+        <div className="flex flex-col space-y-3 ml-5">
+          <Skeleton className="h-[25px] w-[30rem] rounded-lg" />
+          <Skeleton className="h-[325px] w-[30rem] rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

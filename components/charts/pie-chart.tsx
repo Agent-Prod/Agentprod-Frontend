@@ -9,6 +9,7 @@ interface PieChartProps {
     data: {
         replies: number;
         contacts_status_map: {
+            NOT_ENRICHED?: number;
             DUPLICATE?: number;
             PROCESSING?: number;
             INVALID_EMAIL?: number;
@@ -18,6 +19,7 @@ interface PieChartProps {
 }
 
 const COLORS = {
+    NOT_ENRICHED: '#FF8042',
     DUPLICATE: '#FF8042',
     PROCESSING: '#34D399',
     INVALID_EMAIL: '#EF4444',
@@ -29,6 +31,7 @@ const STATUS_LABELS = {
     PROCESSING: 'Processing',
     INVALID_EMAIL: 'Invalid Email',
     PROCESSED: 'Processed',
+    NOT_ENRICHED: 'Not Enriched'
 };
 
 export function ContactStatusPieChart({ data }: PieChartProps) {

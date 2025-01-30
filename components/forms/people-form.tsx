@@ -715,10 +715,10 @@ export default function PeopleForm(): JSX.Element {
     if (existingLeadsResponse.data === null) {
       shouldCallAPI = true;
     } else if (
-      existingLeadsResponse.data.length > 100 + pages * 25 &&
+      existingLeadsResponse.data.length > 100 &&
       isSubscribed === false
     ) {
-      toast.warning("Your free account has reached the limit of 300 leads");
+      toast.warning("Your free account has reached the limit of leads");
       shouldCallAPI = false;
     } else if (isSubscribed === true) {
       shouldCallAPI = true;

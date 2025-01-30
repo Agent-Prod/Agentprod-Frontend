@@ -34,6 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <Script type="text/javascript">{`window.$crisp = [];window.CRISP_WEBSITE_ID="410c82a0-a3c6-41b9-bb57-a3c41e023e5c";(function(){d = document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`}</Script>
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-3LG32WF4MD"

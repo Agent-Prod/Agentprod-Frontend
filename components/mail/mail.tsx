@@ -170,7 +170,22 @@ const MemoizedMailList = React.memo(MailList, (prevProps, nextProps) => {
   );
 });
 
-const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain);
+const MemoizedThreadDisplayMain = React.memo(ThreadDisplayMain, (prevProps, nextProps) => {
+
+  if (prevProps.selectedMailId !== nextProps.selectedMailId) {
+    return false;
+  }
+
+  return (
+    prevProps.ownerEmail === nextProps.ownerEmail &&
+    prevProps.mailStatus === nextProps.mailStatus &&
+    prevProps.name === nextProps.name &&
+    prevProps.campaign_name === nextProps.campaign_name &&
+    prevProps.campaign_id === nextProps.campaign_id &&
+    prevProps.contact_id === nextProps.contact_id &&
+    prevProps.linkedinSender === nextProps.linkedinSender
+  );
+});
 
 interface ActiveFiltersProps {
   filter: string;
@@ -471,10 +486,11 @@ export function Mail({
     fetchConversations,
   ]);
 
-  // 2. Modify the fetch conversations effect
+  // Update the fetch conversations effect to handle initial selection after filter changes
   React.useEffect(() => {
     if (user?.id) {
       const controller = new AbortController();
+      setInitialMailIdSet(false);
 
       fetchConversations(
         campaignIdFromUrl || undefined,
@@ -486,18 +502,32 @@ export function Mail({
 
       return () => controller.abort();
     }
-  }, [user?.id, campaignIdFromUrl, filterState.filter, filterState.searchTerm]); // Remove unnecessary dependencies
+  }, [user?.id, campaignIdFromUrl, filterState.filter, filterState.searchTerm]);
+
 
   React.useEffect(() => {
-    if (mails.length > 0 && !initialMailIdSet) {
+    if (mails.length > 0) {
       const initialMail = mails[0];
-      setSelectedMailId(initialMail.id);
-      setSenderEmail(initialMail.sender);
-      setConversationId(initialMail.id);
-      setRecipientEmail(initialMail.recipient);
-      setInitialMailIdSet(true);
+      const batchUpdate = () => {
+        setConversationId(initialMail.id);
+        setSelectedMailId(initialMail.id);
+        setSenderEmail(initialMail.sender);
+        setRecipientEmail(initialMail.recipient);
+        setInitialMailIdSet(true);
+      };
+      if (!selectedMailId || !initialMailIdSet) {
+        batchUpdate();
+      }
     }
-  }, [mails, initialMailIdSet, setSenderEmail, setConversationId, setRecipientEmail, setLeads]);
+  }, [
+    mails,
+    initialMailIdSet,
+    selectedMailId,
+    setSenderEmail,
+    setConversationId,
+    setRecipientEmail,
+    setSelectedMailId
+  ]);
 
   const updateMailStatus = React.useCallback(
     (mailId: string, status: string) => {
@@ -514,8 +544,7 @@ export function Mail({
   );
 
   const currentMail = React.useMemo(
-    () =>
-      mails.find((mail) => mail.id === selectedMailId) || mails[0] || null,
+    () => mails.find((mail) => mail.id === selectedMailId),
     [mails, selectedMailId]
   );
 
@@ -548,6 +577,8 @@ export function Mail({
       }));
       setPage(1);
       setMails([]);
+      setSelectedMailId(null);
+      setInitialMailIdSet(false);
       fetchConversations(campaign?.campaignId, 1, filterState.searchTerm, newFilter);
     },
     [campaign?.campaignId, filterState.searchTerm, fetchConversations]
@@ -707,21 +738,21 @@ export function Mail({
                       Delivered
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_CONNECTED")}>
-                    Linkedin Connected
+                      Linkedin Connected
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_SENT")}>
-                    Linkedin Sent
+                      Linkedin Sent
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_WITHDRAWN")}>
-                    Linkedin Withdrawn
+                      Linkedin Withdrawn
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_FAILED")}>
-                    Linkedin Failed
+                      Linkedin Failed
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
-                    LINKEDIN PENDING
+                      LINKEDIN PENDING
                     </DropdownMenuItem>
-                    
+
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -819,7 +850,7 @@ export function Mail({
               </div>
             ) : currentMail ? (
               <MemoizedThreadDisplayMain
-                key={`thread-${selectedMailId}-${currentMail.updated_at}`}
+                key={currentMail.id}
                 ownerEmail={currentMail.recipient}
                 updateMailStatus={updateMailStatus}
                 selectedMailId={selectedMailId}

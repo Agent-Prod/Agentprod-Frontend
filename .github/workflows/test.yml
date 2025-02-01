@@ -1,7 +1,8 @@
 name: Test Server CI/CD
+
 on:
   push:
-    branches: [10jan]
+    branches: [test-deploy]
 
 jobs:
   deploy:
@@ -14,20 +15,97 @@ jobs:
       NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_TEST_URL }}
       RAZORPAY_API_SECRET_KEY: ${{ secrets.RAZORPAY_API_SECRET_KEY }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Setup staging directory
+        run: |
+          STAGING_DIR="/home/ubuntu/staging-$(date +%Y%m%d_%H%M%S)"
+          echo "STAGING_DIR=$STAGING_DIR" >> $GITHUB_ENV
+          mkdir -p $STAGING_DIR
+
+      - uses: actions/checkout@v3
         with:
           clean: true
-      - name: Install dependencies for production
-        run: npm install
+          path: ${{ env.STAGING_DIR }}
+
+      - name: Cache Next.js build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.STAGING_DIR }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
+      - name: Install dependencies
+        working-directory: ${{ env.STAGING_DIR }}
+        run: npm ci
+
       - name: Build the app
         if: success()
+        working-directory: ${{ env.STAGING_DIR }}
         run: npm run build
-      - name: Restart the process
+
+      - name: Deploy and reload PM2
         if: success()
-        run: pm2 reload 0
-      - name: Save the PM2
+        run: |
+          PROD_DIR="/home/ubuntu/frontend"
+
+          # Ensure production directory exists
+          mkdir -p $PROD_DIR
+
+          if pm2 show next-app > /dev/null 2>&1; then
+            echo "Preparing for zero-downtime deployment..."
+            
+            # Sync new build to production directory, excluding node_modules and .git
+            rsync -av --exclude='node_modules' --exclude='.git' ${{ env.STAGING_DIR }}/ $PROD_DIR/
+            
+            # Install production dependencies
+            cd $PROD_DIR && npm ci --production
+            
+            # Reload with zero downtime
+            pm2 reload next-app --update-env
+          else
+            echo "First time deployment..."
+            
+            # Copy everything to production directory
+            rsync -av --exclude='node_modules' --exclude='.git' ${{ env.STAGING_DIR }}/ $PROD_DIR/
+            
+            # Install production dependencies
+            cd $PROD_DIR && npm ci --production
+            
+            # Start in cluster mode
+            cd $PROD_DIR && pm2 start npm --name "next-app" -i max -- start
+          fi
+
+      - name: Health check
         if: success()
-        run: pm2 save
-      - name: List PM2
+        run: |
+          echo "Performing health check..."
+          sleep 15
+
+          if ! pm2 pid next-app > /dev/null; then
+            echo "Health check failed - process not running"
+            exit 1
+          fi
+
+      - name: Save PM2 configuration
         if: success()
-        run: pm2 list
+        run: |
+          pm2 save
+          echo "PM2 configuration saved"
+
+      - name: Display process status
+        if: always()
+        run: |
+          echo "Current PM2 process list:"
+          pm2 list
+          echo "Detailed status of next-app:"
+          pm2 show next-app
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Remove staging directory
+          rm -rf ${{ env.STAGING_DIR }}
+
+          # Keep only last 3 staging directories
+          cd /home/ubuntu && ls -td staging-* | tail -n +4 | xargs -r rm -rf

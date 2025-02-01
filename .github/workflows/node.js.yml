@@ -1,4 +1,4 @@
-name: CI/CD
+name: Production CI/CD
 
 on:
   push:
@@ -48,40 +48,27 @@ jobs:
           # Clean up any zombie processes
           pm2 kill > /dev/null 2>&1 || true
 
-          # Start with 2 instances specifically (instead of max)
+          # Start with 2 instances specifically
           pm2 start npm --name "prod-app" -i 2 -- start
 
-          # More robust wait for processes
-          for i in {1..30}; do
-            ONLINE_COUNT=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
-            if [ "$ONLINE_COUNT" -eq 2 ]; then
-              echo "All instances are online"
-              break
-            fi
-            echo "Waiting for instances to come online ($ONLINE_COUNT/2)..."
-            sleep 2
-          done
+          # Wait for processes to start
+          sleep 5
 
-          # Final check
+          # Check instance status
           ONLINE_COUNT=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
           if [ "$ONLINE_COUNT" -ne 2 ]; then
             echo "Failed to start all instances"
-            pm2 logs prod-app --lines 50
             exit 1
           fi
 
       - name: Health check
         if: success()
         run: |
-          # Check instance status
           ONLINE_COUNT=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
           if [ "$ONLINE_COUNT" -ne 2 ]; then
-            echo "Health check failed - not all instances are online ($ONLINE_COUNT/2)"
-            pm2 logs prod-app --lines 50
+            echo "Health check failed - not all instances are online"
             exit 1
           fi
-          
-          echo "Health check passed - all instances are online"
 
       - name: Save PM2 configuration
         if: success()
@@ -89,10 +76,4 @@ jobs:
 
       - name: Display process status
         if: always()
-        run: |
-          echo "Current PM2 process list:"
-          pm2 list
-          echo "Detailed status of prod-app:"
-          pm2 show prod-app
-          echo "Recent logs:"
-          pm2 logs prod-app --lines 20 || true
+        run: pm2 list

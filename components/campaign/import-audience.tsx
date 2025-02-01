@@ -220,6 +220,24 @@ export const ImportAudience = () => {
   const [dailyLimit, setDailyLimit] = useState<number>(50);
   const { isSubscribed } = useSubscription();
 
+  useEffect(() => {
+    const fetchDailyLimit = async () => {
+      try {
+        const response = await axiosInstance.get(`v2/linkedin/user-sum/${params.campaignId}`);
+        if (response.data && response.data.count) {
+          setDailyLimit(Math.min(response.data.count, mappedData.length));
+        }
+      } catch (error) {
+        console.error("Error fetching daily limit:", error);
+        setDailyLimit(mappedData.length);
+      }
+    };
+
+    if (user?.id) {
+      fetchDailyLimit();
+    }
+  }, [user?.id]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files[0];
@@ -666,6 +684,24 @@ export const ImportAudience = () => {
     const shouldShowMapping = () => {
       return selectedProvider === 'csv';
     };
+
+    useEffect(() => {
+      const fetchDailyLimit = async () => {
+        try {
+          const response = await axiosInstance.get(`v2/linkedin/user-sum/${params.campaignId}`);
+          if (response.data && response.data.count) {
+            setDailyLimit(Math.min(response.data.count, filteredData.length));
+          }
+        } catch (error) {
+          console.error("Error fetching daily limit:", error);
+          setDailyLimit(filteredData.length);
+        }
+      };
+
+      if (user?.id) {
+        fetchDailyLimit();
+      }
+    }, [params.campaignId]);
 
     const ColumnMappingDialog = () => {
       return (

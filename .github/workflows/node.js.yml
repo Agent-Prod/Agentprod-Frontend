@@ -42,29 +42,45 @@ jobs:
         if: success()
         working-directory: /home/ubuntu/frotend-main/_work/Agentprod-Frontend/Agentprod-Frontend
         run: |
-          # Check if PM2 process exists
-          if pm2 show prod-app > /dev/null 2>&1; then
-            # If exists, reload with zero downtime
-            pm2 reload prod-app --update-env --wait-ready
-          else
-            # If not exists, start in cluster mode
-            pm2 start npm --name "prod-app" -i max --wait-ready -- start
-          fi
+          # Stop any existing processes first
+          pm2 delete prod-app > /dev/null 2>&1 || true
 
-          # Wait for new instances to be ready
-          sleep 10
+          # Clean up any zombie processes
+          pm2 kill > /dev/null 2>&1 || true
+
+          # Start fresh in cluster mode
+          pm2 start npm --name "prod-app" -i max -- start
+
+          # Wait for processes to start
+          sleep 15
+
+          # Ensure all instances are running
+          if ! pm2 pid prod-app > /dev/null; then
+            echo "Failed to start processes"
+            exit 1
+          fi
 
       - name: Health check
         if: success()
         run: |
+          # More comprehensive health check
           if ! pm2 pid prod-app > /dev/null; then
             echo "Health check failed - process not running"
             exit 1
           fi
 
+          # Check all instances
+          INSTANCES=$(pm2 prettylist | grep -c "prod-app")
+          if [ "$INSTANCES" -lt 1 ]; then
+            echo "Health check failed - no instances running"
+            exit 1
+          fi
+
       - name: Save PM2 configuration
         if: success()
-        run: pm2 save
+        run: |
+          pm2 save
+          pm2 startup
 
       - name: Display process status
         if: always()

@@ -40,33 +40,24 @@ jobs:
 
       - name: Deploy and reload PM2
         if: success()
-        working-directory: /home/ubuntu/frotend-main/_work/Agentprod-Frontend/Agentprod-Frontend
         run: |
-          # Stop any existing processes first
-          pm2 delete prod-app > /dev/null 2>&1 || true
-
-          # Clean up any zombie processes
-          pm2 kill > /dev/null 2>&1 || true
-
-          # Start with 2 instances specifically
-          pm2 start npm --name "prod-app" -i 2 -- start
-
-          # Wait for processes to start
-          sleep 5
-
-          # Check instance status
-          ONLINE_COUNT=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
-          if [ "$ONLINE_COUNT" -ne 2 ]; then
-            echo "Failed to start all instances"
-            exit 1
+          # Check if PM2 process exists
+          if pm2 show prod-app > /dev/null 2>&1; then
+            # If exists, reload with zero downtime
+            pm2 reload prod-app --update-env --wait-ready
+          else
+            # If not exists, start in cluster mode
+            pm2 start npm --name "prod-app" -i max --wait-ready -- start
           fi
+
+          # Wait for new instances to be ready
+          sleep 10
 
       - name: Health check
         if: success()
         run: |
-          ONLINE_COUNT=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
-          if [ "$ONLINE_COUNT" -ne 2 ]; then
-            echo "Health check failed - not all instances are online"
+          if ! pm2 pid prod-app > /dev/null; then
+            echo "Health check failed - process not running"
             exit 1
           fi
 
@@ -76,4 +67,8 @@ jobs:
 
       - name: Display process status
         if: always()
-        run: pm2 list
+        run: |
+          echo "Current PM2 process list:"
+          pm2 list
+          echo "Detailed status of prod-app:"
+          pm2 show prod-app

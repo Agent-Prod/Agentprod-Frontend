@@ -5,6 +5,7 @@ interface ContentDisplayProps {
     className?: string;
     readOnly?: boolean;
     onChange?: (value: string) => void;
+    placeholder?: string;
 }
 
 const isHTML = (str: string): boolean => {
@@ -16,7 +17,8 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
     content,
     className,
     readOnly = true,
-    onChange
+    onChange,
+    placeholder
 }) => {
     if (!content) return null;
 
@@ -34,6 +36,7 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({
                     value={content}
                     className={className}
                     onChange={(e) => onChange?.(e.target.value)}
+                    placeholder={placeholder}
                 />
             );
         }

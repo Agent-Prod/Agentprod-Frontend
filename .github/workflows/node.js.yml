@@ -38,14 +38,38 @@ jobs:
         if: success()
         run: npm run build
 
-      - name: Restart the process
+      - name: Deploy and reload PM2
         if: success()
-        run: pm2 reload 0
+        working-directory: /home/ubuntu/frotend-main/_work/Agentprod-Frontend/Agentprod-Frontend
+        run: |
+          # Check if PM2 process exists
+          if pm2 show prod-app > /dev/null 2>&1; then
+            # If exists, reload with zero downtime
+            pm2 reload prod-app --update-env --wait-ready
+          else
+            # If not exists, start in cluster mode
+            pm2 start npm --name "prod-app" -i max --wait-ready -- start
+          fi
 
-      - name: Save the PM2
+          # Wait for new instances to be ready
+          sleep 10
+
+      - name: Health check
+        if: success()
+        run: |
+          if ! pm2 pid prod-app > /dev/null; then
+            echo "Health check failed - process not running"
+            exit 1
+          fi
+
+      - name: Save PM2 configuration
         if: success()
         run: pm2 save
 
-      - name: List PM2
-        if: success()
-        run: pm2 list
+      - name: Display process status
+        if: always()
+        run: |
+          echo "Current PM2 process list:"
+          pm2 list
+          echo "Detailed status of prod-app:"
+          pm2 show prod-app

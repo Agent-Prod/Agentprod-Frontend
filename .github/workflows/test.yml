@@ -47,7 +47,7 @@ jobs:
             # If not exists, start in cluster mode
             pm2 start npm --name "test-app" -i max --wait-ready -- start
           fi
-          
+
           # Wait for new instances to be ready
           sleep 10
 

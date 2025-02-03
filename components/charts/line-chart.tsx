@@ -13,14 +13,20 @@ interface DataPoint {
   date: string;
   email_count?: number;
   leads_count?: number;
+  connection_count?: number;
+  connected_count?: number;
 }
 
 export function LineChartComponent({
   mailGraphData,
   contactsData,
+  connectionData,
+  connectedData,
 }: {
   mailGraphData: DataPoint[];
   contactsData: DataPoint[];
+  connectionData: DataPoint[];
+  connectedData: DataPoint[];
 }) {
   if (!mailGraphData || !Array.isArray(mailGraphData)) {
     return null;
@@ -28,59 +34,107 @@ export function LineChartComponent({
 
   const mergeDataByDate = (
     emailData: DataPoint[],
-    leadsData: DataPoint[]
+    leadsData: DataPoint[],
+    connectionsData: DataPoint[],
+    connectedData: DataPoint[]
   ): DataPoint[] => {
     const mergedData: { [key: string]: DataPoint } = {};
 
-    emailData.forEach((item) => {
-      const date = new Date(item.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year:
-          new Date(item.date).getFullYear() !== new Date().getFullYear()
-            ? "numeric"
-            : undefined,
-      });
+    // Helper function to format date consistently
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+    };
+
+    // Get the date range
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    // Create an array of all dates in the last 30 days
+    const dates: string[] = [];
+    for (let d = new Date(thirtyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
+      dates.push(formatDate(d.toISOString()));
+    }
+
+    // Initialize all dates with zero values
+    dates.forEach(date => {
       mergedData[date] = {
         date,
-        email_count: item.email_count,
+        email_count: 0,
         leads_count: 0,
+        connection_count: 0,
+        connected_count: 0
       };
     });
 
-    leadsData.forEach((item) => {
-      const date = new Date(item.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year:
-          new Date(item.date).getFullYear() !== new Date().getFullYear()
-            ? "numeric"
-            : undefined,
-      });
+    // Merge email data
+    emailData.forEach(item => {
+      const date = formatDate(item.date);
       if (mergedData[date]) {
-        mergedData[date].leads_count = item.leads_count;
-      } else {
-        mergedData[date] = {
-          date,
-          email_count: 0,
-          leads_count: item.leads_count,
-        };
+        mergedData[date].email_count = item.email_count;
       }
     });
 
-    return Object.values(mergedData);
+    // Merge leads data
+    leadsData.forEach(item => {
+      const date = formatDate(item.date);
+      if (mergedData[date]) {
+        mergedData[date].leads_count = item.leads_count;
+      }
+    });
+
+    // Merge connection data
+    if (Array.isArray(connectionsData)) {
+      connectionsData.forEach(item => {
+        const date = formatDate(item.date);
+        if (mergedData[date]) {
+          mergedData[date].connection_count = item.connection_count;
+        }
+      });
+    }
+
+    // Merge connected data
+    if (Array.isArray(connectedData)) {
+      connectedData.forEach(item => {
+        const date = formatDate(item.date);
+        if (mergedData[date]) {
+          mergedData[date].connected_count = item.connection_count;
+        }
+      });
+    }
+
+    // Convert to array, sort by date, and filter to last 30 days
+    return Object.values(mergedData)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= thirtyDaysAgo && itemDate <= today;
+      });
   };
 
-  const sortedData = mergeDataByDate(mailGraphData, contactsData).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedData = mergeDataByDate(mailGraphData, contactsData, connectionData, connectedData);
 
-  const last20Days = sortedData.slice(-20);
+  // Format dates for display
+  const formattedData = sortedData.map(item => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })
+  }));
+
+  // Debug logs
+  console.log('Raw Connection Data:', connectionData);
+  console.log('Merged and Sorted Data:', sortedData);
+  console.log('Final Formatted Data:', formattedData);
 
   const dataMax = Math.max(
-    ...last20Days.flatMap((item) => [
+    ...formattedData.flatMap((item) => [
       item.email_count || 0,
       item.leads_count || 0,
+      item.connection_count || 0,
+      item.connected_count || 0,
     ])
   );
 
@@ -100,7 +154,7 @@ export function LineChartComponent({
   return (
     <ResponsiveContainer width="100%" height={350}>
       <LineChart
-        data={last20Days}
+        data={formattedData}
         margin={{
           top: 5,
           right: 30,
@@ -159,6 +213,24 @@ export function LineChartComponent({
           type="monotone"
           dataKey="leads_count"
           stroke="#22c55e"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6, strokeWidth: 0 }}
+        />
+        <Line
+          name="LinkedIn Connection Sent"
+          type="monotone"
+          dataKey="connection_count"
+          stroke="#f59e0b"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6, strokeWidth: 0 }}
+        />
+        <Line
+          name="LinkedIn Connection Accepted"
+          type="monotone"
+          dataKey="connected_count"
+          stroke="#8b5cf6"
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 6, strokeWidth: 0 }}

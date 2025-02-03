@@ -22,6 +22,7 @@ export interface EmailMessage {
   click_datetime: Date | null;
   response_datetime: Date | null;
   status: string;
+  connection_status: string;
   sentiment: string | null;
   category: string | null;
   action_draft: string | null;

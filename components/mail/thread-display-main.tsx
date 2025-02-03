@@ -43,6 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ContentDisplay from "./ContentDisplay";
 import { useAuth } from "@/context/auth-provider";
 import UpperNotification from "./UpperNotification";
+import { draftEmail } from "@/constants/data";
 
 
 interface ThreadDisplayMainProps {
@@ -660,7 +661,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    if (leads[0]?.type !== "Linkedin") return null;
+    // if (draftEmail) return null;
     if (thread.length > 0) return null;
     return (
       <div className="m-4">
@@ -931,6 +932,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
       return null;
     }
 
+
     return (
       <div className="flex gap-2 flex-col m-4 h-full">
         <div className="flex w-full">
@@ -1127,6 +1129,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     );
   };
 
+
+
   const refreshThread = useCallback(() => {
     setIsLoading(true);
     Promise.all([
@@ -1214,8 +1218,8 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </div>
             )}
 
-            {leads[0]?.type === "Linkedin" && thread?.length !== 0 &&
-              leads[0]?.connected_on_linkedin === "CONNECTED" &&
+            {thread[0]?.channel === "Linkedin" && thread?.length !== 0 &&
+              thread[0]?.connection_status === "CONNECTED" &&
               (!thread[thread.length - 1] || thread[thread.length - 1].status !== "TO-APPROVE") && (
                 <LinkedInMessageBox />
               )}
@@ -1223,6 +1227,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
             {(thread?.length === 0 ||
               (thread?.[thread?.length - 1]?.is_reply === false)) && (
                 <>
+
                   <DraftEmailComponent />
                   {mailStatus === "LOST" && (
                     <div className="flex items-center gap-3 ml-4">

@@ -64,7 +64,7 @@ function UpperNotification({ connection_sent_time, connection_accepted_time, lin
                         <LinkedinIcon className="h-4 w-4 text-gray-400 ml-2 mr-2" />
                     </div>
                     <p className="ml-1 text-xs">
-                        {name} has been sent a connection request from {linkedin_url || linkedin_sender_name}
+                        {name} has been sent a connection request from {linkedin_sender_name || linkedin_url}
                     </p>
                     <span className="text-gray-400 text-xs">
                         {formatDate(connection_sent_time)}
@@ -78,7 +78,7 @@ function UpperNotification({ connection_sent_time, connection_accepted_time, lin
                         <Check className="h-4 w-4 text-gray-400 ml-2 mr-2" />
                     </div>
                     <p className="ml-1 text-xs">
-                        {name} has accepted your connection request from {linkedin_url || linkedin_sender_name}
+                        {name} has accepted your connection request from {linkedin_sender_name || linkedin_url}
                     </p>
                     <span className="text-gray-400 text-xs">
                         {formatDate(connection_accepted_time)}

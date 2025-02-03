@@ -1043,6 +1043,90 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
     );
   });
 
+  const LinkedInMessageBox = () => {
+    const [messageBody, setMessageBody] = useState('');
+    const [isSending, setIsSending] = useState(false);
+    const { user } = useAuth();
+
+    const handleSendMessage = async () => {
+      if (!messageBody.trim()) return;
+
+      setIsSending(true);
+      const messageId = thread[thread.length - 1]?.id;
+
+      const payload = {
+        receiver: recipientEmail,
+        sender: senderEmail,
+        user_id: user?.id,
+        message: messageBody,
+        conversation_id: conversationId,
+        message_id: messageId
+      };
+
+      try {
+        await axiosInstance.post('/v2/linkedin/send-message', payload);
+        toast.success("Your LinkedIn message has been sent successfully!");
+        const threadResponse = await axiosInstance.get<EmailMessage[]>(`v2/mailbox/conversation/${conversationId}`);
+        setThread(threadResponse.data);
+        updateMailStatus(conversationId, "sent");
+        setSelectedMailId(conversationId);
+        setMessageBody('');
+      } catch (error) {
+        console.error("Failed to send LinkedIn message:", error);
+        toast.error("Failed to send the message. Please try again.");
+      } finally {
+        setIsSending(false);
+      }
+    };
+
+    return (
+      <div className="flex gap-4 flex-col m-4">
+        <div className="flex w-full">
+          <Avatar
+            className="flex h-7 w-7 items-center justify-center space-y-0 border bg-white mr-4"
+            onClick={() => toggleSidebar(true)}
+          >
+            <AvatarImage
+              src={leads[0]?.photo_url ?? leads[0]?.organization?.logo_url}
+              alt="avatar"
+            />
+            <AvatarFallback className="bg-yellow-400 text-black text-xs">
+              {name ? initials(name) : ""}
+            </AvatarFallback>
+          </Avatar>
+          <Card className="w-full mr-5">
+            <div className="flex gap-5 p-4 items-center">
+              <span className="text-sm font-semibold">{"You to " + name}</span>
+              <span className="text-blue-500 text-sm flex items-center space-x-2">
+                LinkedIn Message
+                <div className="h-4 w-4 pl-2">
+                  <Linkedin className="h-4 w-4" />
+                </div>
+              </span>
+            </div>
+            <CardContent className="text-xs -ml-3 mt-2">
+              <Textarea
+                value={messageBody}
+                className="text-xs h-32"
+                readOnly={false}
+                onChange={(e) => setMessageBody(e.target.value)}
+                placeholder="Write your message..."
+              />
+            </CardContent>
+            <CardFooter className="flex justify-end text-xs items-center">
+              <Button
+                disabled={isSending || !messageBody.trim()}
+                onClick={handleSendMessage}
+              >
+                {isSending ? <LoadingCircle /> : "Send"}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
   const refreshThread = useCallback(() => {
     setIsLoading(true);
     Promise.all([
@@ -1129,6 +1213,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   ))}
               </div>
             )}
+
+            {leads[0]?.type === "Linkedin" && thread?.length !== 0 &&
+              leads[0]?.connected_on_linkedin === "CONNECTED" &&
+              (!thread[thread.length - 1] || thread[thread.length - 1].status !== "TO-APPROVE") && (
+                <LinkedInMessageBox />
+              )}
 
             {(thread?.length === 0 ||
               (thread?.[thread?.length - 1]?.is_reply === false)) && (

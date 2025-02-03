@@ -85,6 +85,8 @@ export interface Conversations {
   campaign_name: string | null;
   contact_id: string | null;
   sequence_count: number;
+  linkedin_exists: boolean;
+  connection_status: string;
 }
 
 const CampaignDropdown = React.memo(
@@ -861,6 +863,8 @@ export function Mail({
                 campaign_id={currentMail?.campaign_id || ''}
                 contact_id={currentMail?.contact_id || ''}
                 linkedinSender={currentMail?.linkedin_sender || ''}
+                linkedin_exists={currentMail?.linkedin_exists || false}
+                connection_status={currentMail?.connection_status || ''}
               />
             ) : (
               <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">

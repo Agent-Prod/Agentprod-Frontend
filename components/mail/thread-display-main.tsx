@@ -57,6 +57,8 @@ interface ThreadDisplayMainProps {
   campaign_id: string;
   contact_id: string;
   linkedinSender: string;
+  linkedin_exists: boolean;
+  connection_status: string;
 }
 
 const initials = (name: string) => {
@@ -119,7 +121,9 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   name,
   campaign_name,
   contact_id,
-  linkedinSender
+  linkedinSender,
+  linkedin_exists,
+  connection_status
 }) => {
   const {
     conversationId,
@@ -661,7 +665,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
   );
 
   const renderLinkedInStatus = () => {
-    // if (draftEmail) return null;
+    if (!linkedin_exists) return null;
     if (thread.length > 0) return null;
     return (
       <div className="m-4">
@@ -669,15 +673,15 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
             <Linkedin className="h-4 w-4 text-gray-400" />
           </div>
-          {leads[0]?.connected_on_linkedin === "SENT" ? (
+          {connection_status === "SENT" ? (
             <p className="ml-1 text-xs">
               {name} has been sent a connection request from {linkedinSenderName || linkedinSender}
             </p>
-          ) : leads[0]?.connected_on_linkedin === "FAILED" ? (
+          ) : connection_status === "FAILED" ? (
             <p className="ml-1 text-xs">
               {name} has rejected your connection request from {linkedinSenderName || linkedinSender}
             </p>
-          ) : leads[0]?.connected_on_linkedin === "CONNECTED" ? (
+          ) : connection_status === "CONNECTED" ? (
             <p className="ml-1 text-xs">
               {name} has accepted your connection request from {linkedinSenderName || linkedinSender}
             </p>

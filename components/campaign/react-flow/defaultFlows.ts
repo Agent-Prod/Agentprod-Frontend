@@ -532,9 +532,41 @@ export const createDefaultLinkedInFlow = (handlers: {
             },
         },
         {
+            id: 'delay-followup-2',
+            type: 'delayNode',
+            position: { x: 450, y: 750 },
+            data: {
+                label: "3 days",
+                days: 3,
+                defaultDays: 3,
+            },
+        },
+        {
+            id: 'linkedin-followup-2',
+            type: 'emailNode',
+            position: { x: 450, y: 850 },
+            data: {
+                label: 'Send Second LinkedIn Follow-up',
+                onActionClick: () => handlers.handleActionClick('linkedin-followup-2'),
+                onEndClick: () => handlers.handleEndClick('linkedin-followup-2'),
+                onChange: handlers.handleDelayChange,
+                onDelete: handlers.handleNodeDelete,
+            },
+        },
+        {
+            id: 'delay-followup-final',
+            type: 'delayNode',
+            position: { x: 450, y: 950 },
+            data: {
+                label: "1 day",
+                days: 1,
+                defaultDays: 1,
+            },
+        },
+        {
             id: 'action-right',
             type: 'actionNode',
-            position: { x: 450, y: 900 },
+            position: { x: 450, y: 1050 },
             data: {
                 label: 'Add action',
                 isEnd: false,
@@ -630,6 +662,20 @@ export const createDefaultLinkedInFlow = (handlers: {
         {
             id: 'e6-right',
             source: 'delay-followup',
+            target: 'linkedin-followup-2',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e7-right',
+            source: 'linkedin-followup-2',
+            target: 'delay-followup-final',
+            type: 'smoothstep',
+            style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },
+        },
+        {
+            id: 'e8-right',
+            source: 'delay-followup-final',
             target: 'action-right',
             type: 'smoothstep',
             style: { stroke: '#4f4f4f', strokeWidth: 2, opacity: 0.8 },

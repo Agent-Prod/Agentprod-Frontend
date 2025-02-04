@@ -49,11 +49,11 @@ jobs:
           if pm2 show prod-app > /dev/null 2>&1; then
             echo "Existing deployment found, performing zero-downtime reload"
             # Reload with zero downtime
-            pm2 reload prod-app --update-env --wait-ready --listen-timeout 8000
+            pm2 reload prod-app --update-env --wait-ready --listen-timeout 8000 -i 1
           else
             echo "No existing deployment found, starting new cluster"
-            # Start in cluster mode with max instances
-            pm2 start npm --name "prod-app" -i max --wait-ready --listen-timeout 8000 -- start
+            # Start with 1 instance instead of max
+            pm2 start npm --name "prod-app" -i 1 --wait-ready --listen-timeout 8000 -- start
           fi
 
           # Wait for new instances to stabilize
@@ -88,16 +88,22 @@ jobs:
       - name: Verify deployment
         if: success()
         run: |
-          # Verify all instances are running
+          # Verify instance is running
           RUNNING_INSTANCES=$(pm2 list | grep "prod-app" | grep "online" | wc -l)
-          EXPECTED_INSTANCES=$(nproc --all)  # Number of CPU cores
+          MINIMUM_INSTANCES=1
 
-          if [ "$RUNNING_INSTANCES" -lt "$EXPECTED_INSTANCES" ]; then
-            echo "Error: Not all instances are running. Expected: $EXPECTED_INSTANCES, Got: $RUNNING_INSTANCES"
+          if [ "$RUNNING_INSTANCES" -lt "$MINIMUM_INSTANCES" ]; then
+            echo "Error: Deployment verification failed. Expected at least: $MINIMUM_INSTANCES instance, Got: $RUNNING_INSTANCES"
             exit 1
           fi
 
-          echo "Deployment verified successfully"
+          # Check if the instance is actually responding
+          if ! curl -s -f "${{ secrets.NEXT_PUBLIC_PROD_URL }}/api/health" > /dev/null; then
+            echo "Error: Instance is running but not responding to health checks"
+            exit 1
+          fi
+
+          echo "Deployment verified successfully with $RUNNING_INSTANCES instance(s) running"
 
       - name: Save PM2 configuration
         if: success()

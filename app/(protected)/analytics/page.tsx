@@ -200,7 +200,7 @@ export default function Page() {
               <CardTitle>Sending Volume Per Day</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <LineChartComponent mailGraphData={mailGraphData} contactsData={contactsData} />
+              {/* <LineChartComponent mailGraphData={mailGraphData} contactsData={contactsData} /> */}
             </CardContent>
           </Card>
 

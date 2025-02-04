@@ -483,7 +483,7 @@ export default function Page() {
   } = useDashboardContext();
 
 
-  const { mailGraphData, contactsData, fetchDataIfNeeded } = useMailGraphContext();
+  const { mailGraphData, contactsData, connectionData, connectedData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
   const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
 
@@ -639,6 +639,8 @@ export default function Page() {
                 <LineChartComponent
                   mailGraphData={mailGraphData}
                   contactsData={contactsData}
+                  connectionData={connectionData}
+                  connectedData={connectedData}
                 />
               </CardContent>
             </Card>

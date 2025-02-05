@@ -1179,33 +1179,48 @@ export default function Page() {
       </Dialog>
 
       <Dialog open={isChooseServiceOpen} onOpenChange={setIsChooseServiceOpen}>
-        <DialogContent className="w-full flex flex-col">
+        <DialogContent className="w-full max-w-md">
           <DialogHeader>
             <DialogTitle>Add mailbox</DialogTitle>
             <DialogDescription>
-              Choose the service to continue adding the mailbox.
+              Choose a service to connect your mailbox
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-5">
+
+          <div className="flex flex-col gap-4 py-4">
+            <Button
+              onClick={handleOpenGoogleService}
+              variant="outline"
+              className="w-full h-auto p-4 flex items-center justify-start gap-3 hover:bg-muted"
+            >
+              <FcGoogle className="h-6 w-6 flex-shrink-0" />
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-medium">Google</span>
+                <span className="text-xs text-muted-foreground text-start">
+                  Give permission to read, compose and send emails
+                </span>
+              </div>
+            </Button>
             <Button
               onClick={handleOpenAgentprodService}
-              className="flex items-center gap-2"
+              variant="outline"
+              className="w-full h-auto p-4 flex items-center justify-start gap-3 hover:bg-muted"
             >
               <Image
                 src="/bw-logo.png"
-                alt="agent-prod"
-                width="20"
-                height="20"
+                alt="Agentprod"
+                width="24"
+                height="24"
+                className="flex-shrink-0"
               />
-              Outlook (Agentprod native integration)
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-medium">Outlook</span>
+                <span className="text-xs text-muted-foreground">
+                  Agentprod native integration
+                </span>
+              </div>
             </Button>
-            <Button
-              onClick={handleOpenGoogleService}
-              className="flex gap-2 items-center"
-            >
-              <FcGoogle className="h-5 w-5" />
-              Continue with Google
-            </Button>
+
 
           </div>
         </DialogContent>

@@ -341,10 +341,19 @@ export function GoalForm() {
   }, [params.campaignId]);
 
   useEffect(() => {
-    if (minimumMarkAsLost > 0) {
-      form.setValue('mark_as_lost', minimumMarkAsLost);
+    if (campaignChannel === 'mail') {
+      const followUpDays = form.watch('follow_up_days') || 0;
+      const followUpTimes = form.watch('follow_up_times') || 0;
+      const calculatedMinimum = followUpTimes > 0 ? (followUpDays * followUpTimes) + 1 : 1;
+      setMinimumMarkAsLost(calculatedMinimum);
+
+      // Automatically update mark_as_lost if current value is less than new minimum
+      const currentMarkAsLost = form.getValues('mark_as_lost');
+      if (currentMarkAsLost < calculatedMinimum) {
+        form.setValue('mark_as_lost', calculatedMinimum);
+      }
     }
-  }, [minimumMarkAsLost, form]);
+  }, [form.watch('follow_up_days'), form.watch('follow_up_times'), campaignChannel, form]);
 
   useEffect(() => {
     const fetchLinkedInAccounts = async () => {
@@ -975,7 +984,7 @@ export function GoalForm() {
             <FormItem className="space-y-3">
               <FormLabel>Mark as lost</FormLabel>
               <FormDescription>
-                Minimum {minimumMarkAsLost} days based on sequence delays
+                Minimum {minimumMarkAsLost} days based on {campaignChannel === 'mail' ? 'follow-up schedule' : 'sequence delays'}
               </FormDescription>
               <FormControl>
                 <Input
@@ -983,7 +992,7 @@ export function GoalForm() {
                   min={minimumMarkAsLost}
                   placeholder={`Minimum ${minimumMarkAsLost} days`}
                   {...field}
-                  value={field.value ?? minimumMarkAsLost}
+                  value={Math.max(field.value ?? minimumMarkAsLost, minimumMarkAsLost)}
                   onChange={(e) => {
                     const value = e.target.value;
                     const numValue = value === '' ? minimumMarkAsLost : Number(value);

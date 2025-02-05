@@ -439,21 +439,21 @@ export default function CampaignPage() {
         ) : displayedCampaigns.length > 0 ? (
           displayedCampaigns.map(renderCampaignCard)
         ) : (
-          <div className="flex flex-col items-center justify-center py-12">
+          <div className="col-span-full flex flex-col items-center justify-center min-h-[60vh]">
             <Image
               src="/emptyCampaign.svg"
               alt="No campaigns"
-              width="300"
-              height="300"
-              className="dark:filter dark:invert mb-8"
+              width="400"
+              height="400"
+              className="dark:invert mb-8"
             />
-            <h3 className="text-xl font-semibold mb-2">No Campaigns Available</h3>
-            <p className="text-muted-foreground mb-6">Create your first campaign to get started</p>
-            <Button asChild>
-              <Link href={`/campaign/${uuid()}`}>
-                <Plus className="mr-2 h-4 w-4" /> Create Campaign
-              </Link>
-            </Button>
+            <h3 className="text-3xl font-bold text-foreground mb-3">
+              No Campaigns Available
+            </h3>
+            <p className="text-muted-foreground text-lg mb-8 text-center">
+              Create your first campaign to get started
+            </p>
+
           </div>
         )}
       </div>

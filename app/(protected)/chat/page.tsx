@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Ref, useEffect, useRef, useState } from "react";
 import { useChat } from "ai/react";
 import va from "@vercel/analytics";
 import clsx from "clsx";
@@ -17,6 +17,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-provider";
 import { getCookie } from "cookies-next";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Message {
   id: string;
@@ -35,10 +36,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sallyLoad, setSallyLoad] = useState(false);
   const [allMessages, setAllMessages] = useState<Message[]>([
-    
+
   ]);
 
- 
+
 
   function formatDate(created_at: any) {
     // Ensure createdAt is a valid date
@@ -407,11 +408,11 @@ export default function Home() {
               // console.log(allMessages);
               handleSubmit(e);
             }}
-            className="relative w-full max-w-screen-md rounded-xl border px-4 pb-2 pt-3 shadow-lg sm:pb-3 sm:pt-4 flex dark:bg-[#09090b] bg-white"
+            className="relative items-center w-full max-w-screen-md rounded-xl border px-4 pb-2 pt-3 shadow-lg sm:pb-3 sm:pt-4 flex dark:bg-[#09090b] bg-white"
 
           >
-            <Input
-              ref={inputRef}
+            <Textarea
+              ref={inputRef as unknown as Ref<HTMLTextAreaElement>}
               tabIndex={0}
               required
               autoFocus
@@ -425,29 +426,12 @@ export default function Home() {
                   e.preventDefault();
                   setSallyLoad(true);
                 }
+                // Shift+Enter will naturally create a new line since we're using Textarea
               }}
               spellCheck={false}
-              className="w-full px-5 focus:outline-none"
-            />
-            {/* <Textarea
-              ref={inputRef}
-              tabIndex={0}
-              required
+              className="w-full px-5 focus:outline-none resize-none "
               rows={1}
-              autoFocus
-              placeholder="Send a message"
-              value={input}
-              disabled={userEmail === "" || loading}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  formRef.current?.requestSubmit();
-                  e.preventDefault();
-                }
-              }}
-              spellCheck={false}
-              className="w-full pr-10 focus:outline-none"
-            /> */}
+            />
             <Button
               type="submit"
               variant={"outline"}

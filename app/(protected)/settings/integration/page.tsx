@@ -401,14 +401,16 @@ export default function Page() {
         <CardHeader className="flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <SlackIcon />
-            <div
-              className={`text-sm border rounded-lg text-center p-2 cursor-pointer`}
+            <Button
+              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+              variant={"outline"}
               onClick={() => {
                 slackLogin();
               }}
+              disabled={true}
             >
-              Connect
-            </div>
+              Coming Soon
+            </Button>
           </div>
           <Dialog>
             <DialogContent className="w-full">
@@ -537,14 +539,16 @@ export default function Page() {
         <CardHeader className="flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <HubSpotIcon />
-            <div
-              className={`text-sm border rounded-lg text-center p-2 cursor-pointer`}
+            <Button
+              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+              variant={"outline"}
               onClick={() => {
-                setIsHubspotMailboxOpen(true);
+                slackLogin();
               }}
+              disabled={true}
             >
-              {isConnectedToHubspot ? "Connected" : "Connect"}
-            </div>
+              Coming Soon
+            </Button>
           </div>
           <Dialog
             open={isHubspotMailboxOpen}
@@ -911,14 +915,16 @@ export default function Page() {
         <CardHeader className="flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <SalesForceIcon />
-            <div
-              className={`text-sm border rounded-lg text-center p-2 cursor-pointer`}
+            <Button
+              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+              variant={"outline"}
               onClick={() => {
-                handleSalesforceConnect();
+                slackLogin();
               }}
+              disabled={true}
             >
-              {isConnectedToSalesforce ? "Connected" : "Connect"}
-            </div>
+              Coming Soon
+            </Button>
           </div>
           <Dialog
             open={isSalesforceMailboxOpen}
@@ -1038,12 +1044,16 @@ export default function Page() {
         <CardHeader className="flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <ZapierIcon />
-            <div
+            <Button
               className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
-              onClick={() => { }}
+              variant={"outline"}
+              onClick={() => {
+                slackLogin();
+              }}
+              disabled={true}
             >
               Coming Soon
-            </div>
+            </Button>
           </div>
           <Dialog>
             <DialogContent className="w-full">
@@ -1167,6 +1177,6 @@ export default function Page() {
           </CardDescription>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

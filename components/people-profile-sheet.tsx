@@ -183,7 +183,11 @@ export const PeopleProfileSheet = ({
               <div className="flex space-x-2 w-full">
                 <Linkedin className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground whitespace-normal w-full underline">
-                  <a href={data.linkedin_url || ""} target="_blank">
+                  <a 
+                    href={data.linkedin_url ? (data.linkedin_url.startsWith('http') ? data.linkedin_url : `https://www.${data.linkedin_url}`) : ""} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {data.linkedin_url || "N/A"}
                   </a>
                 </span>

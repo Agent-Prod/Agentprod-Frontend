@@ -916,7 +916,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
         });
     }, [body, emails, title]);
 
-    if (platform === "linkedin" && leads[0]?.type === "omni" && leads[0]?.connected_on_linkedin !== "CONNECTED") {
+    if (leads[0]?.type === "omni" && linkedin_exists && connection_status !== "CONNECTED") {
       return null;
     }
 
@@ -1009,7 +1009,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                   className="ml-2"
                   disabled={
                     isLoadingButton ||
-                    (platform === "linkedin" && leads[0]?.connected_on_linkedin !== "CONNECTED")
+                    (linkedin_exists && connection_status !== "CONNECTED")
                   }
                   onClick={() => handleSendNow(emails)}
                 >

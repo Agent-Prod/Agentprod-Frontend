@@ -144,6 +144,7 @@ export const navItems: NavInterface[] = [
         label: "mail",
         isCollapsible: true,
         id: "inbox-nav",
+        "data-driver-element": "inbox-nav"
       },
       {
         title: "Campaign",

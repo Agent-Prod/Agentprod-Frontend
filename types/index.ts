@@ -12,6 +12,7 @@ export interface NavItem {
   subNavs?: NavItem[];
   beta?: boolean;
   id?: string;
+  "data-driver-element"?: string
 }
 
 export interface NavInterface {

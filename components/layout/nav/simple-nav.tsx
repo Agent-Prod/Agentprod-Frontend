@@ -17,6 +17,9 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
       href={nav.href || "/"}
       className="no-underline hover:no-underline text-inherit"
       id={nav.id}
+      data-driver-element={nav.id}
+      data-nav-title={nav.title}
+      aria-label={nav.title}
     >
       <span
         className={cn(
@@ -26,13 +29,12 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
             : "text-foreground",
           nav.disabled && "cursor-not-allowed opacity-80"
         )}
-
       >
         <Icon className="mr-2 h-4 w-4" />
         <span>{nav.title}</span>
       </span>
     </Link>
-  ), [nav.href, nav.title, path]);
+  ), [nav.href, nav.title, path, nav.id]);
 
   return navContent;
 }

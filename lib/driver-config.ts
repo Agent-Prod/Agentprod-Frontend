@@ -3,7 +3,8 @@ import "driver.js/dist/driver.css";
 
 export const initializeOnboardingGuide = () => {
     const driverObj = driver({
-        showProgress: true,
+        popoverClass: 'driverjs-theme',
+        showProgress: false,
         steps: [
             {
                 element: '#chat-with-sally',
@@ -33,7 +34,7 @@ export const initializeOnboardingGuide = () => {
                 }
             },
             {
-                element: '#inbox-nav',
+                element: '#inbox-nav, [data-driver-element="inbox-nav"], a[href="/mail"]',
                 popover: {
                     title: 'Inbox',
                     description: 'View the drafts and actions taken on your campaign via our unified inbox for emails and linkedin',
@@ -87,16 +88,14 @@ export const initializeOnboardingGuide = () => {
                 }
             }
         ],
-        // Optional configuration
         animate: true,
-        // opacity: 0.7,
         allowClose: true,
-        // overlayClickNext: false,
-        doneBtnText: 'Done',
-        // closeBtnText: 'Skip',
-        nextBtnText: 'Next',
-        prevBtnText: 'Previous',
+        doneBtnText: 'DONE',
+        nextBtnText: 'NEXT',
+        prevBtnText: 'BACK',
     });
+
+
 
     return driverObj;
 }; 

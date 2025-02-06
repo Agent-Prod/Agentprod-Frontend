@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
+import { initializeOnboardingGuide } from "@/lib/driver-config";
 interface TopPerformingCampaignsTableProps {
   campaigns: Campaign[];
   isLoading: boolean;
@@ -361,9 +362,10 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 }) => {
   const metrics = [
     {
-      title: "Total Emails Sent",
+      title: "Total Messages Sent",
       value: dashboardData?.emails_sent ?? 0,
-      icon: <Icons.mail className="h-4 w-4 text-muted-foreground" />
+      icon: <Icons.mail className="h-4 w-4 text-muted-foreground" />,
+      id: "total-emails-sent"
     },
     {
       title: "Engaged Leads",
@@ -385,7 +387,7 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
   return (
     <div className="grid gap-4 grid-cols-2 mt-4">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="transition-all duration-200 hover:shadow-lg border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-background via-background/90 to-background/80 backdrop-blur-sm">
+        <Card id={metric.id} key={metric.title} className="transition-all duration-200 hover:shadow-lg border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-background via-background/90 to-background/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs font-medium flex items-center gap-2">
               {metric.icon}
@@ -488,6 +490,19 @@ export default function Page() {
   const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
 
   useEffect(() => {
+    // const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+
+    // if (!hasSeenOnboarding) {
+    const driverObj = initializeOnboardingGuide();
+    setTimeout(() => {
+      driverObj.drive();
+      // Set flag in localStorage after completing the tour
+      // localStorage.setItem('hasSeenOnboarding', 'true');
+    }, 1000);
+    // }
+  }, []);
+
+  useEffect(() => {
     fetchDashboardDataIfNeeded();
     fetchDataIfNeeded();
   }, []);
@@ -582,7 +597,7 @@ export default function Page() {
             </div>
 
             <Card className="col-span-3 shadow-sm">
-              <ScrollArea className="h-[28rem]">
+              <ScrollArea className="h-[28rem]" id="campaign-performance">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
                     <CardTitle>Email Campaign</CardTitle>
@@ -631,7 +646,7 @@ export default function Page() {
           </div>
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <Card className="col-span-3">
+            <Card className="col-span-3" id="sending-volume-chart">
               <CardHeader>
                 <CardTitle>Sending Volume Per Day</CardTitle>
               </CardHeader>
@@ -646,7 +661,7 @@ export default function Page() {
             </Card>
 
             <Card className="col-span-3">
-              <ScrollArea className="h-[28rem]">
+              <ScrollArea className="h-[28rem]" id="linkedin-campaigns">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <CardTitle>LinkedIn Campaign</CardTitle>
                 </CardHeader>

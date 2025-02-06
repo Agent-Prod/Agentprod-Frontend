@@ -88,6 +88,8 @@ export default function ParentLayout({
 
     }, []);
 
+
+
     const startVerification = () => {
         const domain = localStorage.getItem('domainInput');
         if (!domain) {
@@ -127,7 +129,7 @@ export default function ParentLayout({
         }, 60 * 1000);
     };
 
-    if(isRefreshing) {
+    if (isRefreshing) {
         return <div>Loading...</div>;
     }
 

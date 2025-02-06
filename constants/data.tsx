@@ -123,6 +123,7 @@ export const navItems: NavInterface[] = [
         label: "chat with sally",
         isCollapsible: false,
         beta: true,
+        id: "chat-with-sally",
       },
     ],
   },
@@ -142,6 +143,7 @@ export const navItems: NavInterface[] = [
         icon: "mail",
         label: "mail",
         isCollapsible: true,
+        id: "inbox-nav",
       },
       {
         title: "Campaign",
@@ -149,6 +151,7 @@ export const navItems: NavInterface[] = [
         icon: "campaign",
         label: "campaign",
         isCollapsible: false,
+        id: "campaign",
       },
     ],
   },
@@ -175,6 +178,7 @@ export const navItems: NavInterface[] = [
         icon: "settings",
         label: "settings",
         isCollapsible: false,
+        id: "settings"
       },
     ],
   },

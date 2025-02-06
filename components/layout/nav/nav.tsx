@@ -43,7 +43,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
     window.Tawk_API.autoStart = false;
     //@ts-ignore
 
-    window.Tawk_API.onLoad = function() {
+    window.Tawk_API.onLoad = function () {
       window.Tawk_API?.hideWidget();
 
       if (user && window.Tawk_API?.setAttributes) {
@@ -52,7 +52,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
           email: user.email,
           id: user.id,
           hash: 'fb93e0d85c0a682dc54f0af7adaf6ae853a51743', // Use environment variable in production
-        }, function(error) {
+        }, function (error) {
           if (error) console.error('Tawk setAttributes error:', error);
         });
       }
@@ -61,13 +61,13 @@ export function Nav({ links, isCollapsed }: NavProps) {
         window.Tawk_API.addEvent('user_logged_in', {
           username: user.email,
           email: user.email,
-        }, function(error) {
+        }, function (error) {
           if (error) console.error('Tawk addEvent error:', error);
         });
       }
     };
-//@ts-ignore
-    window.Tawk_API.onStatusChange = function(status) {
+    //@ts-ignore
+    window.Tawk_API.onStatusChange = function (status) {
       //@ts-ignore
 
       if (status === 'online') {
@@ -114,17 +114,17 @@ export function Nav({ links, isCollapsed }: NavProps) {
                   <MiniNav key={link.label} nav={link} />
                 ) : !link.isCollapsible ? (
                   <SimpleNav key={link.label} nav={link} />
-                ) 
-                : (
-                  <CollapseNavItem nav={link} key={link.label} />
                 )
+                  : (
+                    <CollapseNavItem nav={link} key={link.label} />
+                  )
               )}
             </div>
           ))}
         </nav>
       </div>
-      
-      {links[3]?.category === "Report a bug" &&<div className="mt-auto px-2 pb-2">
+
+      {/* {links[3]?.category === "Report a bug" &&<div className="mt-auto px-2 pb-2">
         <button
           className={`w-full py-2 px-3 bg-black text-sm text-white dark:border-white border rounded-md ${
             isCollapsed ? 'p-2' : ''
@@ -134,7 +134,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
         >
           {isCollapsed ? '?' : 'Report a bug'}
         </button>
-      </div>}
+      </div>} */}
     </div>
   );
 }

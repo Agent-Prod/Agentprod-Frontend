@@ -16,6 +16,7 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
     <Link
       href={nav.href || "/"}
       className="no-underline hover:no-underline text-inherit"
+      id={nav.id}
     >
       <span
         className={cn(
@@ -25,6 +26,7 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
             : "text-foreground",
           nav.disabled && "cursor-not-allowed opacity-80"
         )}
+
       >
         <Icon className="mr-2 h-4 w-4" />
         <span>{nav.title}</span>

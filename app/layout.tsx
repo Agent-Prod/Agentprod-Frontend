@@ -34,7 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script type="text/javascript">{`window.$crisp = [];window.CRISP_WEBSITE_ID="410c82a0-a3c6-41b9-bb57-a3c41e023e5c";(function(){d = document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`}</Script>
+        <Script id="crisp-chat" type="text/javascript">{`window.$crisp = [];window.CRISP_WEBSITE_ID="410c82a0-a3c6-41b9-bb57-a3c41e023e5c";(function(){d = document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`}</Script>
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-3LG32WF4MD"
@@ -45,7 +45,7 @@ export default async function RootLayout({
             gtag('js', new Date());
             gtag('config', 'G-3LG32WF4MD');`}
         </Script>
-        <Script type="text/javascript" id="tawk-to">
+        {/* <Script type="text/javascript" id="tawk-to">
           {`var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
             window.Tawk_API.autoStart = false;
             (function(){
@@ -56,7 +56,7 @@ export default async function RootLayout({
               s1.setAttribute('crossorigin','*');
               s0.parentNode.insertBefore(s1,s0);
             })();`}
-        </Script>
+        </Script> */}
       </head>
       <body className={`${inter.className} overflow-hidden`}>
         <AuthProvider>

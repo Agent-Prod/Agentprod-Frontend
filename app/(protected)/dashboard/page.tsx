@@ -490,17 +490,18 @@ export default function Page() {
   const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
 
   useEffect(() => {
-    // const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (dashboardData && dashboardData.emails_sent === 0) {
+      const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${dashboardData.user_id}`);
 
-    // if (!hasSeenOnboarding) {
-    const driverObj = initializeOnboardingGuide();
-    setTimeout(() => {
-      driverObj.drive();
-      // Set flag in localStorage after completing the tour
-      // localStorage.setItem('hasSeenOnboarding', 'true');
-    }, 1000);
-    // }
-  }, []);
+      if (!hasSeenOnboarding) {
+        const driverObj = initializeOnboardingGuide();
+        setTimeout(() => {
+          driverObj.drive();
+          localStorage.setItem(`hasSeenOnboarding_${dashboardData.user_id}`, 'true');
+        }, 1000);
+      }
+    }
+  }, [dashboardData]);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();

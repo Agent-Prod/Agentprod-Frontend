@@ -2,7 +2,6 @@ name: Test Server CI/CD
 on:
   push:
     branches: [deepseek]
-
 jobs:
   deploy:
     runs-on: [self-hosted, Linux, X64, test]

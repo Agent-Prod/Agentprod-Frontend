@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosInstance";
 import { setCookie, getCookie } from "cookies-next";
 
+
 export default function ParentLayout({
     children,
 }: {
@@ -127,7 +128,7 @@ export default function ParentLayout({
         }, 60 * 1000);
     };
 
-    if(isRefreshing) {
+    if (isRefreshing) {
         return <div>Loading...</div>;
     }
 

@@ -194,8 +194,8 @@ a[href]:active {
 
 .driver-popover.driverjs-theme .driver-popover-close-btn {
   position: absolute;
-  right: 16px;
-  top: 16px;
+  right: 6px;
+  top: 6px;
   background: none;
   border: none;
   width: 32px;

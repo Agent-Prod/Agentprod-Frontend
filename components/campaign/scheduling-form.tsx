@@ -26,7 +26,7 @@ import axios from "axios";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
 import BetaTag from "../ui/tag/BetaTag";
-import { useSubscription } from "@/hooks/userSubscription";
+import { useSubscription } from "@/context/subscription-provider";
 
 const campaignTypes = ["Outbound", "Inbound", "Nurturing"];
 

@@ -1,9 +1,19 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-provider";
 import axiosInstance from "@/utils/axiosInstance";
 
-export const useSubscription = () => {
+interface SubscriptionContextType {
+    isSubscribed: boolean | null;
+    loading: boolean;
+    error: string | null;
+    refreshSubscription: () => Promise<void>;
+}
+
+const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
+
+export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -16,18 +26,14 @@ export const useSubscription = () => {
         setError(null);
 
         try {
-            const res = await axiosInstance.get(
-                `v2/pricing-plans`
-            );
+            const res = await axiosInstance.get(`v2/pricing-plans`);
 
             const startTime = new Date(res.data.start_time).getTime();
             const currentTime = Date.now();
             const daysPassed = (currentTime - startTime) / (1000 * 60 * 60 * 24);
 
             if (daysPassed > 30 && res.data.subscription_mode === "Razorpay") {
-                await axiosInstance.delete(
-                    `v2/pricing-plans/${res.data.id}`
-                );
+                await axiosInstance.delete(`v2/pricing-plans/${res.data.id}`);
                 setIsSubscribed(false);
             } else {
                 setIsSubscribed(res.data.subscribed);
@@ -45,5 +51,28 @@ export const useSubscription = () => {
         fetchSubscriptionStatus();
     }, [user]);
 
-    return { isSubscribed, loading, error, fetchSubscriptionStatus };
-};
+    const refreshSubscription = async () => {
+        await fetchSubscriptionStatus();
+    };
+
+    return (
+        <SubscriptionContext.Provider
+            value={{
+                isSubscribed,
+                loading,
+                error,
+                refreshSubscription
+            }}
+        >
+            {children}
+        </SubscriptionContext.Provider>
+    );
+}
+
+export const useSubscription = () => {
+    const context = useContext(SubscriptionContext);
+    if (context === undefined) {
+        throw new Error("useSubscription must be used within a SubscriptionProvider");
+    }
+    return context;
+}; 

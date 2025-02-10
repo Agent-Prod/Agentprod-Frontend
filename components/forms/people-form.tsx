@@ -36,7 +36,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { useButtonStatus } from "@/context/button-status";
 import AudienceTable from "../ui/AudienceTable";
 import axios from "axios";
-import { useSubscription } from "@/hooks/userSubscription";
+import { useSubscription } from "@/context/subscription-provider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react"

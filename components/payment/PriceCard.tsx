@@ -11,7 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import axios from "axios";
-import { useSubscription } from "@/hooks/userSubscription";
+import { useSubscription } from "@/context/subscription-provider";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
 
@@ -65,7 +65,7 @@ function PriceCard({
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
-  const { fetchSubscriptionStatus } = useSubscription();
+  const { refreshSubscription } = useSubscription();
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -127,7 +127,7 @@ function PriceCard({
           );
           toast.success("Payment Successful!");
           console.log(response);
-          await fetchSubscriptionStatus();
+          await refreshSubscription();
           onCheckoutComplete();
         },
         prefill: {
@@ -186,11 +186,10 @@ function PriceCard({
         {pricingData.map((card, index) => (
           <div
             key={index}
-            className={`rounded-3xl p-6 shadow-lg flex flex-col justify-between ${
-              card.heightlight
-                ? "border-[#732e53] border-2 bg-gradient-to-b from-[#732e53]/30 via-white/15 via-20% to-black"
-                : "border-white/30 border bg-gradient-to-b from-black via-white/15 via-20% to-black"
-            } bg-black text-white`}
+            className={`rounded-3xl p-6 shadow-lg flex flex-col justify-between ${card.heightlight
+              ? "border-[#732e53] border-2 bg-gradient-to-b from-[#732e53]/30 via-white/15 via-20% to-black"
+              : "border-white/30 border bg-gradient-to-b from-black via-white/15 via-20% to-black"
+              } bg-black text-white`}
           >
             <div className="flex flex-col">
               <h3 className="text-2xl font-semibold mb-4">{card.title}</h3>

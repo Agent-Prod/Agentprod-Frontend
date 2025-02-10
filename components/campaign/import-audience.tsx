@@ -50,7 +50,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { useSubscription } from "@/hooks/userSubscription";
+import { useSubscription } from "@/context/subscription-provider";
 
 interface FileData {
   [key: string]: string;

@@ -712,7 +712,7 @@ export default function PeopleForm(): JSX.Element {
     console.log("Existing leads:", existingLeadsResponse.data);
 
     // Update the logic for checking lead limits
-    if (!isSubscribed && existingLeadsResponse.data.length >= 100) {
+    if (!isSubscribed && existingLeadsResponse.data >= 100) {
       toast.warning("Your free account has reached the limit of 100 leads");
       shouldCallAPI = false;
       setIsTableLoading(false);
@@ -722,7 +722,7 @@ export default function PeopleForm(): JSX.Element {
       shouldCallAPI = true;
     }
 
-    if (existingLeadsResponse.data.length > 100 &&
+    if (existingLeadsResponse.data > 100 &&
       isSubscribed === false
     ) {
       toast.warning("Your free account has reached the limit of leads");

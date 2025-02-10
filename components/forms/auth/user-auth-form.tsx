@@ -19,15 +19,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
 import axiosInstance from "@/utils/axiosInstance";
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
-});
-
-type UserFormValue = z.infer<typeof formSchema>;
-
 export default function UserAuthForm({
   formType,
 }: {
@@ -36,6 +27,24 @@ export default function UserAuthForm({
   const { login } = useAuth();
   const { setUser, setToken, setRefreshToken } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  const emailSchema = formType === "signup"
+    ? z.string()
+      .email({ message: "Enter a valid email address" })
+      .refine((email) => {
+        // Split email at @ and check domain isn't a common personal email provider
+        const [_, domain] = email.split('@');
+        const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
+        return !personalDomains.includes(domain.toLowerCase());
+      }, { message: "Please use your work email address" })
+    : z.string().email({ message: "Enter a valid email address" });
+
+  const formSchema = z.object({
+    email: emailSchema,
+    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  });
+
+  type UserFormValue = z.infer<typeof formSchema>;
 
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),

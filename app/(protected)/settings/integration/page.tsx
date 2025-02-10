@@ -395,713 +395,211 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {/* Slack Card Started Here */}
-      <Card>
-        <CardHeader className="flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <SlackIcon />
-            <Button
-              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
-              variant={"outline"}
-              onClick={() => {
-                slackLogin();
-              }}
-              disabled={true}
-            >
-              Coming Soon
-            </Button>
-          </div>
-          <Dialog>
-            <DialogContent className="w-full">
-              <DialogHeader>
-                <DialogTitle>
-                  <div className="flex flex-col gap-4 mb-1">
-                    <div className="flex justify-center items-center flex-row gap-3">
-                      <Image src={logo} alt="logo" width={40} height={40} />
-                      <ArrowLeftRight />
-                      <HubSpotIcon />
-                    </div>
-                    Export AgentProd Leads to HubSpot
-                  </div>
-                </DialogTitle>
-                <DialogDescription>
-                  Description about the action being performed
-                </DialogDescription>
-              </DialogHeader>
-              <Separator />
-              <Form {...form}>
-                <form className="w-2/3 space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>
-                          <p className="text-base text-gray-400">
-                            Configure Leads
-                          </p>
-                        </FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="all"
-                                  className="h-6 w-6 focus:bg-black focus:text-white"
-                                />
-                              </FormControl>
-                              <FormLabel className="font-bold">
-                                <div>
-                                  <h1 className="text-lg">Export All Leads</h1>
-                                  <p className="font-normal text-gray-400">
-                                    We will stream every lead that is enrolled
-                                    from your AgentProd account
-                                  </p>
-                                </div>
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="engaged"
-                                  className="h-6 w-6 focus:bg-black focus:text-white"
-                                />
-                              </FormControl>
-                              <FormLabel className="font-bold">
-                                <div>
-                                  <h1 className="text-lg">
-                                    Export Engaged Leads
-                                  </h1>
-                                  <p className="font-normal text-gray-400">
-                                    We will stream every lead that have
-                                    responsed to your outbound workflows
-                                  </p>
-                                </div>
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-              <Separator />
-              <div className="flex flex-row gap-4">
-                <p className="font-semibold">
-                  Avoid outreach to leads that is already in your CRM?{" "}
-                </p>
-                <Switch />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant={"outline"}
-                  className="mt-3"
-                  onClick={handleCloseHubspotMailbox}
-                >
-                  Cancel
-                </Button>
-                <Button className="mt-3" type="submit">
-                  Update
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-4">
+      {/* Trial Plan Banner */}
+      <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+        <p className="text-yellow-800 text-sm font-medium">
+          Note: Only one LinkedIn account can be connected in trial plan
+        </p>
+      </div>
 
-          {/* {service.isConnected ? (
-            <Button variant={"outline"} className="text-sm">
-              Disconnect
-            </Button>
-          ) : (
-            <Button variant={"outline"} className="text-sm">
-              Connect
-            </Button>
-          )} */}
-        </CardHeader>
-        <CardContent className="space-y-2 mt-2">
-          <CardTitle>Slack</CardTitle>
-          <CardDescription>
-            Used to interact with the AgentProd and receive notifications.
-          </CardDescription>
-        </CardContent>
-      </Card>
-      {/*------------------ Slack Card Ended Here------------------- */}
-
-      {/* Hubspot Card Started Here */}
-
-      <Card>
-        <CardHeader className="flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <HubSpotIcon />
-            <Button
-              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
-              variant={"outline"}
-              onClick={() => {
-                slackLogin();
-              }}
-              disabled={true}
-            >
-              Coming Soon
-            </Button>
-          </div>
-          <Dialog
-            open={isHubspotMailboxOpen}
-            onOpenChange={setIsHubspotMailboxOpen}
-          >
-            <DialogContent className="w-full">
-              <DialogHeader>
-                <DialogTitle>
-                  <div className="flex flex-col gap-4 mb-1">
-                    <div className="flex justify-center items-center flex-row gap-3">
-                      <Image src={logo} alt="logo" width={40} height={40} />
-                      <ArrowLeftRight />
-                      <HubSpotIcon />
-                    </div>
-                    Export AgentProd Leads to HubSpot
-                  </div>
-                </DialogTitle>
-                <DialogDescription>
-                  Description about the action being performed
-                </DialogDescription>
-              </DialogHeader>
-              <Separator />
-
-              <div>
-                <div className="w-full space-y-6">
-                  <div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-base text-gray-400">
-                          Configure Leads
-                        </p>
-                      </div>
-                      <div>
-                        <RadioGroup
-                          value={selectedHubspotLeadType}
-                          onValueChange={setSelectedHubspotLeadType}
-                          className="flex flex-col space-y-1"
-                        >
-                          <div className="flex items-center space-x-3 space-y-0">
-                            <div>
-                              <RadioGroupItem value="all" className="h-6 w-6" />
-                            </div>
-                            <div className="font-bold">
-                              <div>
-                                <h1 className="text-lg">Export All Leads</h1>
-                                <p className="font-normal text-gray-400">
-                                  We will stream every lead that is enrolled
-                                  from your AgentProd account
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3 space-y-0">
-                            <div>
-                              <RadioGroupItem
-                                value="engaged"
-                                className="h-6 w-6"
-                              />
-                            </div>
-                            <div className="font-bold">
-                              <div>
-                                <h1 className="text-lg">
-                                  Export Engaged Leads
-                                </h1>
-                                <p className="font-normal text-gray-400">
-                                  We will stream every lead that have responsed
-                                  to your outbound workflows
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex flex-row gap-4">
-                <p className="font-semibold">
-                  Avoid outreach to leads that is already in your CRM?{" "}
-                </p>
-                <Switch />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant={"outline"}
-                  className="mt-3"
-                  onClick={handleCloseHubspotMailbox}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="mt-3"
-                  type="submit"
-                  onClick={() => {
-                    if (!isConnectedToHubspot) {
-                      handleHubspotConnect();
-                      setTimeout(() => updateHubspotLeadType(), 100000);
-                    } else {
-                      updateHubspotLeadType();
-                    }
-                  }}
-                >
-                  {loading ? (
-                    <LoadingCircle />
-                  ) : isConnectedToHubspot ? (
-                    "Update"
-                  ) : (
-                    "Login"
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* {service.isConnected ? (
-            <Button variant={"outline"} className="text-sm">
-              Disconnect
-            </Button>
-          ) : (
-            <Button variant={"outline"} className="text-sm">
-              Connect
-            </Button>
-          )} */}
-        </CardHeader>
-        <CardContent className="space-y-2 mt-2">
-          <CardTitle>Hubspot</CardTitle>
-          <CardDescription>
-            Used to interact with the AgentProd and receive notifications.
-          </CardDescription>
-        </CardContent>
-      </Card>
-
-      {/*------------------ Hubspot Card Ended Here------------------- */}
-
-      {/* LinkedIn Card Started Here */}
-      <Card>
-        <CardHeader className="flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <LinkedInIcon />
-            <div
-              className={`text-sm border rounded-lg text-center p-2 cursor-pointer `}
-              onClick={() => {
-                setIsLinkedInMailboxOpen(true);
-              }}
-            >
-              Connect
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Slack Card Started Here */}
+        <Card>
+          <CardHeader className="flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <SlackIcon />
+              <Button
+                className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+                variant={"outline"}
+                onClick={() => {
+                  slackLogin();
+                }}
+                disabled={true}
+              >
+                Coming Soon
+              </Button>
             </div>
-            <Dialog open={isLinkedInMailboxOpen} onOpenChange={setIsLinkedInMailboxOpen}>
-              <DialogContent>
+            <Dialog>
+              <DialogContent className="w-full">
                 <DialogHeader>
                   <DialogTitle>
                     <div className="flex flex-col gap-4 mb-1">
                       <div className="flex justify-center items-center flex-row gap-3">
                         <Image src={logo} alt="logo" width={40} height={40} />
                         <ArrowLeftRight />
-                        <LinkedInIcon />
+                        <HubSpotIcon />
                       </div>
-                      Connect LinkedIn Account
+                      Export AgentProd Leads to HubSpot
                     </div>
                   </DialogTitle>
                   <DialogDescription>
-                    {linkedInStep === 1 ? "Enter your LinkedIn credentials" :
-                      linkedInStep === 2 ? "Complete CAPTCHA verification" :
-                        "Enter verification code"}
+                    Description about the action being performed
                   </DialogDescription>
                 </DialogHeader>
                 <Separator />
-                {linkedInStep === 1 && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedin-name">Name</Label>
-                      <Input
-                        id="linkedin-name"
-                        placeholder="John Doe"
-                        value={linkedInName}
-                        onChange={(e) => setLinkedInName(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex flex-row gap-4">
-
-
-                      <div className="space-y-2 w-1/2">
-                        <Label htmlFor="linkedin-designation">Designation</Label>
-                        <Input
-                          id="linkedin-designation"
-                          placeholder="CEO"
-                          value={linkedInDesignation}
-                          onChange={(e) => setLinkedInDesignation(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2 w-1/2">
-                        <Label htmlFor="linkedin-country">Country</Label>
-                        <Input
-                          id="linkedin-country"
-                          placeholder="United States"
-                          value={linkedInCountry}
-                          onChange={(e) => setLinkedInCountry(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email-select">Select Email</Label>
-                      <select
-                        id="email-select"
-                        value={selectedEmail}
-                        onChange={(e) => setSelectedEmail(e.target.value)}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Select an email</option>
-                        {emails.map((email) => (
-                          <option key={email?.id as number} value={email?.mailbox}>
-                            {email?.mailbox}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="text-xs text-gray-500">Note: Connect an email mailbox and select it  here in case of multichannel outreach, for linkedin outreach you dont have to connect an mailbox</div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
-                      <Input
-                        id="linkedin-url"
-                        placeholder="https://www.linkedin.com/in/yourprofile/"
-                        value={linkedInUrl}
-                        onChange={(e) => setLinkedInUrl(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email-select">Select Account Type</Label>
-                      <select
-                        id="account-type"
-                        value={selectedAccountType}
-                        onChange={(e) => setSelectedAccountType(e.target.value)}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Select an LinkedIn Account Type</option>
-                        <option value="normal">Normal Account</option>
-                        <option value="premium">Premium Account</option>
-                        <option value="recruiter">Recruiter Account</option>
-                        <option value="sales_navigator">Sales Navigator Account</option>
-
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedin-email">LinkedIn Email</Label>
-                      <Input
-                        id="linkedin-email"
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={linkedInEmail}
-                        onChange={(e) => setLinkedInEmail(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedin-password">LinkedIn Password</Label>
-                      <Input
-                        id="linkedin-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={linkedInPassword}
-                        onChange={(e) => setLinkedInPassword(e.target.value)}
-                      />
-                    </div>
-
-
-                  </div>
-                )}
-                {linkedInStep === 2 && (
-                  <div className="space-y-4">
-                    {showCaptchaButton && (
-                      <Button onClick={loadCaptcha} disabled={isLoading}>
-                        Show CAPTCHA
-                      </Button>
-                    )}
-                    <div id="linkedin-captcha-container" className="min-h-[450px]"></div>
-                    {captchaLoaded && captchaToken && (
-                      <Button onClick={handleSolveCaptcha} disabled={isLoading}>
-                        {isLoading ? (
-                          <>
-                            <LoadingCircle />
-                            Verifying...
-                          </>
-                        ) : (
-                          "Verify CAPTCHA"
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                )}
-                {linkedInStep === 3 && (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-500">
-                        Please enter the verification code sent to your Email Address
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-center min-h-[100px]">
-                      <InputOTP
-                        maxLength={6}
-                        pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                        value={otpValue}
-                        onChange={(value) => setOtpValue(value)}
-                      >
-                        <InputOTPGroup className="">
-                          <InputOTPSlot index={0} />
-                          <InputOTPSlot index={1} />
-                          <InputOTPSlot index={2} />
-                          <InputOTPSlot index={3} />
-                          <InputOTPSlot index={4} />
-                          <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                      </InputOTP>
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={handleOTPVerification}
-                      disabled={otpValue.length !== 6 || isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <LoadingCircle />
-                          Verifying...
-                        </>
-                      ) : (
-                        "Verify OTP"
+                <Form {...form}>
+                  <form className="w-2/3 space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>
+                            <p className="text-base text-gray-400">
+                              Configure Leads
+                            </p>
+                          </FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="all"
+                                    className="h-6 w-6 focus:bg-black focus:text-white"
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-bold">
+                                  <div>
+                                    <h1 className="text-lg">Export All Leads</h1>
+                                    <p className="font-normal text-gray-400">
+                                      We will stream every lead that is enrolled
+                                      from your AgentProd account
+                                    </p>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="engaged"
+                                    className="h-6 w-6 focus:bg-black focus:text-white"
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-bold">
+                                  <div>
+                                    <h1 className="text-lg">
+                                      Export Engaged Leads
+                                    </h1>
+                                    <p className="font-normal text-gray-400">
+                                      We will stream every lead that have
+                                      responsed to your outbound workflows
+                                    </p>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                    </Button>
-                  </div>
-                )}
+                    />
+                  </form>
+                </Form>
+                <Separator />
+                <div className="flex flex-row gap-4">
+                  <p className="font-semibold">
+                    Avoid outreach to leads that is already in your CRM?{" "}
+                  </p>
+                  <Switch />
+                </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsLinkedInMailboxOpen(false)} disabled={isLoading}>
-                    {linkedInStep === 3 ? "Close" : "Cancel"}
+                  <Button
+                    variant={"outline"}
+                    className="mt-3"
+                    onClick={handleCloseHubspotMailbox}
+                  >
+                    Cancel
                   </Button>
-                  {linkedInStep === 1 && (
-                    <Button onClick={handleLinkedInConnect} disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <LoadingCircle />
-                          Connecting...
-                        </>
-                      ) : (
-                        "Next"
-                      )}
-                    </Button>
-                  )}
+                  <Button className="mt-3" type="submit">
+                    Update
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 mt-2">
-          <CardTitle>LinkedIn</CardTitle>
-          <CardDescription>
-            Used to interact with the AgentProd and receive notifications.
-            <div className="font-semibold mt-2 dark:text-white text-black">Accounts Connected: {connectedAccounts}</div>
-          </CardDescription>
-        </CardContent>
-      </Card>
-      {/*------------------ LinkedIn Card Ended Here------------------- */}
 
-      {/* SalesForce Card Started Here */}
-      <Card>
-        <CardHeader className="flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <SalesForceIcon />
-            <Button
-              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
-              variant={"outline"}
-              onClick={() => {
-                slackLogin();
-              }}
-              disabled={true}
+            {/* {service.isConnected ? (
+              <Button variant={"outline"} className="text-sm">
+                Disconnect
+              </Button>
+            ) : (
+              <Button variant={"outline"} className="text-sm">
+                Connect
+              </Button>
+            )} */}
+          </CardHeader>
+          <CardContent className="space-y-2 mt-2">
+            <CardTitle>Slack</CardTitle>
+            <CardDescription>
+              Used to interact with the AgentProd and receive notifications.
+            </CardDescription>
+          </CardContent>
+        </Card>
+        {/*------------------ Slack Card Ended Here------------------- */}
+
+        {/* Hubspot Card Started Here */}
+
+        <Card>
+          <CardHeader className="flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <HubSpotIcon />
+              <Button
+                className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+                variant={"outline"}
+                onClick={() => {
+                  slackLogin();
+                }}
+                disabled={true}
+              >
+                Coming Soon
+              </Button>
+            </div>
+            <Dialog
+              open={isHubspotMailboxOpen}
+              onOpenChange={setIsHubspotMailboxOpen}
             >
-              Coming Soon
-            </Button>
-          </div>
-          <Dialog
-            open={isSalesforceMailboxOpen}
-            onOpenChange={setIsSalesforceMailboxOpen}
-          >
-            <DialogContent className="w-full">
-              <DialogHeader>
-                <DialogTitle>
-                  <div className="flex flex-col gap-4 mb-1">
-                    <div className="flex justify-center items-center flex-row gap-3">
-                      <Image src={logo} alt="logo" width={40} height={40} />
-                      <ArrowLeftRight />
-                      <SalesForceIcon />
-                    </div>
-                    Export AgentProd Leads to Salesforce
-                  </div>
-                </DialogTitle>
-                <DialogDescription>
-                  Description about the action being performed
-                </DialogDescription>
-              </DialogHeader>
-              <Separator />
-
-              <div>
-                <div className="w-full space-y-6">
-                  <div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-base text-gray-400">
-                          Configure Leads
-                        </p>
+              <DialogContent className="w-full">
+                <DialogHeader>
+                  <DialogTitle>
+                    <div className="flex flex-col gap-4 mb-1">
+                      <div className="flex justify-center items-center flex-row gap-3">
+                        <Image src={logo} alt="logo" width={40} height={40} />
+                        <ArrowLeftRight />
+                        <HubSpotIcon />
                       </div>
-                      <div>
-                        <RadioGroup
-                          value={selectedHubspotLeadType}
-                          onValueChange={setSelectedHubspotLeadType}
-                          className="flex flex-col space-y-1"
-                        >
-                          <div className="flex items-center space-x-3 space-y-0">
-                            <div>
-                              <RadioGroupItem value="all" className="h-6 w-6" />
-                            </div>
-                            <div className="font-bold">
-                              <div>
-                                <h1 className="text-lg">Export All Leads</h1>
-                                <p className="font-normal text-gray-400">
-                                  We will stream every lead that is enrolled
-                                  from your AgentProd account
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3 space-y-0">
-                            <div>
-                              <RadioGroupItem
-                                value="engaged"
-                                className="h-6 w-6"
-                              />
-                            </div>
-                            <div className="font-bold">
-                              <div>
-                                <h1 className="text-lg">
-                                  Export Engaged Leads
-                                </h1>
-                                <p className="font-normal text-gray-400">
-                                  We will stream every lead that have responsed
-                                  to your outbound workflows
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </RadioGroup>
-                      </div>
+                      Export AgentProd Leads to HubSpot
                     </div>
-                  </div>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex flex-row gap-4">
-                <p className="font-semibold">
-                  Avoid outreach to leads that is already in your CRM?{" "}
-                </p>
-                <Switch />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant={"outline"}
-                  className="mt-3"
-                  onClick={handleCloseSalesforceMailbox}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="mt-3"
-                  type="submit"
-                  onClick={() => updateSaleforceLeadType()}
-                >
-                  {loading ? <LoadingCircle /> : "Update"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent className="space-y-2 mt-2">
-          <CardTitle>Salesforce</CardTitle>
-          <CardDescription>
-            Used to interact with the AgentProd and receive notifications.
-          </CardDescription>
-        </CardContent>
-      </Card>
+                  </DialogTitle>
+                  <DialogDescription>
+                    Description about the action being performed
+                  </DialogDescription>
+                </DialogHeader>
+                <Separator />
 
-      {/*------------------ SalesForce Card Ended Here------------------- */}
-
-      {/* Zapier Card Started Here */}
-
-      <Card>
-        <CardHeader className="flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <ZapierIcon />
-            <Button
-              className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
-              variant={"outline"}
-              onClick={() => {
-                slackLogin();
-              }}
-              disabled={true}
-            >
-              Coming Soon
-            </Button>
-          </div>
-          <Dialog>
-            <DialogContent className="w-full">
-              <DialogHeader>
-                <DialogTitle>
-                  <div className="flex flex-col gap-4 mb-1">
-                    <div className="flex justify-center items-center flex-row gap-3">
-                      <Image src={logo} alt="logo" width={40} height={40} />
-                      <ArrowLeftRight />
-                      <HubSpotIcon />
-                    </div>
-                    Export AgentProd Leads to HubSpot
-                  </div>
-                </DialogTitle>
-                <DialogDescription>
-                  Description about the action being performed
-                </DialogDescription>
-              </DialogHeader>
-              <Separator />
-              <Form {...form}>
-                <form
-                  // onSubmit={form.handleSubmit(onSubmit)}
-                  className="w-2/3 space-y-6"
-                >
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>
+                <div>
+                  <div className="w-full space-y-6">
+                    <div>
+                      <div className="space-y-3">
+                        <div>
                           <p className="text-base text-gray-400">
                             Configure Leads
                           </p>
-                        </FormLabel>
-                        <FormControl>
+                        </div>
+                        <div>
                           <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={selectedHubspotLeadType}
+                            onValueChange={setSelectedHubspotLeadType}
                             className="flex flex-col space-y-1"
                           >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="all"
-                                  className="h-6 w-6 focus:bg-black focus:text-white"
-                                />
-                              </FormControl>
-                              <FormLabel className="font-bold">
+                            <div className="flex items-center space-x-3 space-y-0">
+                              <div>
+                                <RadioGroupItem value="all" className="h-6 w-6" />
+                              </div>
+                              <div className="font-bold">
                                 <div>
                                   <h1 className="text-lg">Export All Leads</h1>
                                   <p className="font-normal text-gray-400">
@@ -1109,74 +607,585 @@ export default function Page() {
                                     from your AgentProd account
                                   </p>
                                 </div>
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3 space-y-0">
+                              <div>
                                 <RadioGroupItem
                                   value="engaged"
-                                  className="h-6 w-6 focus:bg-black focus:text-white"
+                                  className="h-6 w-6"
                                 />
-                              </FormControl>
-                              <FormLabel className="font-bold">
+                              </div>
+                              <div className="font-bold">
                                 <div>
                                   <h1 className="text-lg">
                                     Export Engaged Leads
                                   </h1>
                                   <p className="font-normal text-gray-400">
-                                    We will stream every lead that have
-                                    responsed to your outbound workflows
+                                    We will stream every lead that have responsed
+                                    to your outbound workflows
                                   </p>
                                 </div>
-                              </FormLabel>
-                            </FormItem>
+                              </div>
+                            </div>
                           </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-4">
+                  <p className="font-semibold">
+                    Avoid outreach to leads that is already in your CRM?{" "}
+                  </p>
+                  <Switch />
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant={"outline"}
+                    className="mt-3"
+                    onClick={handleCloseHubspotMailbox}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="mt-3"
+                    type="submit"
+                    onClick={() => {
+                      if (!isConnectedToHubspot) {
+                        handleHubspotConnect();
+                        setTimeout(() => updateHubspotLeadType(), 100000);
+                      } else {
+                        updateHubspotLeadType();
+                      }
+                    }}
+                  >
+                    {loading ? (
+                      <LoadingCircle />
+                    ) : isConnectedToHubspot ? (
+                      "Update"
+                    ) : (
+                      "Login"
                     )}
-                  />
-                </form>
-              </Form>
-              <Separator />
-              <div className="flex flex-row gap-4">
-                <p className="font-semibold">
-                  Avoid outreach to leads that is already in your CRM?{" "}
-                </p>
-                <Switch />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant={"outline"}
-                  className="mt-3"
-                  onClick={handleCloseHubspotMailbox}
-                >
-                  Cancel
-                </Button>
-                <Button className="mt-3" type="submit">
-                  Update
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
-          {/* {service.isConnected ? (
-            <Button variant={"outline"} className="text-sm">
-              Disconnect
-            </Button>
-          ) : (
-            <Button variant={"outline"} className="text-sm">
-              Connect
-            </Button>
-          )} */}
-        </CardHeader>
-        <CardContent className="space-y-2 mt-2">
-          <CardTitle>Zapier</CardTitle>
-          <CardDescription>
-            Used to interact with the AgentProd and receive notifications.
-          </CardDescription>
-        </CardContent>
-      </Card>
-    </div >
+            {/* {service.isConnected ? (
+              <Button variant={"outline"} className="text-sm">
+                Disconnect
+              </Button>
+            ) : (
+              <Button variant={"outline"} className="text-sm">
+                Connect
+              </Button>
+            )} */}
+          </CardHeader>
+          <CardContent className="space-y-2 mt-2">
+            <CardTitle>Hubspot</CardTitle>
+            <CardDescription>
+              Used to interact with the AgentProd and receive notifications.
+            </CardDescription>
+          </CardContent>
+        </Card>
+
+        {/*------------------ Hubspot Card Ended Here------------------- */}
+
+        {/* LinkedIn Card Started Here */}
+        <Card>
+          <CardHeader className="flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <LinkedInIcon />
+              <div
+                className={`text-sm border rounded-lg text-center p-2 cursor-pointer `}
+                onClick={() => {
+                  setIsLinkedInMailboxOpen(true);
+                }}
+              >
+                Connect
+              </div>
+              <Dialog open={isLinkedInMailboxOpen} onOpenChange={setIsLinkedInMailboxOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      <div className="flex flex-col gap-4 mb-1">
+                        <div className="flex justify-center items-center flex-row gap-3">
+                          <Image src={logo} alt="logo" width={40} height={40} />
+                          <ArrowLeftRight />
+                          <LinkedInIcon />
+                        </div>
+                        Connect LinkedIn Account
+                      </div>
+                    </DialogTitle>
+                    <DialogDescription>
+                      {linkedInStep === 1 ? "Enter your LinkedIn credentials" :
+                        linkedInStep === 2 ? "Complete CAPTCHA verification" :
+                          "Enter verification code"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Separator />
+                  {linkedInStep === 1 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="linkedin-name">Name</Label>
+                        <Input
+                          id="linkedin-name"
+                          placeholder="John Doe"
+                          value={linkedInName}
+                          onChange={(e) => setLinkedInName(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-row gap-4">
+
+
+                        <div className="space-y-2 w-1/2">
+                          <Label htmlFor="linkedin-designation">Designation</Label>
+                          <Input
+                            id="linkedin-designation"
+                            placeholder="CEO"
+                            value={linkedInDesignation}
+                            onChange={(e) => setLinkedInDesignation(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2 w-1/2">
+                          <Label htmlFor="linkedin-country">Country</Label>
+                          <Input
+                            id="linkedin-country"
+                            placeholder="United States"
+                            value={linkedInCountry}
+                            onChange={(e) => setLinkedInCountry(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email-select">Select Email</Label>
+                        <select
+                          id="email-select"
+                          value={selectedEmail}
+                          onChange={(e) => setSelectedEmail(e.target.value)}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Select an email</option>
+                          {emails.map((email) => (
+                            <option key={email?.id as number} value={email?.mailbox}>
+                              {email?.mailbox}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="text-xs text-gray-500">Note: Connect an email mailbox and select it  here in case of multichannel outreach, for linkedin outreach you dont have to connect an mailbox</div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
+                        <Input
+                          id="linkedin-url"
+                          placeholder="https://www.linkedin.com/in/yourprofile/"
+                          value={linkedInUrl}
+                          onChange={(e) => setLinkedInUrl(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email-select">Select Account Type</Label>
+                        <select
+                          id="account-type"
+                          value={selectedAccountType}
+                          onChange={(e) => setSelectedAccountType(e.target.value)}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Select an LinkedIn Account Type</option>
+                          <option value="normal">Normal Account</option>
+                          <option value="premium">Premium Account</option>
+                          <option value="recruiter">Recruiter Account</option>
+                          <option value="sales_navigator">Sales Navigator Account</option>
+
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="linkedin-email">LinkedIn Email</Label>
+                        <Input
+                          id="linkedin-email"
+                          type="email"
+                          placeholder="your.email@example.com"
+                          value={linkedInEmail}
+                          onChange={(e) => setLinkedInEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="linkedin-password">LinkedIn Password</Label>
+                        <Input
+                          id="linkedin-password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={linkedInPassword}
+                          onChange={(e) => setLinkedInPassword(e.target.value)}
+                        />
+                      </div>
+
+
+                    </div>
+                  )}
+                  {linkedInStep === 2 && (
+                    <div className="space-y-4">
+                      {showCaptchaButton && (
+                        <Button onClick={loadCaptcha} disabled={isLoading}>
+                          Show CAPTCHA
+                        </Button>
+                      )}
+                      <div id="linkedin-captcha-container" className="min-h-[450px]"></div>
+                      {captchaLoaded && captchaToken && (
+                        <Button onClick={handleSolveCaptcha} disabled={isLoading}>
+                          {isLoading ? (
+                            <>
+                              <LoadingCircle />
+                              Verifying...
+                            </>
+                          ) : (
+                            "Verify CAPTCHA"
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {linkedInStep === 3 && (
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500">
+                          Please enter the verification code sent to your Email Address
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center min-h-[100px]">
+                        <InputOTP
+                          maxLength={6}
+                          pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                          value={otpValue}
+                          onChange={(value) => setOtpValue(value)}
+                        >
+                          <InputOTPGroup className="">
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        className="w-full"
+                        onClick={handleOTPVerification}
+                        disabled={otpValue.length !== 6 || isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <LoadingCircle />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify OTP"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsLinkedInMailboxOpen(false)} disabled={isLoading}>
+                      {linkedInStep === 3 ? "Close" : "Cancel"}
+                    </Button>
+                    {linkedInStep === 1 && (
+                      <Button onClick={handleLinkedInConnect} disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <LoadingCircle />
+                            Connecting...
+                          </>
+                        ) : (
+                          "Next"
+                        )}
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 mt-2">
+            <CardTitle>LinkedIn</CardTitle>
+            <CardDescription>
+              Used to interact with the AgentProd and receive notifications.
+              <div className="font-semibold mt-2 dark:text-white text-black">Accounts Connected: {connectedAccounts}</div>
+            </CardDescription>
+          </CardContent>
+        </Card>
+        {/*------------------ LinkedIn Card Ended Here------------------- */}
+
+        {/* SalesForce Card Started Here */}
+        <Card>
+          <CardHeader className="flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <SalesForceIcon />
+              <Button
+                className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+                variant={"outline"}
+                onClick={() => {
+                  slackLogin();
+                }}
+                disabled={true}
+              >
+                Coming Soon
+              </Button>
+            </div>
+            <Dialog
+              open={isSalesforceMailboxOpen}
+              onOpenChange={setIsSalesforceMailboxOpen}
+            >
+              <DialogContent className="w-full">
+                <DialogHeader>
+                  <DialogTitle>
+                    <div className="flex flex-col gap-4 mb-1">
+                      <div className="flex justify-center items-center flex-row gap-3">
+                        <Image src={logo} alt="logo" width={40} height={40} />
+                        <ArrowLeftRight />
+                        <SalesForceIcon />
+                      </div>
+                      Export AgentProd Leads to Salesforce
+                    </div>
+                  </DialogTitle>
+                  <DialogDescription>
+                    Description about the action being performed
+                  </DialogDescription>
+                </DialogHeader>
+                <Separator />
+
+                <div>
+                  <div className="w-full space-y-6">
+                    <div>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-base text-gray-400">
+                            Configure Leads
+                          </p>
+                        </div>
+                        <div>
+                          <RadioGroup
+                            value={selectedHubspotLeadType}
+                            onValueChange={setSelectedHubspotLeadType}
+                            className="flex flex-col space-y-1"
+                          >
+                            <div className="flex items-center space-x-3 space-y-0">
+                              <div>
+                                <RadioGroupItem value="all" className="h-6 w-6" />
+                              </div>
+                              <div className="font-bold">
+                                <div>
+                                  <h1 className="text-lg">Export All Leads</h1>
+                                  <p className="font-normal text-gray-400">
+                                    We will stream every lead that is enrolled
+                                    from your AgentProd account
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3 space-y-0">
+                              <div>
+                                <RadioGroupItem
+                                  value="engaged"
+                                  className="h-6 w-6"
+                                />
+                              </div>
+                              <div className="font-bold">
+                                <div>
+                                  <h1 className="text-lg">
+                                    Export Engaged Leads
+                                  </h1>
+                                  <p className="font-normal text-gray-400">
+                                    We will stream every lead that have responsed
+                                    to your outbound workflows
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-4">
+                  <p className="font-semibold">
+                    Avoid outreach to leads that is already in your CRM?{" "}
+                  </p>
+                  <Switch />
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant={"outline"}
+                    className="mt-3"
+                    onClick={handleCloseSalesforceMailbox}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="mt-3"
+                    type="submit"
+                    onClick={() => updateSaleforceLeadType()}
+                  >
+                    {loading ? <LoadingCircle /> : "Update"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent className="space-y-2 mt-2">
+            <CardTitle>Salesforce</CardTitle>
+            <CardDescription>
+              Used to interact with the AgentProd and receive notifications.
+            </CardDescription>
+          </CardContent>
+        </Card>
+
+        {/*------------------ SalesForce Card Ended Here------------------- */}
+
+        {/* Zapier Card Started Here */}
+
+        <Card>
+          <CardHeader className="flex flex-col justify-between">
+            <div className="flex justify-between items-center">
+              <ZapierIcon />
+              <Button
+                className={`text-sm border rounded-lg text-center p-2 cursor-not-allowed`}
+                variant={"outline"}
+                onClick={() => {
+                  slackLogin();
+                }}
+                disabled={true}
+              >
+                Coming Soon
+              </Button>
+            </div>
+            <Dialog>
+              <DialogContent className="w-full">
+                <DialogHeader>
+                  <DialogTitle>
+                    <div className="flex flex-col gap-4 mb-1">
+                      <div className="flex justify-center items-center flex-row gap-3">
+                        <Image src={logo} alt="logo" width={40} height={40} />
+                        <ArrowLeftRight />
+                        <HubSpotIcon />
+                      </div>
+                      Export AgentProd Leads to HubSpot
+                    </div>
+                  </DialogTitle>
+                  <DialogDescription>
+                    Description about the action being performed
+                  </DialogDescription>
+                </DialogHeader>
+                <Separator />
+                <Form {...form}>
+                  <form
+                    // onSubmit={form.handleSubmit(onSubmit)}
+                    className="w-2/3 space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>
+                            <p className="text-base text-gray-400">
+                              Configure Leads
+                            </p>
+                          </FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="all"
+                                    className="h-6 w-6 focus:bg-black focus:text-white"
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-bold">
+                                  <div>
+                                    <h1 className="text-lg">Export All Leads</h1>
+                                    <p className="font-normal text-gray-400">
+                                      We will stream every lead that is enrolled
+                                      from your AgentProd account
+                                    </p>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="engaged"
+                                    className="h-6 w-6 focus:bg-black focus:text-white"
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-bold">
+                                  <div>
+                                    <h1 className="text-lg">
+                                      Export Engaged Leads
+                                    </h1>
+                                    <p className="font-normal text-gray-400">
+                                      We will stream every lead that have
+                                      responsed to your outbound workflows
+                                    </p>
+                                  </div>
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </form>
+                </Form>
+                <Separator />
+                <div className="flex flex-row gap-4">
+                  <p className="font-semibold">
+                    Avoid outreach to leads that is already in your CRM?{" "}
+                  </p>
+                  <Switch />
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant={"outline"}
+                    className="mt-3"
+                    onClick={handleCloseHubspotMailbox}
+                  >
+                    Cancel
+                  </Button>
+                  <Button className="mt-3" type="submit">
+                    Update
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* {service.isConnected ? (
+              <Button variant={"outline"} className="text-sm">
+                Disconnect
+              </Button>
+            ) : (
+              <Button variant={"outline"} className="text-sm">
+                Connect
+              </Button>
+            )} */}
+          </CardHeader>
+          <CardContent className="space-y-2 mt-2">
+            <CardTitle>Zapier</CardTitle>
+            <CardDescription>
+              Used to interact with the AgentProd and receive notifications.
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

@@ -183,9 +183,16 @@ a[href]:active {
   letter-spacing: 0.5px;
   margin: 0;
   border-top: 3.5px solid #000;
-  border-right: 3.5px solid #000;
+  border-right: 2px solid #000;
   border-bottom: none;
   border-left: none;
+  background-color: white;
+}
+
+/* Make the BACK button's right border bold */
+.driver-popover.driverjs-theme .driver-popover-navigation-btns button:first-child {
+  background-color: #E5E7EB;
+  border-right: 3.5px solid #000;
 }
 
 .driver-popover.driverjs-theme button:last-child {

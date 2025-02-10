@@ -61,6 +61,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/context/auth-provider";
+import { useSubscription } from "@/context/subscription-provider";
 
 const FormSchema = z.object({
   type: z.enum(["all", "engaged"], {
@@ -107,7 +108,7 @@ export default function Page() {
   const [selectedEmail, setSelectedEmail] = React.useState('');
   const [selectedAccountType, setSelectedAccountType] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
-
+  const { isSubscribed } = useSubscription();
   const updateHubspotLeadType = async () => {
     setLoading(true);
     const payload = {
@@ -397,12 +398,13 @@ export default function Page() {
   return (
     <div className="space-y-4">
       {/* Trial Plan Banner */}
-      <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-        <p className="text-yellow-800 text-sm font-medium">
-          Note: Only one LinkedIn account can be connected in trial plan
-        </p>
-      </div>
-
+      {!isSubscribed && (
+        <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+          <p className="text-yellow-800 text-sm font-medium">
+            Note: Only one LinkedIn account can be connected in trial plan
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Slack Card Started Here */}
         <Card>

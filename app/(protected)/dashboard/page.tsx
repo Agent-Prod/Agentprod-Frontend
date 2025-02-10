@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
 import { initializeOnboardingGuide } from "@/lib/driver-config";
+import { useSubscription } from "@/context/subscription-provider";
 interface TopPerformingCampaignsTableProps {
   campaigns: Campaign[];
   isLoading: boolean;
@@ -488,7 +489,7 @@ export default function Page() {
   const { mailGraphData, contactsData, connectionData, connectedData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
   const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
-
+  const { isSubscribed } = useSubscription();
   useEffect(() => {
     if (dashboardData && dashboardData.emails_sent === 0) {
       const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${dashboardData.user_id}`);
@@ -551,18 +552,20 @@ export default function Page() {
   return (
     <>
       <DashboardPageHeader />
-      <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-        <p className="text-yellow-800 text-sm font-medium text-center">
-          You're on a free trial! Enjoy 100 LinkedIn outreach leads for the next 10 days. Need more? Contact us at{' '}
-          <a
-            href="mailto:founders@agentprod.com"
-            className="text-blue-600 hover:text-blue-800 underline"
-          >
-            founders@agentprod.com
-          </a>
-          {' '}to scale your outreach!
-        </p>
-      </div>
+      {!isSubscribed && (
+        <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+          <p className="text-yellow-800 text-sm font-medium text-center">
+            You're on a free trial! Enjoy 100 LinkedIn outreach leads for the next 10 days. Need more? Contact us at{' '}
+            <a
+              href="mailto:founders@agentprod.com"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              founders@agentprod.com
+            </a>
+            {' '}to scale your outreach!
+          </p>
+        </div>
+      )}
       <ScrollArea className="h-full scroll-my-36 bg-gradient-to-br from-background via-background/98 to-background/95">
         <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">

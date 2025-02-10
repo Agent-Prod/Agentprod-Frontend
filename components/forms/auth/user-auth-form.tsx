@@ -34,7 +34,7 @@ export default function UserAuthForm({
       .refine((email) => {
         // Split email at @ and check domain isn't a common personal email provider
         const [_, domain] = email.split('@');
-        const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
+        const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'edu.com', 'icloud.com'];
         return !personalDomains.includes(domain.toLowerCase());
       }, { message: "Please use your work email address" })
     : z.string().email({ message: "Enter a valid email address" });

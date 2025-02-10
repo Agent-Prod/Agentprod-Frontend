@@ -708,20 +708,30 @@ export default function PeopleForm(): JSX.Element {
     setCalculatedPages((pages - 1) * 2 + 1);
 
 
-    const existingLeadsResponse = await axiosInstance.get(
-      `v2/leads/`
-    );
+    const existingLeadsResponse = await axiosInstance.get(`v2/leads/`);
     console.log("Existing leads:", existingLeadsResponse.data);
-    if (existingLeadsResponse.data === null) {
+
+    // Update the logic for checking lead limits
+    if (!isSubscribed && existingLeadsResponse.data.length >= 100) {
+      toast.warning("Your free account has reached the limit of 100 leads");
+      shouldCallAPI = false;
+      setIsTableLoading(false);
+      setIsSubmitting(false);
+      return; // Exit early if limit reached
+    } else {
       shouldCallAPI = true;
-    } else if (
-      existingLeadsResponse.data.length > 100 &&
+    }
+
+    if (existingLeadsResponse.data.length > 100 &&
       isSubscribed === false
     ) {
       toast.warning("Your free account has reached the limit of leads");
       shouldCallAPI = false;
+      console.log("Limit reached")
     } else if (isSubscribed === true) {
       shouldCallAPI = true;
+      console.log("USE reached")
+
     }
 
 

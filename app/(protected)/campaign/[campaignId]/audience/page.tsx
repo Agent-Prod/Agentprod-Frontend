@@ -8,6 +8,8 @@ import { ImportAudience } from "@/components/campaign/import-audience";
 import { SelectFromExisting } from "@/components/campaign/select-from-existing";
 import { useParams } from "next/navigation";
 import { getCampaignById } from "@/components/campaign/camapign.api";
+import SubscriptionBanner from "@/components/subscription-banner";
+import { useSubscription } from "@/context/subscription-provider";
 
 export default function Page() {
   const params = useParams<{ campaignId: string }>();
@@ -16,7 +18,7 @@ export default function Page() {
   const [isImportActive, setIsImportActive] = useState<boolean>(false);
   const [isExisting, setIsExisting] = useState<boolean>(false);
   const [campaignType, setCampaignType] = useState("");
-
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
   useEffect(() => {
     const fetchCampaign = async () => {
       const id = params.campaignId;
@@ -62,6 +64,13 @@ export default function Page() {
 
   return (
     <div className="mt-2">
+      {(!isSubscribed && isLeadLimitReached) && (
+        <SubscriptionBanner
+          isSubscribed={isSubscribed ?? false}
+          isLeadLimitReached={isLeadLimitReached ?? false}
+          showOnlyLimitBanner={true}
+        />
+      )}
       <RadioGroup
         className="mb-3"
         defaultValue="prospect"

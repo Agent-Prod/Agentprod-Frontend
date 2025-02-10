@@ -28,6 +28,8 @@ import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/auth-provider";
+import SubscriptionBanner from "@/components/subscription-banner";
+import { useSubscription } from "@/context/subscription-provider";
 
 
 interface CampaignEntry {
@@ -112,6 +114,7 @@ export default function CampaignPage() {
   const [hasMore, setHasMore] = useState(true);
   const [localLoading, setLocalLoading] = useState(true);
   const LIMIT = 10;
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
 
   const BulkActions = () => {
     if (selectedCampaigns.size === 0) return null;
@@ -398,6 +401,14 @@ export default function CampaignPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
+      {(!isSubscribed && isLeadLimitReached) && (
+        <SubscriptionBanner
+          isSubscribed={isSubscribed ?? false}
+          isLeadLimitReached={isLeadLimitReached ?? false}
+          showOnlyLimitBanner={true}
+        />
+      )}
+
       <Card className="bg-gradient-to-r from-accent to-accent/50 px-6 py-8">
         <div className="flex justify-between items-center">
           <div className="space-y-2">

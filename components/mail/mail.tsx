@@ -36,6 +36,7 @@ import ThreadDisplayMain from "./thread-display-main";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-provider';
 import { useSubscription } from '@/context/subscription-provider';
+import SubscriptionBanner from '../subscription-banner';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -270,7 +271,7 @@ export function Mail({
   const [initialMailIdSet, setInitialMailIdSet] = React.useState(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isInitialLoading, setIsInitialLoading] = React.useState(true);
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
   const { user } = useAuth();
   const {
     setSenderEmail,
@@ -668,20 +669,10 @@ export function Mail({
 
   return (
     <>
-      {!isSubscribed && (
-        <div className="w-full p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-          <p className="text-yellow-800 text-sm font-medium text-center">
-            You're on a free trial! Enjoy 100 LinkedIn outreach leads for the next 10 days. Need more? Contact us at{' '}
-            <a
-              href="mailto:founders@agentprod.com"
-              className="text-blue-600 hover:text-blue-800 underline"
-            >
-              founders@agentprod.com
-            </a>
-            {' '}to scale your outreach!
-          </p>
-        </div>
-      )}
+      <SubscriptionBanner
+        isSubscribed={isSubscribed ?? false}
+        isLeadLimitReached={isLeadLimitReached ?? false}
+      />
       <TooltipProvider delayDuration={0}>
         {showLoadingOverlay && <LoadingOverlay />}
         <ResizablePanelGroup

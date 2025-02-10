@@ -183,8 +183,8 @@ export const PeopleProfileSheet = ({
               <div className="flex space-x-2 w-full">
                 <Linkedin className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground whitespace-normal w-full underline">
-                  <a 
-                    href={data.linkedin_url ? (data.linkedin_url.startsWith('http') ? data.linkedin_url : `https://www.${data.linkedin_url}`) : ""} 
+                  <a
+                    href={data.linkedin_url ? (data.linkedin_url.startsWith('http') ? data.linkedin_url : `https://www.${data.linkedin_url}`) : ""}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -650,7 +650,7 @@ export const PeopleProfileSheet = ({
                 <div className="flex items-center justify-between space-x-4 w-full">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
                     <Activity className="h-4 w-4 text-muted-foreground" />
-                    Social Monitoring Data
+                    Company Research
                   </h4>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-9 p-0">
@@ -748,7 +748,7 @@ export const PeopleProfileSheet = ({
                 <div className="flex items-center justify-between space-x-4 w-full">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
                     <Activity className="h-4 w-4 text-muted-foreground" />
-                    Lead Insights
+                    Lead Research
                   </h4>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-9 p-0">

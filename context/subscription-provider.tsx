@@ -6,6 +6,7 @@ import axiosInstance from "@/utils/axiosInstance";
 
 interface SubscriptionContextType {
     isSubscribed: boolean | null;
+    isLeadLimitReached: boolean;
     loading: boolean;
     error: string | null;
     refreshSubscription: () => Promise<void>;
@@ -15,6 +16,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+    const [isLeadLimitReached, setIsLeadLimitReached] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
@@ -28,15 +30,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         try {
             const res = await axiosInstance.get(`v2/pricing-plans`);
 
-            const startTime = new Date(res.data.start_time).getTime();
-            const currentTime = Date.now();
-            const daysPassed = (currentTime - startTime) / (1000 * 60 * 60 * 24);
+            setIsSubscribed(res.data.subscribed);
 
-            if (daysPassed > 30 && res.data.subscription_mode === "Razorpay") {
-                await axiosInstance.delete(`v2/pricing-plans/${res.data.id}`);
-                setIsSubscribed(false);
-            } else {
-                setIsSubscribed(res.data.subscribed);
+            if (!res.data.subscribed) {
+                const leadsRes = await axiosInstance.get('v2/leads/');
+                if (leadsRes.data >= 100) {
+                    setIsLeadLimitReached(true);
+                } else {
+                    setIsLeadLimitReached(false);
+                }
             }
         } catch (error: any) {
             console.error("Failed to fetch subscription status:", error);
@@ -59,6 +61,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         <SubscriptionContext.Provider
             value={{
                 isSubscribed,
+                isLeadLimitReached,
                 loading,
                 error,
                 refreshSubscription

@@ -234,6 +234,12 @@ export default function Page() {
 
       const response = await axiosInstance.post('/v2/linkedin/login', payload);
 
+      if (response.data?.message === "User has already connected to a single account") {
+        toast.error("You are on free trial and can only connect one LinkedIn account");
+        setIsLinkedInMailboxOpen(false);
+        return;
+      }
+
       if (response.status === 200) {
         if (response.data.object === "AccountCreated") {
           // Account created directly without CAPTCHA
@@ -263,8 +269,14 @@ export default function Page() {
       } else {
         toast.error("Failed to connect LinkedIn account. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.data?.message === "User has already connected to a single account") {
+        toast.error("You are on free trial and can only connect one LinkedIn account");
+        setIsLinkedInMailboxOpen(false);
+        return;
+      }
       console.error("Error connecting LinkedIn account:", error);
+      toast.error("Failed to connect LinkedIn account. Please try again.");
     } finally {
       setIsLoading(false);
     }

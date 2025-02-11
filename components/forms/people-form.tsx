@@ -36,7 +36,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { useButtonStatus } from "@/context/button-status";
 import AudienceTable from "../ui/AudienceTable";
 import axios from "axios";
-import { useSubscription } from "@/hooks/userSubscription";
+import { useSubscription } from "@/context/subscription-provider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react"
@@ -708,20 +708,30 @@ export default function PeopleForm(): JSX.Element {
     setCalculatedPages((pages - 1) * 2 + 1);
 
 
-    const existingLeadsResponse = await axiosInstance.get(
-      `v2/leads/`
-    );
+    const existingLeadsResponse = await axiosInstance.get(`v2/leads/`);
     console.log("Existing leads:", existingLeadsResponse.data);
-    if (existingLeadsResponse.data === null) {
+
+    // Update the logic for checking lead limits
+    if (!isSubscribed && existingLeadsResponse.data >= 100) {
+      toast.warning("Your free account has reached the limit of 100 leads");
+      shouldCallAPI = false;
+      setIsTableLoading(false);
+      setIsSubmitting(false);
+      return; // Exit early if limit reached
+    } else {
       shouldCallAPI = true;
-    } else if (
-      existingLeadsResponse.data.length > 100 &&
+    }
+
+    if (existingLeadsResponse.data > 100 &&
       isSubscribed === false
     ) {
       toast.warning("Your free account has reached the limit of leads");
       shouldCallAPI = false;
+      console.log("Limit reached")
     } else if (isSubscribed === true) {
       shouldCallAPI = true;
+      console.log("USE reached")
+
     }
 
 

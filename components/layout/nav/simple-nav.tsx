@@ -16,6 +16,10 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
     <Link
       href={nav.href || "/"}
       className="no-underline hover:no-underline text-inherit"
+      id={nav.id}
+      data-driver-element={nav.id}
+      data-nav-title={nav.title}
+      aria-label={nav.title}
     >
       <span
         className={cn(
@@ -30,7 +34,7 @@ export default function SimpleNav({ nav }: { nav: NavItem }) {
         <span>{nav.title}</span>
       </span>
     </Link>
-  ), [nav.href, nav.title, path]);
+  ), [nav.href, nav.title, path, nav.id]);
 
   return navContent;
 }

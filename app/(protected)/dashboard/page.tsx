@@ -31,6 +31,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/axiosInstance";
 import { useAuth } from "@/context/auth-provider";
+import { initializeOnboardingGuide } from "@/lib/driver-config";
+import { useSubscription } from "@/context/subscription-provider";
+import SubscriptionBanner from "@/components/subscription-banner";
+
 interface TopPerformingCampaignsTableProps {
   campaigns: Campaign[];
   isLoading: boolean;
@@ -361,9 +365,10 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
 }) => {
   const metrics = [
     {
-      title: "Total Emails Sent",
+      title: "Total Messages Sent",
       value: dashboardData?.emails_sent ?? 0,
-      icon: <Icons.mail className="h-4 w-4 text-muted-foreground" />
+      icon: <Icons.mail className="h-4 w-4 text-muted-foreground" />,
+      id: "total-emails-sent"
     },
     {
       title: "Engaged Leads",
@@ -385,7 +390,7 @@ const DashboardMetrics = memo(({ dashboardData, isLoading }: {
   return (
     <div className="grid gap-4 grid-cols-2 mt-4">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="transition-all duration-200 hover:shadow-lg border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-background via-background/90 to-background/80 backdrop-blur-sm">
+        <Card id={metric.id} key={metric.title} className="transition-all duration-200 hover:shadow-lg border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-background via-background/90 to-background/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs font-medium flex items-center gap-2">
               {metric.icon}
@@ -486,6 +491,20 @@ export default function Page() {
   const { mailGraphData, contactsData, connectionData, connectedData, fetchDataIfNeeded } = useMailGraphContext();
   const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(true);
   const [shouldLoadOmniAnalytics, setShouldLoadOmniAnalytics] = useState(true);
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
+  useEffect(() => {
+    if (dashboardData && dashboardData.emails_sent === 0) {
+      const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${dashboardData.user_id}`);
+
+      if (!hasSeenOnboarding) {
+        const driverObj = initializeOnboardingGuide();
+        setTimeout(() => {
+          driverObj.drive();
+          localStorage.setItem(`hasSeenOnboarding_${dashboardData.user_id}`, 'true');
+        }, 1000);
+      }
+    }
+  }, [dashboardData]);
 
   useEffect(() => {
     fetchDashboardDataIfNeeded();
@@ -535,6 +554,10 @@ export default function Page() {
   return (
     <>
       <DashboardPageHeader />
+      <SubscriptionBanner
+        isSubscribed={isSubscribed ?? false}
+        isLeadLimitReached={isLeadLimitReached ?? false}
+      />
       <ScrollArea className="h-full scroll-my-36 bg-gradient-to-br from-background via-background/98 to-background/95">
         <div className="flex-1 space-y-4 p-2">
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
@@ -582,7 +605,7 @@ export default function Page() {
             </div>
 
             <Card className="col-span-3 shadow-sm">
-              <ScrollArea className="h-[28rem]">
+              <ScrollArea className="h-[28rem]" id="campaign-performance">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <div className="flex justify-between items-center">
                     <CardTitle>Email Campaign</CardTitle>
@@ -631,7 +654,7 @@ export default function Page() {
           </div>
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
-            <Card className="col-span-3">
+            <Card className="col-span-3" id="sending-volume-chart">
               <CardHeader>
                 <CardTitle>Sending Volume Per Day</CardTitle>
               </CardHeader>
@@ -646,7 +669,7 @@ export default function Page() {
             </Card>
 
             <Card className="col-span-3">
-              <ScrollArea className="h-[28rem]">
+              <ScrollArea className="h-[28rem]" id="linkedin-campaigns">
                 <CardHeader className="sticky top-0 bg-background z-10 pb-2 px-6">
                   <CardTitle>LinkedIn Campaign</CardTitle>
                 </CardHeader>

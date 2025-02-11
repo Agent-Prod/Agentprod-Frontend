@@ -35,6 +35,8 @@ import MailList from "./mail-list";
 import ThreadDisplayMain from "./thread-display-main";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-provider';
+import { useSubscription } from '@/context/subscription-provider';
+import SubscriptionBanner from '../subscription-banner';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -269,7 +271,7 @@ export function Mail({
   const [initialMailIdSet, setInitialMailIdSet] = React.useState(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isInitialLoading, setIsInitialLoading] = React.useState(true);
-
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
   const { user } = useAuth();
   const {
     setSenderEmail,
@@ -666,232 +668,238 @@ export function Mail({
   );
 
   return (
-    <TooltipProvider delayDuration={0}>
-      {showLoadingOverlay && <LoadingOverlay />}
-      <ResizablePanelGroup
-        direction="horizontal"
-        onLayout={(sizes: number[]) => {
-          document.cookie = `react-resizable-panels:layout=${JSON.stringify(
-            sizes
-          )}`;
-        }}
-        className="h-full items-stretch"
-        style={{ height: 'calc(100vh - 80px)' }}
-      >
-        <ResizablePanel defaultSize={localIsContextBarOpen ? 40 : 20}>
-          <Tabs
-            defaultValue="all"
-            value={filterState.activeTab}
-            onValueChange={handleTabChange}
-          >
-            <div className="flex items-center px-4 pt-2 pb-0">
-              <h1 className="text-xl font-bold">Inbox ({totalCount})</h1>
-              <TabsList className="ml-auto flex relative bg-muted/50 p-1 rounded-lg">
-                <TabsTrigger
-                  value="all"
-                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                >
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  value="to-approve"
-                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                >
-                  To Approve
-                </TabsTrigger>
-                <TabsTrigger
-                  value="replied"
-                  className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                >
-                  Replied
-                </TabsTrigger>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-8 px-3 text-sm font-medium hover:bg-muted/80"
-                    >
-                      <span>More</span>
-                      <ChevronDown size={16} className="ml-1" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[180px]">
-                    <DropdownMenuItem
-                      onSelect={() => handleTabChange("OPENED")}
-                    >
-                      Opened
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => handleTabChange("SENT")}
-                    >
-                      Sent
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("CLICKED")}>
-                      Clicked
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("BOUNCED")}>
-                      Bounced
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("SPAM")}>
-                      Spam
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
-                      Delivered
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_CONNECTED")}>
-                      Linkedin Connected
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_SENT")}>
-                      Linkedin Sent
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_WITHDRAWN")}>
-                      Linkedin Withdrawn
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_FAILED")}>
-                      Linkedin Failed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
-                      LINKEDIN PENDING
-                    </DropdownMenuItem>
-
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <CampaignDropdown
-                  campaigns={campaigns}
-                  handleCampaignChange={handleCampaignChange}
-                  currentCampaign={campaign}
-                />
-              </TabsList>
-            </div>
-
-            <div className="bg-background/95 px-4 pt-4 pb-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <form className="relative" onSubmit={(e) => { e.preventDefault(); handleSearchClick(); }}>
-                <Input
-                  placeholder="Search conversations..."
-                  className="w-full pl-4 pr-10 h-9 bg-muted/50 border-none"
-                  value={filterState.searchTerm}
-                  onChange={handleSearchChange}
-                />
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3"
-                >
-                  <Search className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </form>
-            </div>
-
-            <ActiveFilters
-              filter={filterState.filter}
-              campaign={campaign}
-              onClearCampaign={() => handleCampaignChange(null)}
-              onClearFilter={() => handleTabChange('all')}
-            />
-
-            <TabsContent
-              value={filterState.activeTab}
-              className="flex-grow overflow-hidden m-0 h-[calc(100%-130px)]"
-            >
-              <div
-                ref={mailListRef}
-                className="h-full overflow-auto"
-              >
-                {(isInitialLoading && page === 1 && !isCampaignsLoading) ||
-                  isTransitioning ? (
-                  <div className="flex flex-col space-y-3 p-4 pt-0">
-                    {[...Array(6)].map((_, index) => (
-                      <Skeleton
-                        key={index}
-                        className="h-[90px] w-full rounded-xl"
-                      />
-                    ))}
-                  </div>
-                ) : mails.length > 0 ? (
-                  <MemoizedMailList
-                    items={mails}
-                    selectedMailId={selectedMailId}
-                    setSelectedMailId={setSelectedMailId}
-                    hasMore={hasMore}
-                    loading={loading}
-                    loadMore={loadMore}
-                    onDeleteMail={handleDeleteMail}
-                  />
-                ) : !loading && !isTransitioning ? (
-                  <div className="flex flex-col gap-3 items-center justify-center mt-36">
-                    <Image
-                      src="/empty.svg"
-                      alt="empty-inbox"
-                      width="200"
-                      height="200"
-                      className="dark:filter dark:invert"
-                    />
-                    <p className="text-gray-500 mt-4">No Mails Available</p>
-                  </div>
-                ) : null}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel
-          defaultSize={localIsContextBarOpen ? 40 : 20}
-          minSize={20}
+    <>
+      <SubscriptionBanner
+        isSubscribed={isSubscribed ?? false}
+        isLeadLimitReached={isLeadLimitReached ?? false}
+      />
+      <TooltipProvider delayDuration={0}>
+        {showLoadingOverlay && <LoadingOverlay />}
+        <ResizablePanelGroup
+          direction="horizontal"
+          onLayout={(sizes: number[]) => {
+            document.cookie = `react-resizable-panels:layout=${JSON.stringify(
+              sizes
+            )}`;
+          }}
+          className="h-full items-stretch"
+          style={{ height: 'calc(100vh - 80px)' }}
         >
-          <ScrollArea className="h-full">
-            {loading && page === 1 ? (
-              <div className="m-4 flex flex-row ">
-                <Skeleton className="h-7 w-7 rounded-full" />
-                <div className="flex flex-col space-y-3 ml-5">
-                  <Skeleton className="h-[25px] w-[30rem] rounded-lg" />
-                  <Skeleton className="h-[325px] w-[30rem] rounded-xl" />
-                </div>
+          <ResizablePanel defaultSize={localIsContextBarOpen ? 40 : 20}>
+            <Tabs
+              defaultValue="all"
+              value={filterState.activeTab}
+              onValueChange={handleTabChange}
+            >
+              <div className="flex items-center px-4 pt-2 pb-0">
+                <h1 className="text-xl font-bold">Inbox ({totalCount})</h1>
+                <TabsList className="ml-auto flex relative bg-muted/50 p-1 rounded-lg">
+                  <TabsTrigger
+                    value="all"
+                    className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    All
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="to-approve"
+                    className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    To Approve
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="replied"
+                    className="rounded-md px-3 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    Replied
+                  </TabsTrigger>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 px-3 text-sm font-medium hover:bg-muted/80"
+                      >
+                        <span>More</span>
+                        <ChevronDown size={16} className="ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[180px]">
+                      <DropdownMenuItem
+                        onSelect={() => handleTabChange("OPENED")}
+                      >
+                        Opened
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => handleTabChange("SENT")}
+                      >
+                        Sent
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("CLICKED")}>
+                        Clicked
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("BOUNCED")}>
+                        Bounced
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("SPAM")}>
+                        Spam
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("DELIVERED")}>
+                        Delivered
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_CONNECTED")}>
+                        Linkedin Connected
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_SENT")}>
+                        Linkedin Sent
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_WITHDRAWN")}>
+                        Linkedin Withdrawn
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_FAILED")}>
+                        Linkedin Failed
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleTabChange("LINKEDIN_PENDING")}>
+                        LINKEDIN PENDING
+                      </DropdownMenuItem>
+
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <CampaignDropdown
+                    campaigns={campaigns}
+                    handleCampaignChange={handleCampaignChange}
+                    currentCampaign={campaign}
+                  />
+                </TabsList>
               </div>
-            ) : currentMail ? (
-              <MemoizedThreadDisplayMain
-                key={currentMail.id}
-                ownerEmail={currentMail.recipient}
-                updateMailStatus={updateMailStatus}
-                selectedMailId={selectedMailId}
-                setSelectedMailId={setSelectedMailId}
-                mailStatus={currentMail.status}
-                name={currentMail.name}
-                campaign_name={currentMail?.campaign_name || ''}
-                campaign_id={currentMail?.campaign_id || ''}
-                contact_id={currentMail?.contact_id || ''}
-                linkedinSender={currentMail?.linkedin_sender || ''}
-                linkedin_exists={currentMail?.linkedin_exists || false}
-                connection_status={currentMail?.connection_status || ''}
+
+              <div className="bg-background/95 px-4 pt-4 pb-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <form className="relative" onSubmit={(e) => { e.preventDefault(); handleSearchClick(); }}>
+                  <Input
+                    placeholder="Search conversations..."
+                    className="w-full pl-4 pr-10 h-9 bg-muted/50 border-none"
+                    value={filterState.searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3"
+                  >
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </form>
+              </div>
+
+              <ActiveFilters
+                filter={filterState.filter}
+                campaign={campaign}
+                onClearCampaign={() => handleCampaignChange(null)}
+                onClearFilter={() => handleTabChange('all')}
               />
-            ) : (
-              <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">
-                <Image
-                  src="/emptydraft.svg"
-                  alt="empty-inbox"
-                  width="200"
-                  height="200"
-                  className="dark:filter dark:invert"
+
+              <TabsContent
+                value={filterState.activeTab}
+                className="flex-grow overflow-hidden m-0 h-[calc(100%-130px)]"
+              >
+                <div
+                  ref={mailListRef}
+                  className="h-full overflow-auto"
+                >
+                  {(isInitialLoading && page === 1 && !isCampaignsLoading) ||
+                    isTransitioning ? (
+                    <div className="flex flex-col space-y-3 p-4 pt-0">
+                      {[...Array(6)].map((_, index) => (
+                        <Skeleton
+                          key={index}
+                          className="h-[90px] w-full rounded-xl"
+                        />
+                      ))}
+                    </div>
+                  ) : mails.length > 0 ? (
+                    <MemoizedMailList
+                      items={mails}
+                      selectedMailId={selectedMailId}
+                      setSelectedMailId={setSelectedMailId}
+                      hasMore={hasMore}
+                      loading={loading}
+                      loadMore={loadMore}
+                      onDeleteMail={handleDeleteMail}
+                    />
+                  ) : !loading && !isTransitioning ? (
+                    <div className="flex flex-col gap-3 items-center justify-center mt-36">
+                      <Image
+                        src="/empty.svg"
+                        alt="empty-inbox"
+                        width="200"
+                        height="200"
+                        className="dark:filter dark:invert"
+                      />
+                      <p className="text-gray-500 mt-4">No Mails Available</p>
+                    </div>
+                  ) : null}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            defaultSize={localIsContextBarOpen ? 40 : 20}
+            minSize={20}
+          >
+            <ScrollArea className="h-full">
+              {loading && page === 1 ? (
+                <div className="m-4 flex flex-row ">
+                  <Skeleton className="h-7 w-7 rounded-full" />
+                  <div className="flex flex-col space-y-3 ml-5">
+                    <Skeleton className="h-[25px] w-[30rem] rounded-lg" />
+                    <Skeleton className="h-[325px] w-[30rem] rounded-xl" />
+                  </div>
+                </div>
+              ) : currentMail ? (
+                <MemoizedThreadDisplayMain
+                  key={currentMail.id}
+                  ownerEmail={currentMail.recipient}
+                  updateMailStatus={updateMailStatus}
+                  selectedMailId={selectedMailId}
+                  setSelectedMailId={setSelectedMailId}
+                  mailStatus={currentMail.status}
+                  name={currentMail.name}
+                  campaign_name={currentMail?.campaign_name || ''}
+                  campaign_id={currentMail?.campaign_id || ''}
+                  contact_id={currentMail?.contact_id || ''}
+                  linkedinSender={currentMail?.linkedin_sender || ''}
+                  linkedin_exists={currentMail?.linkedin_exists || false}
+                  connection_status={currentMail?.connection_status || ''}
                 />
-                <p className="flex justify-center items-center mt-10 ml-6  text-gray-500">
-                  No Draft Available
-                </p>
-              </div>
-            )}
-          </ScrollArea>
-        </ResizablePanel>
-        {localIsContextBarOpen && leads.length > 0 && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20}>
-              <PeopleProfileSheet data={leads[0] as Contact} />
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
-    </TooltipProvider>
+              ) : (
+                <div className="flex flex-col gap-3 items-center justify-center mt-[17.2rem]">
+                  <Image
+                    src="/emptydraft.svg"
+                    alt="empty-inbox"
+                    width="200"
+                    height="200"
+                    className="dark:filter dark:invert"
+                  />
+                  <p className="flex justify-center items-center mt-10 ml-6  text-gray-500">
+                    No Draft Available
+                  </p>
+                </div>
+              )}
+            </ScrollArea>
+          </ResizablePanel>
+          {localIsContextBarOpen && leads.length > 0 && (
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={20}>
+                <PeopleProfileSheet data={leads[0] as Contact} />
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
+      </TooltipProvider>
+    </>
   );
 }
 

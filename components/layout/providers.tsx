@@ -12,6 +12,7 @@ import { AutoGenerateProvider } from "@/context/auto-generate-mail";
 import { FieldsListProvider } from "@/context/training-fields-provider";
 import { MailGraphProvider } from "@/context/chart-data-provider";
 import { ButtonStatusProvider } from "@/context/button-status";
+import { SubscriptionProvider } from "@/context/subscription-provider";
 
 export default function Providers({
   // session,
@@ -24,33 +25,35 @@ export default function Providers({
 }) {
   return (
     <>
-        {/* <AuthProvider userData={userAuthData}> */}
-          <AutoGenerateProvider>
-            {/* <UserContextProvider> */}
-              <LeadSheetSidebarProvider>
-                <LeadsProvider>
-                  <FieldsListProvider>
-                    <CampaignProvider>
-                      <MailGraphProvider>
-                        <DashboardProvider>
-                          <ButtonStatusProvider>
-                            <CompanyProvider>
-                              <MailboxProvider>
-                                {/* <SessionProvider session={session}> */}
-                                {children}
-                                {/* </SessionProvider> */}
-                              </MailboxProvider>
-                            </CompanyProvider>
-                          </ButtonStatusProvider>
-                        </DashboardProvider>
-                      </MailGraphProvider>
-                    </CampaignProvider>
-                  </FieldsListProvider>
-                </LeadsProvider>
-              </LeadSheetSidebarProvider>
-            {/* </UserContextProvider> */}
-          </AutoGenerateProvider>
-        {/* </AuthProvider> */}
+      {/* <AuthProvider userData={userAuthData}> */}
+      <AutoGenerateProvider>
+        {/* <UserContextProvider> */}
+        <LeadSheetSidebarProvider>
+          <LeadsProvider>
+            <FieldsListProvider>
+              <CampaignProvider>
+                <MailGraphProvider>
+                  <DashboardProvider>
+                    <ButtonStatusProvider>
+                      <CompanyProvider>
+                        <SubscriptionProvider>
+                          <MailboxProvider>
+                            {/* <SessionProvider session={session}> */}
+                            {children}
+                            {/* </SessionProvider> */}
+                          </MailboxProvider>
+                        </SubscriptionProvider>
+                      </CompanyProvider>
+                    </ButtonStatusProvider>
+                  </DashboardProvider>
+                </MailGraphProvider>
+              </CampaignProvider>
+            </FieldsListProvider>
+          </LeadsProvider>
+        </LeadSheetSidebarProvider>
+        {/* </UserContextProvider> */}
+      </AutoGenerateProvider>
+      {/* </AuthProvider> */}
     </>
   );
 }

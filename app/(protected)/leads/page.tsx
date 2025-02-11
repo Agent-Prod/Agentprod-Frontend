@@ -12,6 +12,8 @@ import { LucideUsers2 } from "lucide-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-provider";
+import SubscriptionBanner from "@/components/subscription-banner";
+import { useSubscription } from "@/context/subscription-provider";
 const DEBOUNCE_DELAY = 300;
 
 export default function Page() {
@@ -25,6 +27,7 @@ export default function Page() {
     null
   );
   const size = 10;
+  const { isSubscribed, isLeadLimitReached } = useSubscription();
 
   const { user } = useAuth();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -127,6 +130,13 @@ export default function Page() {
 
   return (
     <div className="space-y-4">
+      {(!isSubscribed && isLeadLimitReached) && (
+        <SubscriptionBanner
+          isSubscribed={isSubscribed ?? false}
+          isLeadLimitReached={isLeadLimitReached ?? false}
+          showOnlyLimitBanner={true}
+        />
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <LucideUsers2 className="h-5 w-5" />

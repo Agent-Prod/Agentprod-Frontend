@@ -802,7 +802,7 @@ export const PeopleProfileSheet = ({
             {/* Posts */}
 
             {/* Company Research Section */}
-            {data.social_monitoring_data && parseSocialMonitoringData(data.social_monitoring_data).length > 0 && (
+            {data.social_monitoring_data && (
               <div className="pt-4 space-y-2 text-muted-foreground w-full">
                 <div className="flex items-center space-x-4 w-full">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
@@ -812,23 +812,32 @@ export const PeopleProfileSheet = ({
                 </div>
                 <Card>
                   <CardContent className="p-4 space-y-4">
-                    {parseSocialMonitoringData(data.social_monitoring_data)
-                      .filter(section => section.content.length > 0)
-                      .map((section, index) => (
-                        <div key={index} className="space-y-2">
-                          <h5 className="text-sm font-semibold flex items-center gap-2">
-                            {section.icon}
-                            {section.title}
-                          </h5>
-                          <div className="space-y-1">
-                            {section.content.map((item, idx) => (
-                              <p key={idx} className="text-sm text-muted-foreground">
-                                {item.startsWith('-') || item.startsWith('•') ? item : `• ${item}`}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="whitespace-pre-wrap text-sm text-muted-foreground">
+                      {data.social_monitoring_data.split('\n').map((line, index) => {
+                        // Handle bold text wrapped in **
+                        if (line.startsWith('**') && line.endsWith('**')) {
+                          return (
+                            <p key={index} className=" py-1">
+                              {line.replace(/\*\*/g, '')}
+                            </p>
+                          );
+                        }
+                        // Handle numbered points
+                        if (/^\d+\.\s/.test(line)) {
+                          return (
+                            <p key={index} className="py-1">
+                              <span className="">{line}</span>
+                            </p>
+                          );
+                        }
+                        // Regular text
+                        return (
+                          <p key={index} className="py-1">
+                            {line}
+                          </p>
+                        );
+                      })}
+                    </div>
                   </CardContent>
                 </Card>
               </div>

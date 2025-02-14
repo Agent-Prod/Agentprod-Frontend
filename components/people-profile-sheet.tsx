@@ -24,6 +24,18 @@ import {
   ChevronDown,
   Newspaper,
   Info,
+  Tag,
+  TrendingUp,
+  Wrench,
+  DollarSign,
+  Lightbulb,
+  LineChart,
+  Database,
+  Target,
+  GraduationCap,
+  Trophy,
+  ThumbsUp,
+  Share2,
 } from "lucide-react";
 import { GrScorecard } from "react-icons/gr";
 
@@ -48,32 +60,49 @@ interface PeopleProfileSheetProps {
 interface SocialMonitoringSection {
   title: string;
   content: string[];
-  icon?: React.ReactNode;
+  icon: React.ReactNode;
 }
 
 function parseSocialMonitoringData(data: string): SocialMonitoringSection[] {
   try {
-    // Split by headers (##, ###, etc)
-    const sections = data.split(/(?=##?#?\s)/).filter(Boolean);
+    const sections = data.split(/(?=\d+\.\s|\*\*(?=[A-Za-z]))/);
 
-    return sections.map(section => {
-      if (!section.trim()) return null;
+    return sections
+      .map(section => {
+        if (!section.trim()) return null;
 
-      const lines = section.trim().split('\n');
-      if (lines.length === 0) return null;
+        const lines = section.split('\n');
+        const titleLine = lines[0].trim();
 
-      const title = lines[0].replace(/^#+\s/, '').trim();
-      const content = lines.slice(1)
-        .filter(line => line.trim())
-        .map(line => line.replace(/^[-*]\s/, '').trim());
+        const title = titleLine
+          .replace(/^\d+\.\s*/, '')
+          .replace(/\*\*/g, '')
+          .replace(/:\s*$/, '')
+          .trim();
 
-      // Only return sections that have content
-      return content.length > 0 ? {
-        title,
-        content,
-        icon: getSectionIcon(title)
-      } : null;
-    }).filter((section): section is { title: string; content: string[]; icon: React.ReactNode } => section !== null); // Remove null sections
+        const contentLines = lines.slice(1)
+          .filter(line => line.trim())
+          .map(line => {
+            return line
+              .replace(/^\s*[-•]\s*/, '• ')
+              .replace(/^\s*:\s*/, '')
+              .replace(/\*\*/g, '')
+              .replace(/\*/g, '')
+              .trim();
+          })
+          .filter(line => line.length > 0 && !line.match(/^\d+\./));
+
+        if (!title || contentLines.length === 0) return null;
+
+        return {
+          title,
+          content: contentLines,
+          icon: getSectionIcon(title)
+        };
+      })
+      .filter((section): section is SocialMonitoringSection =>
+        section !== null && section.content.length > 0
+      );
   } catch (error) {
     console.error('Error parsing social monitoring data:', error);
     return [];
@@ -82,15 +111,90 @@ function parseSocialMonitoringData(data: string): SocialMonitoringSection[] {
 
 function getSectionIcon(title: string): React.ReactNode {
   const iconMap: Record<string, React.ReactNode> = {
-    'Google News': <Newspaper className="h-4 w-4" />,
-    'LinkedIn': <Linkedin className="h-4 w-4" />,
-    'Twitter/X': <Twitter className="h-4 w-4" />,
-    'YouTube': <Youtube className="h-4 w-4" />,
-    'Instagram': <Instagram className="h-4 w-4" />,
-    // Add more icons as needed
+    'Key words': <Tag className="h-4 w-4" />,
+    'Products/services': <Layers className="h-4 w-4" />,
+    'Firmographics': <Building2 className="h-4 w-4" />,
+    'Business indicators': <TrendingUp className="h-4 w-4" />,
+    'Customer strategies': <Users className="h-4 w-4" />,
+    'Product development': <Wrench className="h-4 w-4" />,
+    'Funding': <DollarSign className="h-4 w-4" />,
+    'Innovation': <Lightbulb className="h-4 w-4" />,
+    'Recent news': <Newspaper className="h-4 w-4" />,
+    'Strategic partnerships': <Link className="h-4 w-4" />,
+    'Financial overview': <LineChart className="h-4 w-4" />,
+    'Technology stack': <Database className="h-4 w-4" />,
+    'Competitors': <Target className="h-4 w-4" />,
+    'Industry trends': <TrendingUp className="h-4 w-4" />,
   };
 
   // Find matching icon by checking if title includes any of the keys
+  const matchingKey = Object.keys(iconMap).find(key =>
+    title.toLowerCase().includes(key.toLowerCase())
+  );
+
+  return matchingKey ? iconMap[matchingKey] : <Info className="h-4 w-4" />;
+}
+
+function parsePersonalizedSocialInfo(data: string): SocialMonitoringSection[] {
+  try {
+    const sections = data.split(/(?=\*\*\d+\.\s)/);
+
+    return sections
+      .map(section => {
+        if (!section.trim()) return null;
+
+        const lines = section.split('\n');
+        const titleLine = lines[0].trim();
+
+        const title = titleLine
+          .replace(/^\*\*\d+\.\s/, '')
+          .replace(/\*\*/, '')
+          .trim();
+
+        const contentLines = lines.slice(1)
+          .filter(line => line.trim())
+          .map(line => {
+            return line
+              .replace(/^\s*[-•]\s*/, '• ')
+              .replace(/\*\*([^*]+)\*\*/g, '$1')
+              .replace(/\*/g, '')
+              .trim();
+          })
+          .filter(line => line.length > 0);
+
+        if (!title || contentLines.length === 0) return null;
+
+        return {
+          title,
+          content: contentLines,
+          icon: getPersonalInfoIcon(title)
+        };
+      })
+      .filter((section): section is SocialMonitoringSection =>
+        section !== null && section.content.length > 0
+      );
+  } catch (error) {
+    console.error('Error parsing personalized social info:', error);
+    return [];
+  }
+}
+
+function getPersonalInfoIcon(title: string): React.ReactNode {
+  const iconMap: Record<string, React.ReactNode> = {
+    'Job Title': <Briefcase className="h-4 w-4" />,
+    'Recent Promotions': <TrendingUp className="h-4 w-4" />,
+    'Achievements': <Star className="h-4 w-4" />,
+    'Work History': <Building2 className="h-4 w-4" />,
+    'Professional Background': <Users className="h-4 w-4" />,
+    'Education Background': <GraduationCap className="h-4 w-4" />,
+    'Top 5 Skills': <Wrench className="h-4 w-4" />,
+    'Key Awards': <Trophy className="h-4 w-4" />,
+    'Endorsements': <ThumbsUp className="h-4 w-4" />,
+    'Social Media Activity': <Share2 className="h-4 w-4" />,
+    'Mentions Elsewhere': <Link className="h-4 w-4" />,
+    'Industry Involvement': <Users className="h-4 w-4" />,
+  };
+
   const matchingKey = Object.keys(iconMap).find(key =>
     title.toLowerCase().includes(key.toLowerCase())
   );
@@ -699,138 +803,68 @@ export const PeopleProfileSheet = ({
 
             {/* Company Research Section */}
             {data.social_monitoring_data && parseSocialMonitoringData(data.social_monitoring_data).length > 0 && (
-              <Collapsible
-                open={socialMonitoringOpen}
-                onOpenChange={setSocialMonitoringOpen}
-                className="pt-4 space-y-2 text-muted-foreground w-full"
-              >
-                <div className="flex items-center justify-between space-x-4 w-full">
+              <div className="pt-4 space-y-2 text-muted-foreground w-full">
+                <div className="flex items-center space-x-4 w-full">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <MonitorUp className="h-4 w-4 text-muted-foreground" />
                     Company Research
                   </h4>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <ChevronDown className="h-4 w-4" />
-                      <span className="sr-only">Toggle</span>
-                    </Button>
-                  </CollapsibleTrigger>
                 </div>
-                <CollapsibleContent>
-                  <Card>
-                    <CardContent className="p-4 space-y-4">
-                      {parseSocialMonitoringData(data.social_monitoring_data)
-                        .filter(section => section.content.length > 0) // Additional filter to ensure no empty sections
-                        .map((section, index) => (
-                          <div key={index} className="space-y-2">
-                            <h5 className="text-sm font-semibold flex items-center gap-2">
-                              {section.icon}
-                              {section.title}
-                            </h5>
-                            <div className="space-y-1">
-                              {section.content.map((item, idx) => (
-                                <p key={idx} className="text-sm text-muted-foreground">
-                                  {item}
-                                </p>
-                              ))}
-                            </div>
+                <Card>
+                  <CardContent className="p-4 space-y-4">
+                    {parseSocialMonitoringData(data.social_monitoring_data)
+                      .filter(section => section.content.length > 0)
+                      .map((section, index) => (
+                        <div key={index} className="space-y-2">
+                          <h5 className="text-sm font-semibold flex items-center gap-2">
+                            {section.icon}
+                            {section.title}
+                          </h5>
+                          <div className="space-y-1">
+                            {section.content.map((item, idx) => (
+                              <p key={idx} className="text-sm text-muted-foreground">
+                                {item.startsWith('-') || item.startsWith('•') ? item : `• ${item}`}
+                              </p>
+                            ))}
                           </div>
-                        ))}
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             {/* Personalized Social Info */}
             {data.personalized_social_info && (
-              <Collapsible
-                open={data.personalized_social_info.length > 0}
-                onOpenChange={setSocialMonitoringOpen}
-                className="pt-4 space-y-2 text-muted-foreground w-full"
-              >
-                <div className="flex items-center justify-between space-x-4 w-full">
+              <div className="pt-4 space-y-2 text-muted-foreground w-full">
+                <div className="flex items-center space-x-4 w-full">
                   <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <Users className="h-4 w-4 text-muted-foreground" />
                     Professional Profile
                   </h4>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-9 p-0">
-                      <ChevronsUpDown className="h-4 w-4" />
-                      <span className="sr-only">Toggle</span>
-                    </Button>
-                  </CollapsibleTrigger>
                 </div>
-
-                <CollapsibleContent className="space-y-3 w-full">
-                  <Card className="p-4 bg-secondary/5">
-                    <CardContent className="p-0 space-y-4">
-                      {[
-                        {
-                          title: 'Current Role',
-                          icon: <Briefcase className="h-4 w-4" />,
-                          content: data.personalized_social_info.match(/Job Title[:]?\s*([^.]+)/)?.[1]?.trim()
-                        },
-                        {
-                          title: 'Work History',
-                          icon: <Building2 className="h-4 w-4" />,
-                          content: data.personalized_social_info
-                            .match(/Work History[:]?\s*((?:[^.]+[.])+)/)?.[1]
-                            ?.split('.')
-                            .filter(item => item.trim())
-                            .map(item => item.trim())
-                        },
-                        {
-                          title: 'Key Skills',
-                          icon: <Star className="h-4 w-4" />,
-                          content: data.personalized_social_info
-                            .match(/Top 5 Skills[:]?\s*([^.]+)/)?.[1]
-                            ?.split(',')
-                            .map(skill => skill.trim())
-                        },
-                        {
-                          title: 'Professional Background',
-                          icon: <Users className="h-4 w-4" />,
-                          content: data.personalized_social_info
-                            .match(/Professional Background[:]?\s*((?:[^.]+[.])+)/)?.[1]
-                            ?.split('.')
-                            .filter(item => item.trim())
-                            .map(item => item.trim())
-                        },
-                        {
-                          title: 'Industry Involvement',
-                          icon: <Link className="h-4 w-4" />,
-                          content: data.personalized_social_info
-                            .match(/Industry\/Community Involvement[:]?\s*([^.]+)/)?.[1]?.trim()
-                        }
-                      ]
-                        .filter(section => section.content &&
-                          (Array.isArray(section.content) ? section.content.length > 0 : section.content.length > 0))
-                        .map((section, index) => (
-                          <div key={index} className="space-y-2">
-                            <h3 className="text-xs font-medium flex items-center gap-2">
-                              {section.icon}
-                              {section.title}
-                            </h3>
-                            {Array.isArray(section.content) ? (
-                              <ul className="space-y-1">
-                                {section.content.map((item, idx) => (
-                                  <li key={idx} className="text-xs text-muted-foreground">
-                                    {item}
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">
-                                {section.content}
+                <Card>
+                  <CardContent className="p-4 space-y-4">
+                    {parsePersonalizedSocialInfo(data.personalized_social_info)
+                      .filter(section => section.content.length > 0)
+                      .map((section, index) => (
+                        <div key={index} className="space-y-2">
+                          <h5 className="text-sm font-semibold flex items-center gap-2">
+                            {section.icon}
+                            {section.title}
+                          </h5>
+                          <div className="space-y-1">
+                            {section.content.map((item, idx) => (
+                              <p key={idx} className="text-sm text-muted-foreground">
+                                {item.startsWith('-') || item.startsWith('•') ? item : `• ${item}`}
                               </p>
-                            )}
+                            ))}
                           </div>
-                        ))}
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             {/* Technologies */}

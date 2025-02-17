@@ -87,7 +87,7 @@ export function OfferingForm() {
                 `v2/offerings/${id}`
               );
               offeringData = offeringResponse.data;
-              if(offeringResponse.status === 200){
+              if (offeringResponse.status === 200) {
                 setType("edit");
                 setOfferingId(offeringData.id);
               }
@@ -182,7 +182,7 @@ export function OfferingForm() {
         toast.success("Offering created successfully.");
       } else {
         await editPersona(postData);
-        await editOffering(offeringData, offeringId! , params.campaignId);
+        await editOffering(offeringData, offeringId!, params.campaignId);
         toast.success("Offering updated successfully.");
       }
 
@@ -421,7 +421,7 @@ export function OfferingForm() {
           <Button
             type="submit"
             className="cursor-pointer w-32"
-            disabled={type === "create" && !isFormValid()}
+          // disabled={type === "create" && !isFormValid()}
           >
             {type === "create" ? "Create Offer" : "Update Offer"}
           </Button>

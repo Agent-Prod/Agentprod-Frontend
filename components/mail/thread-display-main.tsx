@@ -1206,12 +1206,18 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               <div>
                 {thread
                   ?.sort((a, b) => {
-                    if (a.follow_up_number && b.follow_up_number) {
-                      return new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime();
+                    // First sort by follow_up_number
+                    const followUpA = a.follow_up_number || 0;
+                    const followUpB = b.follow_up_number || 0;
+                    
+                    if (followUpA !== followUpB) {
+                      return followUpA - followUpB;
                     }
-                    if (a.follow_up_number) return 1;
-                    if (b.follow_up_number) return -1;
-                    return 0;
+                    
+                    // If follow_up_number is the same, sort by scheduled_at/created_at
+                    const dateA = new Date(a.scheduled_at || a.created_at).getTime();
+                    const dateB = new Date(b.scheduled_at || b.created_at).getTime();
+                    return dateA - dateB;
                   })
                   .map((email, index) => (
                     <EmailComponent

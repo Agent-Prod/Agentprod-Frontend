@@ -730,6 +730,17 @@ const Notification: React.FC<NotificationProps> = ({
         </div>
       )}
 
+      {email?.follow_up_number && !email?.scheduled_at && (
+        <div className="flex items-center gap-3">
+          <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">
+            <Bell className="h-4 w-4 text-gray-400" />
+          </div>
+          <p className="ml-1 text-xs">
+            {`We will schedule follow-up ${email?.follow_up_number} after follow-up ${email?.follow_up_number - 1} has been sent`}
+          </p>
+        </div>
+      )}
+
       {email?.scheduled_at && (
         <div className="flex items-center gap-3">
           <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">

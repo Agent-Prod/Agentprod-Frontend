@@ -34,8 +34,8 @@ export const createDefaultEmailFlow = (handlers: {
             type: 'delayNode',
             position: { x: 250, y: 250 },
             data: {
-                label: "1 day",
-                days: 1,
+                label: "2 days",
+                days: 2,
             },
         },
         {
@@ -55,8 +55,8 @@ export const createDefaultEmailFlow = (handlers: {
             type: 'delayNode',
             position: { x: 250, y: 550 },
             data: {
-                label: "1 day",
-                days: 1,
+                label: "2 days",
+                days: 2,
             },
         },
         {
@@ -129,9 +129,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 250, y: 250 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -151,9 +151,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 250, y: 550 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -175,9 +175,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 150, y: 850 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -197,9 +197,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 150, y: 1050 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -220,9 +220,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 450, y: 850 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -242,9 +242,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 550, y: 1050 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -264,9 +264,9 @@ export const createDefaultOmniFlow = (handlers: {
             type: 'delayNode',
             position: { x: 600, y: 1250 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -415,9 +415,9 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 50, y: 150 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -459,9 +459,9 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 50, y: 750 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -482,9 +482,9 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 450, y: 150 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -526,9 +526,9 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 450, y: 750 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {
@@ -548,9 +548,9 @@ export const createDefaultLinkedInFlow = (handlers: {
             type: 'delayNode',
             position: { x: 450, y: 1050 },
             data: {
-                label: "1 day",
-                days: 1,
-                defaultDays: 1,
+                label: "2 days",
+                days: 2,
+                defaultDays: 2,
             },
         },
         {

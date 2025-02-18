@@ -1057,7 +1057,7 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
   }, [channel]);
 
   const calculateTotalDelay = useCallback(() => {
-    // For LinkedIn connection nodes, we need to track left and right paths separately
+    // Calculate delay for a specific path
     const calculatePathDelay = (startNodeId: string, visited = new Set<string>()): number => {
       if (visited.has(startNodeId)) return 0;
       visited.add(startNodeId);
@@ -1080,40 +1080,25 @@ function Omni({ onFlowDataChange, initialSequence, channel, onTotalDelayChange }
       return totalDelay + (childDelays.length > 0 ? Math.max(...childDelays) : 0);
     };
 
-    // Find LinkedIn connection nodes
-    const linkedInNodes = nodes.filter(node => node.type === 'linkedInNode');
+    // Find the root node (first action node)
+    const rootNode = nodes.find(node => 
+      !edges.some(edge => edge.target === node.id) && 
+      (node.type === 'emailNode' || node.type === 'linkedInNode')
+    );
 
-    if (linkedInNodes.length > 0) {
-      // For each LinkedIn node, calculate left and right path delays
-      const pathDelays = linkedInNodes.map(linkedInNode => {
-        const leftEdge = edges.find(edge =>
-          edge.source === linkedInNode.id &&
-          edge.sourceHandle === 'source-left'
-        );
-        const rightEdge = edges.find(edge =>
-          edge.source === linkedInNode.id &&
-          edge.sourceHandle === 'source-right'
-        );
+    if (!rootNode) return 0;
 
-        const leftPathDelay = leftEdge ? calculatePathDelay(leftEdge.target) : 0;
-        const rightPathDelay = rightEdge ? calculatePathDelay(rightEdge.target) : 0;
+    // Calculate total delay starting from root
+    const totalPathDelay = calculatePathDelay(rootNode.id, new Set());
+    const bufferDays = 1; // Default buffer
 
-        return Math.max(leftPathDelay, rightPathDelay);
-      });
-
-      // Take the maximum delay from all LinkedIn nodes
-      return Math.max(...pathDelays);
-    } else {
-      // For non-LinkedIn flows, calculate total delay as before
-      const delayNodes = nodes.filter(node => node.type === 'delayNode');
-      return delayNodes.reduce((sum, node) => sum + (node.data.days || 0), 0);
-    }
+    return totalPathDelay + bufferDays;
   }, [nodes, edges]);
 
   useEffect(() => {
-    const maxDelay = calculateTotalDelay();
-    // Add 2 days buffer to the maximum delay
-    onTotalDelayChange?.(maxDelay);
+    const totalDelay = calculateTotalDelay();
+    // Add 1 extra day for processing
+    onTotalDelayChange?.(totalDelay + 1);
   }, [nodes, edges, calculateTotalDelay, onTotalDelayChange]);
 
   return (

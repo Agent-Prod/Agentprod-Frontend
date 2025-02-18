@@ -370,6 +370,18 @@ export function GoalForm() {
     fetchLinkedInAccounts();
   }, [campaignChannel]);
 
+  useEffect(() => {
+    if (campaignChannel === 'mail') {
+      const followUpDays = form.watch('follow_up_days') || 0;
+      const followUpTimes = form.watch('follow_up_times') || 0;
+      const calculatedMinimum = followUpTimes > 0 ? (followUpDays * followUpTimes) + 1 : 1;
+      form.setValue('mark_as_lost', calculatedMinimum);
+    } else if (campaignChannel === 'Linkedin' || campaignChannel === 'omni') {
+      const defaultMarkAsLost = 6;
+      form.setValue('mark_as_lost', defaultMarkAsLost);
+    }
+  }, [campaignChannel]); // Only run when campaign channel changes
+
   const isFormValid = () => {
     const formValues = form.getValues();
 
@@ -427,6 +439,10 @@ export function GoalForm() {
 
   const handleTotalDelayChange = (totalDays: number) => {
     setMinimumMarkAsLost(totalDays);
+    const currentMarkAsLost = form.getValues('mark_as_lost');
+    if (!currentMarkAsLost || currentMarkAsLost < totalDays) {
+      form.setValue('mark_as_lost', totalDays);
+    }
   };
 
   return (<>

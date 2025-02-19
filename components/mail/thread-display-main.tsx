@@ -1202,6 +1202,7 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
 
             {renderLinkedInStatus()}
 
+
             {thread?.length > 0 && (
               <div>
                 {thread
@@ -1209,11 +1210,11 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                     // First sort by follow_up_number
                     const followUpA = a.follow_up_number || 0;
                     const followUpB = b.follow_up_number || 0;
-                    
+
                     if (followUpA !== followUpB) {
                       return followUpA - followUpB;
                     }
-                    
+
                     // If follow_up_number is the same, sort by scheduled_at/created_at
                     const dateA = new Date(a.scheduled_at || a.created_at).getTime();
                     const dateB = new Date(b.scheduled_at || b.created_at).getTime();
@@ -1228,17 +1229,19 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
               </div>
             )}
 
+
             {thread[0]?.channel === "Linkedin" && thread?.length !== 0 &&
               thread[0]?.connection_status === "CONNECTED" &&
               (!thread[thread.length - 1] || thread[thread.length - 1].status !== "TO-APPROVE") && (
                 <LinkedInMessageBox />
               )}
 
-            {(thread?.length === 0 ||
-              (thread?.[thread?.length - 1]?.is_reply === false)) && (
-                <>
 
+            {(thread?.length === 0 ||
+              (!thread?.[thread?.length - 1]?.is_reply && thread?.[thread?.length - 1]?.follow_up_number)) && (
+                <>
                   <DraftEmailComponent />
+
                   {mailStatus === "LOST" && (
                     <div className="flex items-center gap-3 ml-4">
                       <div className="h-[30px] w-[30px] bg-gray-800 rounded-full items-center justify-center flex text-center">

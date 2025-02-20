@@ -45,6 +45,7 @@ export interface EmailMessage {
   message_sent_with_invite?: any;
   scheduled_at?: any;
   follow_up_number?: number;
+  suggestions?: string
 }
 
 export interface Mailbox {

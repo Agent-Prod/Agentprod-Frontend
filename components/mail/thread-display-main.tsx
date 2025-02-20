@@ -631,7 +631,12 @@ const ThreadDisplayMain: React.FC<ThreadDisplayMainProps> = ({
                 />
               </CardContent>
             </Card>
-          </div>
+          </div>{
+            email?.follow_up_number && (
+
+              < SuggestionDisplay suggestions={email?.suggestions || ""} />
+            )
+          }
           <Notification
             email={email}
             isLatestEmail={false}

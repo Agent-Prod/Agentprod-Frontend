@@ -257,11 +257,15 @@ export default function Training() {
 
       const trainingBody = {
         campaign_id: params.campaignId,
-        template: subject?.length > 0 && body?.length > 0 ? `Subject: ${subject}
-        ${body}
-        ` : null,
-        follow_up_template_1: { body: followUp },
-        follow_up_template_2: { body: followUpOne },
+        template: subject?.length > 0 && body?.length > 0 ?
+          JSON.stringify({
+            subject: subject,
+            body: body,
+            follow_up_template_1: followUp,
+            follow_up_template_2: followUpOne
+          }, null, 2) : null,
+        follow_up_template_1: null,
+        follow_up_template_2: null,
 
         variables: fieldsList.variables.reduce<Record<string, string>>(
           (acc, field) => {

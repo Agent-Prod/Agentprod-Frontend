@@ -184,28 +184,56 @@ export default function EditorContent() {
             `v2/training/${params.campaignId}`
           );
           const data = response.data;
+
           if (data.detail === "Training information not found") {
-          } else {
-            const template = data.template;
-            const subjectStart =
-              template.indexOf("Subject: ") + "Subject: ".length;
-            const subjectEnd = template.indexOf("\n", subjectStart);
-            const subject = template.slice(subjectStart, subjectEnd).trim();
-            const body = template.slice(subjectEnd).trim();
-
-            setLocalSubject(subject);
-            setSubject(subject);
-            setLocalBody(body);
-            setBody(body);
-
-            setFollowUp(data.follow_up_template_1.body);
-            setLocalFollowUp(data.follow_up_template_1.body);
-            setFollowUpOne(data.follow_up_template_2.body);
-            setLocalFollowUpTwo(data.follow_up_template_2.body);
-            handleTextChange(body, setBody);
+            return;
           }
+
+          try {
+            // Parse the template JSON string
+            const templateData = JSON.parse(data.template);
+
+            // Set the subject
+            setLocalSubject(templateData.subject || '');
+            setSubject(templateData.subject || '');
+
+            // Set the main body
+            setLocalBody(templateData.body || '');
+            setBody(templateData.body || '');
+            handleTextChange(templateData.body || '', setBody);
+
+            // Set follow-up 1
+            setFollowUp(templateData.follow_up_template_1 || '');
+            setLocalFollowUp(templateData.follow_up_template_1 || '');
+
+            // Set follow-up 2
+            setFollowUpOne(templateData.follow_up_template_2 || '');
+            setLocalFollowUpTwo(templateData.follow_up_template_2 || '');
+
+            // If there's a follow-up, show the follow-up section
+            if (templateData.follow_up_template_1) {
+              setEmailFollowUps(prev => ({
+                ...prev,
+                showFirst: true
+              }));
+              setEmailButton1(false);
+            }
+
+            if (templateData.follow_up_template_2) {
+              setEmailFollowUps(prev => ({
+                ...prev,
+                showSecond: true
+              }));
+            }
+
+          } catch (parseError) {
+            console.error("Error parsing template JSON:", parseError);
+            toast.error("Error parsing template data");
+          }
+
         } catch (error) {
           console.error("Error fetching campaign:", error);
+          toast.error("Failed to fetch campaign data");
         }
       }
     };
@@ -301,7 +329,7 @@ export default function EditorContent() {
   const handleFollowUpChange = (text: string, cursorPos?: number) => {
     setLocalFollowUp(text);
     setFollowUp(text);
-    handleTextChange(`${localFollowUp} ${text}`, setFollowUp);
+    handleTextChange(text, setFollowUp);
     if (cursorPos !== undefined) {
       setCursorPosition(cursorPos);
     }
@@ -309,7 +337,7 @@ export default function EditorContent() {
   const handleFollowUpChangeTwo = (text: string, cursorPos?: number) => {
     setLocalFollowUpTwo(text);
     setFollowUpOne(text);
-    handleTextChange(`${localFollowUp} ${text}`, setFollowUpOne);
+    handleTextChange(text, setFollowUpOne);
     if (cursorPos !== undefined) {
       setCursorPosition(cursorPos);
     }

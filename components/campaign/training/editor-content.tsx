@@ -6,7 +6,7 @@
 import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Settings, Plus, Loader, X } from "lucide-react";
+import { Settings, Plus, Loader, X, BookOpen } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -47,6 +47,268 @@ interface Variable {
   isCustom: boolean;
 }
 
+const EmailExampleDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Email Example Sequence</DialogTitle>
+      </DialogHeader>
+      <div className="flex flex-col space-y-3">
+        <div className="font-semibold text-foreground">
+          Email Reference Template
+        </div>
+        <div className="font-semibold text-base">
+          Subject:{" "}
+          <span className="font-normal text-muted-foreground">
+            Connecting with{" "}
+            <b className="text-foreground/60">
+              {"{"}recievers company{"} "}
+            </b>
+            founders
+          </span>
+        </div>
+        <div className="font-semibold text-base text-foreground">
+          Subject:{" "}
+          <span className="font-normal text-muted-foreground">
+            Connecting with GenAi founders
+          </span>
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            <div>
+              Hi{" "}
+              <b className="text-foreground/60">
+                {"{"}lead name{"}"}
+              </b>
+              ,
+            </div>
+            <div>
+              I came across{" "}
+              <b className="text-foreground/60">
+                {"{"}company name{"} "}
+              </b>
+              and saw that you're selling{" "}
+              <b className="text-foreground/60">
+                {"{"}
+                company offering{"} "}
+              </b>
+              . I'd like to introduce you to AgentProd, an AI sales
+              automation platform that can help scale your sales
+              efficiently.
+            </div>
+            <div>
+              I'm the co-founder of AgentProd. We're helping some of
+              the fastest growing startups in{" "}
+              <b className="text-foreground/60">
+                {" "}
+                {"{"}company location
+                {"} "}
+              </b>
+              to automate their sales processes with our GPT-based
+              platform.{" "}
+              <b className="text-foreground/60">
+                {"{"} if sender location is same as company location
+                say "We should meet and discuss about your product
+                sales and it's growth in person" other wise say
+                nothing {"}"}.
+              </b>
+              We're currently in private beta, but I thought you might
+              be interested in giving AgentProd a try.{" "}
+              <b className="text-foreground/60">
+                {"{"} if is funded company say "It's great to see that
+                you are a funded company!" other wise say "It's great
+                to see your interest and efforts!"{"} "}
+              </b>
+              I'm happy to prioritize you.
+            </div>
+            <div>Cheers,</div>
+            <div>
+              <b className="text-foreground/60">
+                {"{"}sender name{"}"}
+              </b>
+            </div>
+            <div>
+              <b className="text-foreground/60">
+                {"{"}phone no{"}"}
+              </b>
+            </div>
+          </div>
+        </div>
+        <div className="text-lg font-semibold text-foreground">
+          Follow-up Template 1
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            Hi{" "}
+            <b className="text-foreground/60">
+              {"{"}lead name{"}"}
+            </b>
+            , just bumping this up since I haven't heard back from you
+            yet. Other companies using our platform have already seen
+            a significant increase in their sales. I'd be happy to
+            jump on a call and discuss how AgentProd can benefit your
+            company.
+          </div>
+        </div>
+        <div className="text-lg font-semibold text-foreground">
+          Follow-up Template 2
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-4 text-sm">
+            Hi{" "}
+            <b className="text-foreground/60">
+              {"{"}lead name{"}"}
+            </b>
+            , since I haven't heard back from you yet, I assume our
+            platform may not be relevant to you at this point. If
+            there's someone else in your team who might be the right
+            point of contact, please connect me. Sorry if I bothered
+            you, and I wish you all the best!
+          </div>
+        </div>
+        <hr />
+        <div className="font-semibold text-xl text-foreground">
+          Reference Email
+        </div>
+        <div className="font-semibold text-base text-foreground">
+          Subject:{" "}
+          <span className="font-normal text-muted-foreground">
+            Connecting with GenAi founders
+          </span>
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            <div>
+              Hi Alex, I came across Koxa and saw that you're selling
+              an accounting-to-banking API. I'd like to introduce you
+              to AgentProd, an AI sales automation platform that can
+              help scale your sales efficiently.
+            </div>
+            <div>
+              I'm the co-founder of AgentProd. We're helping some of
+              the fastest growing startups in Silicon Valley to
+              automate their sales processes with our GPT-based
+              platform. We should meet and discuss about your product
+              sales and it's growth in person. We're currently in
+              private beta, but I thought you might be interested in
+              giving AgentProd a try. It's great to see that you are a
+              funded company! I'm happy to prioritize you.
+            </div>
+            <div>
+              Cheers, <div>Muskaan</div>
+              <div>+1-555-555-5555</div>
+            </div>
+          </div>
+        </div>
+        <div className="text-lg font-semibold text-foreground">
+          Follow-up 1
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-4 text-sm">
+            Hi Alex, just bumping this up since I haven't heard back
+            from you yet. Other API-first companies like Svix have
+            already seen a significant increase in their sales through
+            us. I'd be happy to jump on a call and discuss how
+            AgentProd can benefit your company.
+          </div>
+        </div>
+        <div className="text-lg font-semibold text-foreground">
+          Follow-up 2
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-4 text-sm">
+            Hi Alex, since I haven't heard back from you yet, I assume
+            automating sales with AI is not relevant to you at this
+            point. If there's someone else in your team who might be
+            the right point of contact, please connect me. Sorry if I
+            bothered you, and wish you all the best!
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
+const LinkedInExampleDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>LinkedIn Example Sequence</DialogTitle>
+      </DialogHeader>
+      <div className="flex flex-col space-y-3">
+        <div className="font-semibold text-foreground">
+          LinkedIn Message Template
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            <div>
+              Hi <b className="text-foreground/60">{"{"}first name{"}"}</b>,
+            </div>
+            <div>
+              I noticed you're leading <b className="text-foreground/60">{"{"}current job role{"}"}</b> at <b className="text-foreground/60">{"{"}current company{"}"}</b>.
+              I'm reaching out because we've developed an AI sales automation platform that's helping companies in the <b className="text-foreground/60">{"{"}industry{"}"}</b> space scale their sales operations efficiently.
+            </div>
+            <div>
+              Would you be open to a quick chat about how we could help streamline your sales processes?
+            </div>
+            <div>Best regards,</div>
+            <div><b className="text-foreground/60">{"{"}sender name{"}"}</b></div>
+          </div>
+        </div>
+
+        <div className="text-lg font-semibold text-foreground mt-6">
+          Example Message
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            <div>Hi Sarah,</div>
+            <div>
+              I noticed you're leading Sales Operations at TechCorp. I'm reaching out because we've developed an AI sales automation platform that's helping companies in the SaaS space scale their sales operations efficiently.
+            </div>
+            <div>
+              Would you be open to a quick chat about how we could help streamline your sales processes?
+            </div>
+            <div>Best regards,</div>
+            <div>Alex</div>
+          </div>
+        </div>
+
+        <div className="text-lg font-semibold text-foreground mt-6">
+          Follow-up Template 1
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            Hi <b className="text-foreground/60">{"{"}first name{"}"}</b>,
+            I wanted to follow up on my previous message. Our platform has been helping companies achieve 3x more meetings with qualified leads.
+            Would you be interested in seeing how it works?
+          </div>
+        </div>
+
+        <div className="text-lg font-semibold text-foreground mt-6">
+          Follow-up Template 2
+        </div>
+        <div className="flex space-x-5 py-4">
+          <div className="w-3 h-full bg-muted"></div>
+          <div className="text-foreground/40 space-y-2 text-sm">
+            Hi <b className="text-foreground/60">{"{"}first name{"}"}</b>,
+            I'll make this my final message. If you're interested in learning how we're helping companies like yours automate their sales processes,
+            feel free to reach out anytime. Wishing you continued success!
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
 export default function EditorContent() {
   const { user } = useAuth();
 
@@ -70,7 +332,6 @@ export default function EditorContent() {
   const {
     fieldsList,
     body,
-
     setBody,
     subject,
     setSubject,
@@ -79,13 +340,26 @@ export default function EditorContent() {
     followUp,
     setFollowUp,
     setFieldsList,
+    linkedinBody,
+    setLinkedinBody,
+    linkedinFollowUp,
+    setLinkedinFollowUp,
+    linkedinFollowUpTwo,
+    setLinkedinFollowUpTwo,
   } = useFieldsList();
   const params = useParams<{ campaignId: string }>();
 
-  const [localBody, setLocalBody] = useState(body);
-  const [localSubject, setLocalSubject] = useState(subject);
-  const [localFollowUp, setLocalFollowUp] = useState("");
-  const [localFollowUpTwo, setLocalFollowUpTwo] = useState("");
+  // Separate state for email content
+  const [localEmailBody, setLocalEmailBody] = useState(body);
+  const [localEmailSubject, setLocalEmailSubject] = useState(subject);
+  const [localEmailFollowUp, setLocalEmailFollowUp] = useState("");
+  const [localEmailFollowUpTwo, setLocalEmailFollowUpTwo] = useState("");
+
+  // Separate state for LinkedIn content
+  const [localLinkedInBody, setLocalLinkedInBody] = useState("");
+  const [localLinkedInFollowUp, setLocalLinkedInFollowUp] = useState("");
+  const [localLinkedInFollowUpTwo, setLocalLinkedInFollowUpTwo] = useState("");
+
   const [campaignType, setCampaignType] = useState("");
   const [campaignChannel, setCampaignChannel] = useState<string>("");
 
@@ -103,53 +377,8 @@ export default function EditorContent() {
     showSecond: false
   });
 
-  // const presetVariables = [
-  //   "first name",
-  //   "last name",
-  //   "current company",
-  //   "current job role",
-  //   "current company location",
-  //   "industry",
-  // ];
-
-  // useEffect(() => {
-  //   const fetchTrainingData = async () => {
-  //     try {
-  //       const trainingData = await getTraining(params.campaignId);
-  //       console.log(trainingData.template);
-
-  //       const parseTemplate = (template: string) => {
-  //         const subjectStart =
-  //           template.indexOf("Subject: ") + "Subject: ".length;
-  //         const subjectEnd = template.indexOf("\n", subjectStart);
-  //         const subject = template.substring(subjectStart, subjectEnd).trim();
-  //         const bodyStart = template.indexOf("\n", subjectEnd) + 1;
-  //         const body = template.substring(bodyStart).trim();
-  //         return { subject, body };
-  //       };
-
-  //       const splitSections = trainingData.template.split("---");
-
-  //       if (splitSections.length > 1) {
-  //         const mainEmail = parseTemplate(splitSections[0]);
-  //         const followUpEmail = parseTemplate(splitSections[1]);
-
-  //         setBody(mainEmail.subject);
-  //         setSubject(mainEmail.body);
-  //         setFollowUp(followUpEmail.body);
-  //       } else {
-  //         const mainEmail = parseTemplate(trainingData.template);
-
-  //         setLocalSubject(mainEmail.subject);
-  //         setLocalBody(mainEmail.body);
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch training data:", error);
-  //     }
-  //   };
-
-  //   fetchTrainingData();
-  // }, [params.campaignId]);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [linkedInDialogOpen, setLinkedInDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchCampaign = async () => {
@@ -190,40 +419,69 @@ export default function EditorContent() {
           }
 
           try {
-            // Parse the template JSON string
-            const templateData = JSON.parse(data.template);
+            // Parse the email template
+            if (data.template) {
+              const emailTemplateData = JSON.parse(data.template);
 
-            // Set the subject
-            setLocalSubject(templateData.subject || '');
-            setSubject(templateData.subject || '');
+              // Set email data
+              setLocalEmailSubject(emailTemplateData.subject || '');
+              setSubject(emailTemplateData.subject || '');
 
-            // Set the main body
-            setLocalBody(templateData.body || '');
-            setBody(templateData.body || '');
-            handleTextChange(templateData.body || '', setBody);
+              setLocalEmailBody(emailTemplateData.body || '');
+              setBody(emailTemplateData.body || '');
 
-            // Set follow-up 1
-            setFollowUp(templateData.follow_up_template_1 || '');
-            setLocalFollowUp(templateData.follow_up_template_1 || '');
+              setLocalEmailFollowUp(emailTemplateData.follow_up_template_1 || '');
+              setFollowUp(emailTemplateData.follow_up_template_1 || '');
 
-            // Set follow-up 2
-            setFollowUpOne(templateData.follow_up_template_2 || '');
-            setLocalFollowUpTwo(templateData.follow_up_template_2 || '');
+              setLocalEmailFollowUpTwo(emailTemplateData.follow_up_template_2 || '');
+              setFollowUpOne(emailTemplateData.follow_up_template_2 || '');
 
-            // If there's a follow-up, show the follow-up section
-            if (templateData.follow_up_template_1) {
-              setEmailFollowUps(prev => ({
-                ...prev,
-                showFirst: true
-              }));
-              setEmailButton1(false);
+              // Show email follow-ups if they exist
+              if (emailTemplateData.follow_up_template_1) {
+                setEmailFollowUps(prev => ({
+                  ...prev,
+                  showFirst: true
+                }));
+                setEmailButton1(false);
+              }
+
+              if (emailTemplateData.follow_up_template_2) {
+                setEmailFollowUps(prev => ({
+                  ...prev,
+                  showSecond: true
+                }));
+              }
             }
 
-            if (templateData.follow_up_template_2) {
-              setEmailFollowUps(prev => ({
-                ...prev,
-                showSecond: true
-              }));
+            // Parse the LinkedIn template
+            if (data.linkedin_template) {
+              const linkedinTemplateData = JSON.parse(data.linkedin_template);
+
+              // Set LinkedIn data
+              setLocalLinkedInBody(linkedinTemplateData.body || '');
+              setLinkedinBody(linkedinTemplateData.body || '');
+
+              setLocalLinkedInFollowUp(linkedinTemplateData.follow_up_template_1 || '');
+              setLinkedinFollowUp(linkedinTemplateData.follow_up_template_1 || '');
+
+              setLocalLinkedInFollowUpTwo(linkedinTemplateData.follow_up_template_2 || '');
+              setLinkedinFollowUpTwo(linkedinTemplateData.follow_up_template_2 || '');
+
+              // Show LinkedIn follow-ups if they exist
+              if (linkedinTemplateData.follow_up_template_1) {
+                setLinkedinFollowUps(prev => ({
+                  ...prev,
+                  showFirst: true
+                }));
+                setLinkedinButton1(false);
+              }
+
+              if (linkedinTemplateData.follow_up_template_2) {
+                setLinkedinFollowUps(prev => ({
+                  ...prev,
+                  showSecond: true
+                }));
+              }
             }
 
           } catch (parseError) {
@@ -311,14 +569,14 @@ export default function EditorContent() {
     setText(text);
   };
 
-  const handleSubjectChange = (text: string) => {
-    setLocalSubject(text);
+  const handleEmailSubjectChange = (text: string) => {
+    setLocalEmailSubject(text);
     setSubject(text);
     handleTextChange(`${text}`, setSubject);
   };
 
-  const handleBodyChange = (text: string, cursorPos?: number) => {
-    setLocalBody(text);
+  const handleEmailBodyChange = (text: string, cursorPos?: number) => {
+    setLocalEmailBody(text);
     setBody(text);
     handleTextChange(`${text}`, setBody);
     if (cursorPos !== undefined) {
@@ -326,21 +584,37 @@ export default function EditorContent() {
     }
   };
 
-  const handleFollowUpChange = (text: string, cursorPos?: number) => {
-    setLocalFollowUp(text);
+  const handleEmailFollowUpChange = (text: string) => {
+    setLocalEmailFollowUp(text);
     setFollowUp(text);
     handleTextChange(text, setFollowUp);
+  };
+
+  const handleEmailFollowUpTwoChange = (text: string) => {
+    setLocalEmailFollowUpTwo(text);
+    setFollowUpOne(text);
+    handleTextChange(text, setFollowUpOne);
+  };
+
+  const handleLinkedInBodyChange = (text: string, cursorPos?: number) => {
+    setLocalLinkedInBody(text);
+    setLinkedinBody(text);
+    handleTextChange(`${text}`, setLinkedinBody);
     if (cursorPos !== undefined) {
       setCursorPosition(cursorPos);
     }
   };
-  const handleFollowUpChangeTwo = (text: string, cursorPos?: number) => {
-    setLocalFollowUpTwo(text);
-    setFollowUpOne(text);
-    handleTextChange(text, setFollowUpOne);
-    if (cursorPos !== undefined) {
-      setCursorPosition(cursorPos);
-    }
+
+  const handleLinkedInFollowUpChange = (text: string) => {
+    setLocalLinkedInFollowUp(text);
+    setLinkedinFollowUp(text);
+    handleTextChange(text, setLinkedinFollowUp);
+  };
+
+  const handleLinkedInFollowUpTwoChange = (text: string) => {
+    setLocalLinkedInFollowUpTwo(text);
+    setLinkedinFollowUpTwo(text);
+    handleTextChange(text, setLinkedinFollowUpTwo);
   };
 
   const handleDropdownSelect = (option: string) => {
@@ -368,25 +642,25 @@ export default function EditorContent() {
 
     if (focusedField === "subject") {
       newText =
-        localSubject.slice(0, cursorPosition - 1) + // Remove the opening bracket
+        localEmailSubject.slice(0, cursorPosition - 1) + // Remove the opening bracket
         variable +
-        localSubject.slice(cursorPosition);
-      setText = setLocalSubject;
-      handleSubjectChange(newText);
+        localEmailSubject.slice(cursorPosition);
+      setText = setLocalEmailSubject;
+      handleEmailSubjectChange(newText);
     } else if (focusedField === "body") {
       newText =
-        localBody.slice(0, cursorPosition - 1) + // Remove the opening bracket
+        localEmailBody.slice(0, cursorPosition - 1) + // Remove the opening bracket
         variable +
-        localBody.slice(cursorPosition);
-      setText = setLocalBody;
-      handleBodyChange(newText, cursorPosition - 1 + variable.length);
+        localEmailBody.slice(cursorPosition);
+      setText = setLocalEmailBody;
+      handleEmailBodyChange(newText, cursorPosition - 1 + variable.length);
     } else if (focusedField === "followUp") {
       newText =
-        localFollowUp.slice(0, cursorPosition - 1) + // Remove the opening bracket
+        localEmailFollowUp.slice(0, cursorPosition - 1) + // Remove the opening bracket
         variable +
-        localFollowUp.slice(cursorPosition);
-      setText = setLocalFollowUp;
-      handleFollowUpChange(newText);
+        localEmailFollowUp.slice(cursorPosition);
+      setText = setLocalEmailFollowUp;
+      handleEmailFollowUpChange(newText);
     }
 
     setVariableDropdownIsOpen(false);
@@ -447,39 +721,6 @@ export default function EditorContent() {
     setFieldsList(newFieldsList);
   };
 
-  // const handleAutoGenerateTemplate = async () => {
-  //   try {
-  //     setTemplateIsLoading(true);
-  //     const response = await getAutogenerateTrainingTemplate(params.campaignId);
-  //     const followup = await getAutogenerateFollowup(params.campaignId);
-
-  //     console.log(response); // For debugging
-  //     console.log("followup", followup);
-  //     const newSubject = `${response.subject}`;
-  //     const newBody = `${response.body} ${response.closing || ""}`;
-  //     const newFollowUp = followup;
-  //     console.log("reached here");
-  //     setLocalSubject(newSubject);
-  //     setLocalBody(newBody);
-  //     setLocalFollowUp(`${newFollowUp.subject}\n\n ${newFollowUp.body}`);
-  //     setShowAdditionalTextArea(false); //updaated
-  //     console.log("setup here here");
-
-  //     setSubject(newSubject);
-  //     setBody(newBody);
-  //     setFollowUp(newFollowUp);
-  //     console.log("response from the variables" + response);
-  //     mapFields(response);
-  //     setTemplateIsLoading(false);
-  //     console.log("end here");
-  //   } catch (error: any) {
-  //     console.error("Failed to fetch training data:", error);
-  //     toast.error(error.message);
-  //     setTemplateIsLoading(false);
-  //     handleTextChange;
-  //   }
-  // };
-
   const updateDropdownPosition = (cursorPos: number) => {
     const textarea = textareaRef.current || followUpRef.current;
     if (!textarea) return;
@@ -495,8 +736,6 @@ export default function EditorContent() {
 
     setDropdownPosition({ top, left });
   };
-
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -515,7 +754,7 @@ export default function EditorContent() {
     };
   }, []);
 
-  console.log("localbodyy ==  " + localBody);
+  console.log("localbodyy ==  " + localEmailBody);
   console.log("body " + body);
   return (
     <div className="w-full">
@@ -524,12 +763,22 @@ export default function EditorContent() {
         <div className={`${campaignChannel === "omni" ? "w-1/2 float-left pr-4" : "w-full"}`}>
           <div className="flex justify-center px-6 py-4">
             <div className="flex-col w-full">
-              {/* Main Email Message */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h2 className="text-lg font-semibold">Email Message</h2>
-                  <div className="text-xs text-gray-500">
-                    *use variables like: [variable_name] or {`{variable_name}`}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEmailDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      Example
+                    </Button>
+                    <div className="text-xs text-gray-500">
+                      *use variables like: [variable_name] or {`{variable_name}`}
+                    </div>
                   </div>
                 </div>
 
@@ -538,9 +787,9 @@ export default function EditorContent() {
                     <Input
                       placeholder="Write an enticing subject"
                       className="flex-1"
-                      value={localSubject}
+                      value={localEmailSubject}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                        handleSubjectChange(e.target.value);
+                        handleEmailSubjectChange(e.target.value);
                       }}
                       onFocus={() => setFocusedField("subject")}
                     />
@@ -555,9 +804,9 @@ export default function EditorContent() {
 
                 <Textarea
                   placeholder="Write a message"
-                  value={localBody}
+                  value={localEmailBody}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                    handleBodyChange(e.target.value, e.target.selectionStart);
+                    handleEmailBodyChange(e.target.value, e.target.selectionStart);
                   }}
                   className="w-full h-[200px]"
                   ref={textareaRef}
@@ -572,203 +821,17 @@ export default function EditorContent() {
                 toggleFirst={toggleEmailFirst}
                 toggleSecond={toggleEmailSecond}
                 values={{
-                  first: localFollowUp,
-                  second: localFollowUpTwo
+                  first: localEmailFollowUp,
+                  second: localEmailFollowUpTwo
                 }}
-                onChangeFirst={(value) => handleFollowUpChange(value)}
-                onChangeSecond={(value) => handleFollowUpChangeTwo(value)}
+                onChangeFirst={(value) => handleEmailFollowUpChange(value)}
+                onChangeSecond={(value) => handleEmailFollowUpTwoChange(value)}
                 campaignType={campaignType}
                 button1={emailButton1}
               />
-
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Example sequence</DialogTitle>
-                  </DialogHeader>
-
-                  <div className="flex flex-col space-y-3">
-                    <div className="font-semibold text-foreground">
-                      Reference Template
-                    </div>
-                    <div className="font-semibold text-base">
-                      Subject:{" "}
-                      <span className="font-normal text-muted-foreground">
-                        Connecting with{" "}
-                        <b className="text-foreground/60">
-                          {"{"}recievers company{"} "}
-                        </b>
-                        founders
-                      </span>
-                    </div>
-                    <div className="font-semibold text-base text-foreground">
-                      Subject:{" "}
-                      <span className="font-normal text-muted-foreground">
-                        Connecting with GenAi founders
-                      </span>
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-2 text-sm">
-                        <div>
-                          Hi{" "}
-                          <b className="text-foreground/60">
-                            {"{"}lead name{"}"}
-                          </b>
-                          ,
-                        </div>
-                        <div>
-                          I came across{" "}
-                          <b className="text-foreground/60">
-                            {"{"}company name{"} "}
-                          </b>
-                          and saw that you're selling{" "}
-                          <b className="text-foreground/60">
-                            {"{"}
-                            company offering{"} "}
-                          </b>
-                          . I'd like to introduce you to AgentProd, an AI sales
-                          automation platform that can help scale your sales
-                          efficiently.
-                        </div>
-                        <div>
-                          I'm the co-founder of AgentProd. We're helping some of
-                          the fastest growing startups in{" "}
-                          <b className="text-foreground/60">
-                            {" "}
-                            {"{"}company location
-                            {"} "}
-                          </b>
-                          to automate their sales processes with our GPT-based
-                          platform.{" "}
-                          <b className="text-foreground/60">
-                            {"{"} if sender location is same as company location
-                            say "We should meet and discuss about your product
-                            sales and it's growth in person" other wise say
-                            nothing {"}"}.
-                          </b>
-                          We're currently in private beta, but I thought you might
-                          be interested in giving AgentProd a try.{" "}
-                          <b className="text-foreground/60">
-                            {"{"} if is funded company say "It's great to see that
-                            you are a funded company!" other wise say "It's great
-                            to see your interest and efforts!"{"} "}
-                          </b>
-                          I'm happy to prioritize you.
-                        </div>
-                        <div>Cheers,</div>
-                        <div>
-                          <b className="text-foreground/60">
-                            {"{"}sender name{"}"}
-                          </b>
-                        </div>
-                        <div>
-                          <b className="text-foreground/60">
-                            {"{"}phone no{"}"}
-                          </b>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold text-foreground">
-                      Follow-up Template 1
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-2 text-sm">
-                        Hi{" "}
-                        <b className="text-foreground/60">
-                          {"{"}lead name{"}"}
-                        </b>
-                        , just bumping this up since I haven't heard back from you
-                        yet. Other companies using our platform have already seen
-                        a significant increase in their sales. I'd be happy to
-                        jump on a call and discuss how AgentProd can benefit your
-                        company.
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold text-foreground">
-                      Follow-up Template 2
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-4 text-sm">
-                        Hi{" "}
-                        <b className="text-foreground/60">
-                          {"{"}lead name{"}"}
-                        </b>
-                        , since I haven't heard back from you yet, I assume our
-                        platform may not be relevant to you at this point. If
-                        there's someone else in your team who might be the right
-                        point of contact, please connect me. Sorry if I bothered
-                        you, and I wish you all the best!
-                      </div>
-                    </div>
-                    <hr />
-                    <div className="font-semibold text-xl text-foreground">
-                      Reference Email
-                    </div>
-                    <div className="font-semibold text-base text-foreground">
-                      Subject:{" "}
-                      <span className="font-normal text-muted-foreground">
-                        Connecting with GenAi founders
-                      </span>
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-2 text-sm">
-                        <div>
-                          Hi Alex, I came across Koxa and saw that you're selling
-                          an accounting-to-banking API. I'd like to introduce you
-                          to AgentProd, an AI sales automation platform that can
-                          help scale your sales efficiently.
-                        </div>
-                        <div>
-                          I'm the co-founder of AgentProd. We're helping some of
-                          the fastest growing startups in Silicon Valley to
-                          automate their sales processes with our GPT-based
-                          platform. We should meet and discuss about your product
-                          sales and it's growth in person. We're currently in
-                          private beta, but I thought you might be interested in
-                          giving AgentProd a try. It's great to see that you are a
-                          funded company! I'm happy to prioritize you.
-                        </div>
-                        <div>
-                          Cheers, <div>Muskaan</div>
-                          <div>+1-555-555-5555</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold text-foreground">
-                      Follow-up 1
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-4 text-sm">
-                        Hi Alex, just bumping this up since I haven't heard back
-                        from you yet. Other API-first companies like Svix have
-                        already seen a significant increase in their sales through
-                        us. I'd be happy to jump on a call and discuss how
-                        AgentProd can benefit your company.
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold text-foreground">
-                      Follow-up 2
-                    </div>
-                    <div className="flex space-x-5 py-4">
-                      <div className="w-3 h-full bg-muted"></div>
-                      <div className="text-foreground/40 space-y-4 text-sm">
-                        Hi Alex, since I haven't heard back from you yet, I assume
-                        automating sales with AI is not relevant to you at this
-                        point. If there's someone else in your team who might be
-                        the right point of contact, please connect me. Sorry if I
-                        bothered you, and wish you all the best!
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
+          <EmailExampleDialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen} />
         </div>
       )}
 
@@ -779,13 +842,31 @@ export default function EditorContent() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h2 className="text-lg font-semibold">LinkedIn Message</h2>
-                  <div className="text-xs text-gray-500">
-                    *use variables like: [variable_name] or {`{variable_name}`}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLinkedInDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      Example
+                    </Button>
+                    <div className="text-xs text-gray-500">
+                      *use variables like: [variable_name] or {`{variable_name}`}
+                    </div>
                   </div>
                 </div>
+
                 <Textarea
                   placeholder="Write your LinkedIn message"
+                  value={localLinkedInBody}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                    handleLinkedInBodyChange(e.target.value, e.target.selectionStart);
+                  }}
                   className="w-full h-[200px]"
+                  ref={textareaRef}
+                  onFocus={() => setFocusedField("body")}
                 />
               </div>
 
@@ -795,11 +876,18 @@ export default function EditorContent() {
                 showSecond={linkedinFollowUps.showSecond}
                 toggleFirst={toggleLinkedinFirst}
                 toggleSecond={toggleLinkedinSecond}
+                values={{
+                  first: localLinkedInFollowUp,
+                  second: localLinkedInFollowUpTwo
+                }}
+                onChangeFirst={(value) => handleLinkedInFollowUpChange(value)}
+                onChangeSecond={(value) => handleLinkedInFollowUpTwoChange(value)}
                 campaignType={campaignType}
                 button1={linkedinButton1}
               />
             </div>
           </div>
+          <LinkedInExampleDialog open={linkedInDialogOpen} onOpenChange={setLinkedInDialogOpen} />
         </div>
       )}
 

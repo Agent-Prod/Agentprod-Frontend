@@ -99,7 +99,17 @@ export default function Training() {
     setLinkedinFollowUp
   } = useAutoGenerate();
 
-  const { fieldsList, body, subject, followUp, followUpOne, subjectOptions } = useFieldsList();
+  const {
+    fieldsList,
+    body,
+    subject,
+    followUp,
+    followUpOne,
+    linkedinBody,
+    linkedinFollowUp,
+    linkedinFollowUpTwo,
+    subjectOptions
+  } = useFieldsList();
 
   useEffect(() => {
     if (!user) return;
@@ -264,9 +274,15 @@ export default function Training() {
             follow_up_template_1: followUp,
             follow_up_template_2: followUpOne
           }, null, 2) : null,
+        linkedin_template: linkedinBody?.length > 0 ?
+          JSON.stringify({
+            body: linkedinBody,
+            follow_up_template_1: linkedinFollowUp,
+            follow_up_template_2: linkedinFollowUpTwo
+          }, null, 2) : null,
         follow_up_template_1: null,
         follow_up_template_2: null,
-
+        with_template: true,
         variables: fieldsList.variables.reduce<Record<string, string>>(
           (acc, field) => {
             acc[field.id] = field.value;
@@ -274,18 +290,20 @@ export default function Training() {
           },
           {}
         ),
-        offering_variables: fieldsList.offering_variables.reduce<
-          Record<string, string>
-        >((acc, field) => {
-          acc[field.fieldName] = field.description;
-          return acc;
-        }, {}),
-        personalized_fields: fieldsList.personalized_fields.reduce<
-          Record<string, string>
-        >((acc, field) => {
-          acc[field.fieldName] = field.description;
-          return acc;
-        }, {}),
+        offering_variables: fieldsList.offering_variables.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
+        personalized_fields: fieldsList.personalized_fields.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
         enriched_fields: fieldsList.enriched_fields.map(
           (field) => field.fieldName
         ),
@@ -293,7 +311,6 @@ export default function Training() {
       };
 
       await createTraining(trainingBody as TrainingRequest);
-      // await updateTraining(user.id, trainingBody);
 
       const response = await getPreviewByTemplate({
         campaign_id: params.campaignId,

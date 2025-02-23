@@ -27,6 +27,12 @@ interface FieldsListContextType {
   setFollowUpOne: (followUp: string) => void;
   subjectOptions: string[];
   setSubjectOptions: (options: string[]) => void;
+  linkedinBody: string;
+  setLinkedinBody: (value: string) => void;
+  linkedinFollowUp: string;
+  setLinkedinFollowUp: (value: string) => void;
+  linkedinFollowUpTwo: string;
+  setLinkedinFollowUpTwo: (value: string) => void;
 }
 
 const defaultState: FieldsListContextType = {
@@ -50,6 +56,12 @@ const defaultState: FieldsListContextType = {
   setFollowUpOne: () => {},
   subjectOptions: [],
   setSubjectOptions: () => {},
+  linkedinBody: "",
+  setLinkedinBody: () => {},
+  linkedinFollowUp: "",
+  setLinkedinFollowUp: () => {},
+  linkedinFollowUpTwo: "",
+  setLinkedinFollowUpTwo: () => {},
 };
 
 const FieldsListContext = createContext<FieldsListContextType>(defaultState);
@@ -68,6 +80,9 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
   const [subject, setSubject] = useState<string>("");
   const [followUp, setFollowUp] = useState<string>("");
   const [followUpOne, setFollowUpOne] = useState<string>("");
+  const [linkedinBody, setLinkedinBody] = useState<string>("");
+  const [linkedinFollowUp, setLinkedinFollowUp] = useState<string>("");
+  const [linkedinFollowUpTwo, setLinkedinFollowUpTwo] = useState<string>("");
 
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
 
@@ -165,8 +180,14 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
       setFollowUpOne,
       subjectOptions,
       setSubjectOptions,
+      linkedinBody,
+      setLinkedinBody,
+      linkedinFollowUp,
+      setLinkedinFollowUp,
+      linkedinFollowUpTwo,
+      setLinkedinFollowUpTwo,
     }),
-    [fieldsList, body, subject, followUp, subjectOptions, followUpOne]
+    [fieldsList, body, subject, followUp, subjectOptions, followUpOne, linkedinBody, linkedinFollowUp, linkedinFollowUpTwo]
   );
 
   return (

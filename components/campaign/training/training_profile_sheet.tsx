@@ -140,7 +140,7 @@ export const TrainingPeopleProfileSheet = ({
   newPreviews: any;
 }) => {
   const { user } = useAuth();
-  const [data, setData] = useState<Data | null>(null);
+  const [data, setData] = useState<any | null>(null);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
   const [addressCollapsibleOpen, setAddressCollapsibleOpen] = useState(false);
   const [affiliatedPagesCollapsibleOpen, setAffiliatedPagesCollapsibleOpen] =
@@ -170,10 +170,7 @@ export const TrainingPeopleProfileSheet = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.post("/v2/training/preview", {
-          campaign_id: params.campaignId,
-          user_id: user?.id,
-        });
+        const response = await axiosInstance.get(`/v2/training/autogenerate/preview/${params.campaignId}`);
 
         setData(response.data);
       } catch (error) {

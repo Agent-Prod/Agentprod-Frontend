@@ -7,6 +7,7 @@ export interface TrainingRequest {
   personalized_fields?: Record<string, any>;
   enriched_fields?: string[];
   subject_field_options?: string[];
+  with_template: boolean;
 }
 
 export interface TrainingUpdateRequest {
@@ -118,8 +119,7 @@ export async function getAutogenerateTrainingTemplate(
 }
 
 export async function getAutogenerateTrainingEmail(
-  campaignId: string,
-  userId: string
+  campaignId: string
 ): Promise<any> {
   try {
     const response = await axiosInstance
@@ -136,8 +136,7 @@ export async function getAutogenerateTrainingEmail(
   }
 }
 
-export async function getFollowUpOne(
-): Promise<any> {
+export async function getFollowUpOne(): Promise<any> {
   try {
     const response = await axiosInstance
       .get<any>(`v2/training/autogenerate/followup/1`)
@@ -153,8 +152,7 @@ export async function getFollowUpOne(
   }
 }
 
-export async function getFollowUpTwo(
-): Promise<any> {
+export async function getFollowUpTwo(): Promise<any> {
   try {
     const response = await axiosInstance
       .get<any>(`v2/training/autogenerate/followup/2`)
@@ -223,52 +221,9 @@ export async function getPreviewByTemplate({
   personalized_fields: FieldType[];
   enriched_fields: FieldType[];
 }): Promise<any> {
-  console.log(
-    "data to preview api",
-    user_id,
-    campaign_id,
-    template,
-    variables,
-    offering_variables,
-    personalized_fields,
-    enriched_fields
-  );
   try {
-    const mapFields = (fields: FieldType[] | undefined) =>
-      fields?.reduce(
-        (acc, field) => {
-          acc[field.fieldName] = field.description;
-          return acc;
-        },
-        {} as Record<string, string>
-      ) || null;
-
-    const mapVariables = (vars: VariableType[] | undefined) =>
-      vars?.reduce(
-        (acc, variable) => {
-          acc[variable.id] = variable.value;
-          return acc;
-        },
-        {} as Record<string, string>
-      ) || null;
-
-    const postData = {
-      user_id,
-      campaign_id,
-      template,
-      variables: variables.length ? mapVariables(variables) : null,
-      offering_variables: mapFields(offering_variables),
-      personalized_fields: mapFields(personalized_fields),
-      enriched_fields:
-        enriched_fields?.map((field) => field.description) || null,
-      no_of_follow_ups: 2
-    };
-
-    console.log(postData);
-
-    const response = await axiosInstance.post<any>(
-      `v2/training/preview`,
-      postData
+    const response = await axiosInstance.get<any>(
+      `v2/training/autogenerate/preview/${campaign_id}`
     );
 
     console.log(response.data);

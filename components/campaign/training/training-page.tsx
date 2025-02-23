@@ -99,7 +99,17 @@ export default function Training() {
     setLinkedinFollowUp
   } = useAutoGenerate();
 
-  const { fieldsList, body, subject, followUp, followUpOne, subjectOptions } = useFieldsList();
+  const {
+    fieldsList,
+    body,
+    subject,
+    followUp,
+    followUpOne,
+    linkedinBody,
+    linkedinFollowUp,
+    linkedinFollowUpTwo,
+    subjectOptions
+  } = useFieldsList();
 
   useEffect(() => {
     if (!user) return;
@@ -257,12 +267,22 @@ export default function Training() {
 
       const trainingBody = {
         campaign_id: params.campaignId,
-        template: subject?.length > 0 && body?.length > 0 ? `Subject: ${subject}
-        ${body}
-        ` : null,
-        follow_up_template_1: { body: followUp },
-        follow_up_template_2: { body: followUpOne },
-
+        template: subject?.length > 0 && body?.length > 0 ?
+          JSON.stringify({
+            subject: subject,
+            body: body,
+            follow_up_template_1: followUp,
+            follow_up_template_2: followUpOne
+          }, null, 2) : null,
+        linkedin_template: linkedinBody?.length > 0 ?
+          JSON.stringify({
+            body: linkedinBody,
+            follow_up_template_1: linkedinFollowUp,
+            follow_up_template_2: linkedinFollowUpTwo
+          }, null, 2) : null,
+        follow_up_template_1: null,
+        follow_up_template_2: null,
+        with_template: true,
         variables: fieldsList.variables.reduce<Record<string, string>>(
           (acc, field) => {
             acc[field.id] = field.value;
@@ -270,18 +290,20 @@ export default function Training() {
           },
           {}
         ),
-        offering_variables: fieldsList.offering_variables.reduce<
-          Record<string, string>
-        >((acc, field) => {
-          acc[field.fieldName] = field.description;
-          return acc;
-        }, {}),
-        personalized_fields: fieldsList.personalized_fields.reduce<
-          Record<string, string>
-        >((acc, field) => {
-          acc[field.fieldName] = field.description;
-          return acc;
-        }, {}),
+        offering_variables: fieldsList.offering_variables.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
+        personalized_fields: fieldsList.personalized_fields.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
         enriched_fields: fieldsList.enriched_fields.map(
           (field) => field.fieldName
         ),
@@ -289,7 +311,6 @@ export default function Training() {
       };
 
       await createTraining(trainingBody as TrainingRequest);
-      // await updateTraining(user.id, trainingBody);
 
       const response = await getPreviewByTemplate({
         campaign_id: params.campaignId,
@@ -327,14 +348,59 @@ export default function Training() {
     }
   };
 
-  const handleLetAiWrite = async () => {
+  const handleLetAiWrite = async (with_template: boolean) => {
     setLoadingWriteAI(true);
     toast.success("AI is writing your email, it might take some time.");
     try {
+      let trainingBody: any;
+      with_template ? trainingBody = {
+        campaign_id: params.campaignId,
+        template: subject?.length > 0 && body?.length > 0 ?
+          JSON.stringify({
+            subject: subject,
+            body: body,
+            follow_up_template_1: followUp,
+            follow_up_template_2: followUpOne
+          }, null, 2) : null,
+        linkedin_template: linkedinBody?.length > 0 ?
+          JSON.stringify({
+            body: linkedinBody,
+            follow_up_template_1: linkedinFollowUp,
+            follow_up_template_2: linkedinFollowUpTwo
+          }, null, 2) : null,
+        follow_up_template_1: null,
+        follow_up_template_2: null,
+        with_template: true,
+        variables: fieldsList.variables.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.id] = field.value;
+            return acc;
+          },
+          {}
+        ),
+        offering_variables: fieldsList.offering_variables.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
+        personalized_fields: fieldsList.personalized_fields.reduce<Record<string, string>>(
+          (acc, field) => {
+            acc[field.fieldName] = field.description;
+            return acc;
+          },
+          {}
+        ),
+        enriched_fields: fieldsList.enriched_fields.map(
+          (field) => field.fieldName
+        ),
+        subject_field_options: subjectOptions,
+      } : { with_template: false };
 
+      await createTraining(trainingBody as TrainingRequest);
       const response = await getAutogenerateTrainingEmail(
-        params.campaignId,
-        user.id
+        params.campaignId
       );
       console.log(response.body);
       console.log("Main Gen");
@@ -367,7 +433,6 @@ export default function Training() {
       setContact(response.contact);
       setLinkedinInformation(response.linkedin_information);
       setPosts(response.posts)
-      setPreviewType("previewFromAI");
       setActiveTab("preview");
 
       console.log("response from training page", response);
@@ -382,7 +447,20 @@ export default function Training() {
     setActiveTab("editor");
   };
 
-  const handleGenerate = async () => {
+  const handleTemplatePreview = async (with_template: boolean) => {
+    setPreviewLoading(true);
+    try {
+      await handleGenerate(with_template);
+      setActiveTab("preview");
+    } catch (error) {
+      console.error("Failed to generate preview:", error);
+      toast.error("Failed to generate preview");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleGenerate = async (with_template: boolean) => {
     try {
       const customInstructions = [];
       if (customPrompt) {
@@ -405,24 +483,14 @@ export default function Training() {
         custom_instructions: customInstructions,
         length_of_email: selectedOption,
         custom_instructions_linkedin: linkedinCustomInstructions,
-        custom_instructions_comment: linkedinCommentCustomInstructions
+        custom_instructions_comment: linkedinCommentCustomInstructions,
       };
-
-      const res = await axiosInstance.put(
-        `v2/personas/campaign`,
-        personaData
-      );
-
-      console.log("Persona update response:", res.data);
-      await handleLetAiWrite();
+      await axiosInstance.put(`v2/personas/campaign`, personaData);
+      await handleLetAiWrite(with_template);
     } catch (error) {
       console.error("Error updating persona:", error);
       toast.error("Failed to update persona information");
     }
-  };
-
-  const handleTemplatePreview = async () => {
-    handleCustomGenerate();
   };
 
   const handleSendTestEmail = async () => {
@@ -738,7 +806,7 @@ export default function Training() {
                 </div>
 
                 <Button
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate(false)}
                   className="w-1/2 bg-primary hover:bg-primary/90"
                   disabled={loadingWriteAI}
                   size="lg"
@@ -774,7 +842,7 @@ export default function Training() {
             <CardContent className="pt-6">
               <EditorContent />
               <Button
-                onClick={handleTemplatePreview}
+                onClick={() => handleTemplatePreview(true)}
                 className="w-1/4 mt-6 flex justify-center"
                 disabled={previewLoading}
                 size="lg"

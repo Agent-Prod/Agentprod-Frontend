@@ -75,6 +75,12 @@ export default function Training() {
   const {
     emailFollowUps,
     linkedinFollowUps,
+    inviteMessage,
+    setInviteMessage,
+    messageAfterInvite,
+    setMessageAfterInvite,
+    comment,
+    setComment,
   } = useFieldsList();
 
   const { user } = useAuth();
@@ -98,8 +104,8 @@ export default function Training() {
     setLinkedinMessage,
     setLinkedinComment,
     setFollowUps,
-    setInviteMessage,
-    setMessageAfterInvite,
+    setInviteMessage: useAutoGenerateSetInviteMessage,
+    setMessageAfterInvite: useAutoGenerateSetMessageAfterInvite,
     setLinkedinFollowUp
   } = useAutoGenerate();
 
@@ -283,6 +289,9 @@ export default function Training() {
         linkedin_template: linkedinBody?.length > 0 ?
           JSON.stringify({
             body: linkedinBody,
+            invite_message: inviteMessage,
+            message_after_invite: messageAfterInvite,
+            comment: comment,
             ...linkedinFollowUps.reduce((acc, followUp, index) => ({
               ...acc,
               [`follow_up_template_${index + 1}`]: followUp.value
@@ -373,6 +382,9 @@ export default function Training() {
         linkedin_template: linkedinBody?.length > 0 ?
           JSON.stringify({
             body: linkedinBody,
+            invite_message: inviteMessage,
+            message_after_invite: messageAfterInvite,
+            comment: comment,
             ...linkedinFollowUps.reduce((acc, followUp, index) => ({
               ...acc,
               [`follow_up_template_${index + 1}`]: followUp.value

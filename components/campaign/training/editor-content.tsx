@@ -356,6 +356,12 @@ export default function EditorContent() {
     setEmailFollowUps,
     linkedinFollowUps,
     setLinkedinFollowUps,
+    inviteMessage,
+    setInviteMessage,
+    messageAfterInvite,
+    setMessageAfterInvite,
+    comment,
+    setComment,
   } = useFieldsList();
   const params = useParams<{ campaignId: string }>();
 
@@ -380,6 +386,11 @@ export default function EditorContent() {
 
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [linkedInDialogOpen, setLinkedInDialogOpen] = useState(false);
+
+  // Add new state variables
+  const [showInviteMessage, setShowInviteMessage] = useState(false);
+  const [showMessageAfterInvite, setShowMessageAfterInvite] = useState(false);
+  const [showComment, setShowComment] = useState(false);
 
   useEffect(() => {
     const fetchCampaign = async () => {
@@ -448,6 +459,22 @@ export default function EditorContent() {
 
               setLocalLinkedInBody(linkedinTemplateData.body || '');
               setLinkedinBody(linkedinTemplateData.body || '');
+
+              // Parse the additional LinkedIn fields and show textareas if data exists
+              if (linkedinTemplateData.invite_message) {
+                setInviteMessage(linkedinTemplateData.invite_message);
+                setShowInviteMessage(true);
+              }
+              
+              if (linkedinTemplateData.message_after_invite) {
+                setMessageAfterInvite(linkedinTemplateData.message_after_invite);
+                setShowMessageAfterInvite(true);
+              }
+              
+              if (linkedinTemplateData.comment) {
+                setComment(linkedinTemplateData.comment);
+                setShowComment(true);
+              }
 
               // Handle LinkedIn follow-ups
               const newLinkedinFollowUps: FollowUp[] = [];
@@ -729,6 +756,23 @@ export default function EditorContent() {
 
   console.log("localbodyy ==  " + localEmailBody);
   console.log("body " + body);
+
+  // Update the handlers to use context setters
+  const handleInviteMessageChange = (text: string) => {
+    setInviteMessage(text);
+    handleTextChange(text, setInviteMessage);
+  };
+
+  const handleMessageAfterInviteChange = (text: string) => {
+    setMessageAfterInvite(text);
+    handleTextChange(text, setMessageAfterInvite);
+  };
+
+  const handleCommentChange = (text: string) => {
+    setComment(text);
+    handleTextChange(text, setComment);
+  };
+
   return (
     <div className="w-full">
       {/* Email Section */}
@@ -836,14 +880,103 @@ export default function EditorContent() {
                 />
               </div>
 
-              <FollowUpSection
-                type="linkedin"
-                followUps={linkedinFollowUps}
-                onAddFollowUp={handleAddLinkedinFollowUp}
-                onRemoveFollowUp={handleRemoveLinkedinFollowUp}
-                onChangeFollowUp={handleChangeLinkedinFollowUp}
-                campaignType={campaignType}
-              />
+              <div className="space-y-2">
+                <FollowUpSection
+                  type="linkedin"
+                  followUps={linkedinFollowUps}
+                  onAddFollowUp={handleAddLinkedinFollowUp}
+                  onRemoveFollowUp={handleRemoveLinkedinFollowUp}
+                  onChangeFollowUp={handleChangeLinkedinFollowUp}
+                  campaignType={campaignType}
+                />
+
+                {/* LinkedIn Stages Buttons */}
+                <div className="flex flex-col gap-2 mt-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowInviteMessage(!showInviteMessage)}
+                  >
+                    {showInviteMessage ? (
+                      <>
+                        <X className="h-4 w-4 mr-2" />
+                        Remove Invite Message
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Invite Message
+                      </>
+                    )}
+                  </Button>
+                  {showInviteMessage && (
+                    <Textarea
+                      placeholder="Write your connection invite message"
+                      value={inviteMessage}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                        handleInviteMessageChange(e.target.value);
+                      }}
+                      className="w-full h-[100px]"
+                    />
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowMessageAfterInvite(!showMessageAfterInvite)}
+                  >
+                    {showMessageAfterInvite ? (
+                      <>
+                        <X className="h-4 w-4 mr-2" />
+                        Remove After-Connection Message
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add After-Connection Message
+                      </>
+                    )}
+                  </Button>
+                  {showMessageAfterInvite && (
+                    <Textarea
+                      placeholder="Write your message after connection is accepted"
+                      value={messageAfterInvite}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                        handleMessageAfterInviteChange(e.target.value);
+                      }}
+                      className="w-full h-[100px]"
+                    />
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowComment(!showComment)}
+                  >
+                    {showComment ? (
+                      <>
+                        <X className="h-4 w-4 mr-2" />
+                        Remove Comment
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Comment
+                      </>
+                    )}
+                  </Button>
+                  {showComment && (
+                    <Textarea
+                      placeholder="Write your comment"
+                      value={comment}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                        handleCommentChange(e.target.value);
+                      }}
+                      className="w-full h-[100px]"
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <LinkedInExampleDialog open={linkedInDialogOpen} onOpenChange={setLinkedInDialogOpen} />

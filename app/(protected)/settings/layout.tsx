@@ -22,6 +22,11 @@ const navItems = [
     href: "/settings/integration",
     icon: Layout,
   },
+  {
+    title: "User Subscriptions",
+    href: "/settings/user-subscription",
+    icon: Layout,
+  },
 ];
 
 export default function SettingsLayout({

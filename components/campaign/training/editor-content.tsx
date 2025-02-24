@@ -47,6 +47,12 @@ interface Variable {
   isCustom: boolean;
 }
 
+// Add type for follow-up
+interface FollowUp {
+  id: number;
+  value: string;
+}
+
 const EmailExampleDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -346,6 +352,10 @@ export default function EditorContent() {
     setLinkedinFollowUp,
     linkedinFollowUpTwo,
     setLinkedinFollowUpTwo,
+    emailFollowUps,
+    setEmailFollowUps,
+    linkedinFollowUps,
+    setLinkedinFollowUps,
   } = useFieldsList();
   const params = useParams<{ campaignId: string }>();
 
@@ -367,15 +377,6 @@ export default function EditorContent() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [emailButton1, setEmailButton1] = useState(true);
   const [linkedinButton1, setLinkedinButton1] = useState(true);
-  const [emailFollowUps, setEmailFollowUps] = useState({
-    showFirst: false,
-    showSecond: false
-  });
-
-  const [linkedinFollowUps, setLinkedinFollowUps] = useState({
-    showFirst: false,
-    showSecond: false
-  });
 
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [linkedInDialogOpen, setLinkedInDialogOpen] = useState(false);
@@ -423,65 +424,42 @@ export default function EditorContent() {
             if (data.template) {
               const emailTemplateData = JSON.parse(data.template);
 
-              // Set email data
               setLocalEmailSubject(emailTemplateData.subject || '');
               setSubject(emailTemplateData.subject || '');
-
               setLocalEmailBody(emailTemplateData.body || '');
               setBody(emailTemplateData.body || '');
 
-              setLocalEmailFollowUp(emailTemplateData.follow_up_template_1 || '');
-              setFollowUp(emailTemplateData.follow_up_template_1 || '');
-
-              setLocalEmailFollowUpTwo(emailTemplateData.follow_up_template_2 || '');
-              setFollowUpOne(emailTemplateData.follow_up_template_2 || '');
-
-              // Show email follow-ups if they exist
-              if (emailTemplateData.follow_up_template_1) {
-                setEmailFollowUps(prev => ({
-                  ...prev,
-                  showFirst: true
-                }));
-                setEmailButton1(false);
-              }
-
-              if (emailTemplateData.follow_up_template_2) {
-                setEmailFollowUps(prev => ({
-                  ...prev,
-                  showSecond: true
-                }));
-              }
+              // Handle follow-ups
+              const newEmailFollowUps: FollowUp[] = [];
+              Object.entries(emailTemplateData).forEach(([key, value]) => {
+                if (key.startsWith('follow_up_template_') && value) {
+                  newEmailFollowUps.push({
+                    id: Date.now() + Math.random(),
+                    value: value as string
+                  });
+                }
+              });
+              setEmailFollowUps(newEmailFollowUps);
             }
 
             // Parse the LinkedIn template
             if (data.linkedin_template) {
               const linkedinTemplateData = JSON.parse(data.linkedin_template);
 
-              // Set LinkedIn data
               setLocalLinkedInBody(linkedinTemplateData.body || '');
               setLinkedinBody(linkedinTemplateData.body || '');
 
-              setLocalLinkedInFollowUp(linkedinTemplateData.follow_up_template_1 || '');
-              setLinkedinFollowUp(linkedinTemplateData.follow_up_template_1 || '');
-
-              setLocalLinkedInFollowUpTwo(linkedinTemplateData.follow_up_template_2 || '');
-              setLinkedinFollowUpTwo(linkedinTemplateData.follow_up_template_2 || '');
-
-              // Show LinkedIn follow-ups if they exist
-              if (linkedinTemplateData.follow_up_template_1) {
-                setLinkedinFollowUps(prev => ({
-                  ...prev,
-                  showFirst: true
-                }));
-                setLinkedinButton1(false);
-              }
-
-              if (linkedinTemplateData.follow_up_template_2) {
-                setLinkedinFollowUps(prev => ({
-                  ...prev,
-                  showSecond: true
-                }));
-              }
+              // Handle LinkedIn follow-ups
+              const newLinkedinFollowUps: FollowUp[] = [];
+              Object.entries(linkedinTemplateData).forEach(([key, value]) => {
+                if (key.startsWith('follow_up_template_') && value) {
+                  newLinkedinFollowUps.push({
+                    id: Date.now() + Math.random(),
+                    value: value as string
+                  });
+                }
+              });
+              setLinkedinFollowUps(newLinkedinFollowUps);
             }
 
           } catch (parseError) {
@@ -498,35 +476,30 @@ export default function EditorContent() {
 
     fetchCampaign();
   }, [params.campaignId]);
-
-  const toggleEmailFirst = () => {
-    setEmailFollowUps(prev => ({
-      ...prev,
-      showFirst: !prev.showFirst
-    }));
-    setEmailButton1(!emailButton1);
+  const handleAddEmailFollowUp = () => {
+    setEmailFollowUps([...emailFollowUps, { id: Date.now(), value: '' }]);
   };
 
-  const toggleEmailSecond = () => {
-    setEmailFollowUps(prev => ({
-      ...prev,
-      showSecond: !prev.showSecond
-    }));
+  const handleRemoveEmailFollowUp = (id: number) => {
+    setEmailFollowUps(emailFollowUps.filter((followUp) => followUp.id !== id));
+  };
+  const handleChangeEmailFollowUp = (id: number, value: string) => {
+    setEmailFollowUps(emailFollowUps.map((followUp: FollowUp) =>
+      followUp.id === id ? { ...followUp, value } : followUp
+    ));
   };
 
-  const toggleLinkedinFirst = () => {
-    setLinkedinFollowUps(prev => ({
-      ...prev,
-      showFirst: !prev.showFirst
-    }));
-    setLinkedinButton1(!linkedinButton1);
+  const handleAddLinkedinFollowUp = () => {
+    setLinkedinFollowUps([...linkedinFollowUps, { id: Date.now(), value: '' }]);
+  };
+  const handleRemoveLinkedinFollowUp = (id: number) => {
+    setLinkedinFollowUps(linkedinFollowUps.filter((followUp) => followUp.id !== id));
   };
 
-  const toggleLinkedinSecond = () => {
-    setLinkedinFollowUps(prev => ({
-      ...prev,
-      showSecond: !prev.showSecond
-    }));
+  const handleChangeLinkedinFollowUp = (id: number, value: string) => {
+    setLinkedinFollowUps(linkedinFollowUps.map((followUp) =>
+      followUp.id === id ? { ...followUp, value } : followUp
+    ));
   };
 
   const handleTextChange = (text: string, setText: (value: string) => void) => {
@@ -816,18 +789,11 @@ export default function EditorContent() {
 
               <FollowUpSection
                 type="email"
-                showFirst={emailFollowUps.showFirst}
-                showSecond={emailFollowUps.showSecond}
-                toggleFirst={toggleEmailFirst}
-                toggleSecond={toggleEmailSecond}
-                values={{
-                  first: localEmailFollowUp,
-                  second: localEmailFollowUpTwo
-                }}
-                onChangeFirst={(value) => handleEmailFollowUpChange(value)}
-                onChangeSecond={(value) => handleEmailFollowUpTwoChange(value)}
+                followUps={emailFollowUps}
+                onAddFollowUp={handleAddEmailFollowUp}
+                onRemoveFollowUp={handleRemoveEmailFollowUp}
+                onChangeFollowUp={handleChangeEmailFollowUp}
                 campaignType={campaignType}
-                button1={emailButton1}
               />
             </div>
           </div>
@@ -872,18 +838,11 @@ export default function EditorContent() {
 
               <FollowUpSection
                 type="linkedin"
-                showFirst={linkedinFollowUps.showFirst}
-                showSecond={linkedinFollowUps.showSecond}
-                toggleFirst={toggleLinkedinFirst}
-                toggleSecond={toggleLinkedinSecond}
-                values={{
-                  first: localLinkedInFollowUp,
-                  second: localLinkedInFollowUpTwo
-                }}
-                onChangeFirst={(value) => handleLinkedInFollowUpChange(value)}
-                onChangeSecond={(value) => handleLinkedInFollowUpTwoChange(value)}
+                followUps={linkedinFollowUps}
+                onAddFollowUp={handleAddLinkedinFollowUp}
+                onRemoveFollowUp={handleRemoveLinkedinFollowUp}
+                onChangeFollowUp={handleChangeLinkedinFollowUp}
                 campaignType={campaignType}
-                button1={linkedinButton1}
               />
             </div>
           </div>

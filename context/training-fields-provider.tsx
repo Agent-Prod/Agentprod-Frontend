@@ -33,6 +33,10 @@ interface FieldsListContextType {
   setLinkedinFollowUp: (value: string) => void;
   linkedinFollowUpTwo: string;
   setLinkedinFollowUpTwo: (value: string) => void;
+  emailFollowUps: Array<{ id: number, value: string }>;
+  setEmailFollowUps: (followUps: Array<{ id: number, value: string }>) => void;
+  linkedinFollowUps: Array<{ id: number, value: string }>;
+  setLinkedinFollowUps: (followUps: Array<{ id: number, value: string }>) => void;
 }
 
 const defaultState: FieldsListContextType = {
@@ -62,6 +66,10 @@ const defaultState: FieldsListContextType = {
   setLinkedinFollowUp: () => {},
   linkedinFollowUpTwo: "",
   setLinkedinFollowUpTwo: () => {},
+  emailFollowUps: [],
+  setEmailFollowUps: () => {},
+  linkedinFollowUps: [],
+  setLinkedinFollowUps: () => {},
 };
 
 const FieldsListContext = createContext<FieldsListContextType>(defaultState);
@@ -83,6 +91,8 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
   const [linkedinBody, setLinkedinBody] = useState<string>("");
   const [linkedinFollowUp, setLinkedinFollowUp] = useState<string>("");
   const [linkedinFollowUpTwo, setLinkedinFollowUpTwo] = useState<string>("");
+  const [emailFollowUps, setEmailFollowUps] = useState<Array<{ id: number, value: string }>>([]);
+  const [linkedinFollowUps, setLinkedinFollowUps] = useState<Array<{ id: number, value: string }>>([]);
 
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
 
@@ -186,8 +196,12 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
       setLinkedinFollowUp,
       linkedinFollowUpTwo,
       setLinkedinFollowUpTwo,
+      emailFollowUps,
+      setEmailFollowUps,
+      linkedinFollowUps,
+      setLinkedinFollowUps,
     }),
-    [fieldsList, body, subject, followUp, subjectOptions, followUpOne, linkedinBody, linkedinFollowUp, linkedinFollowUpTwo]
+    [fieldsList, body, subject, followUp, subjectOptions, followUpOne, linkedinBody, linkedinFollowUp, linkedinFollowUpTwo, emailFollowUps, linkedinFollowUps]
   );
 
   return (

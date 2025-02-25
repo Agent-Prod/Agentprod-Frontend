@@ -1,103 +1,210 @@
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check, Plus, Info } from 'lucide-react';
-import axios from 'axios';
+import { Check, Plus, Info, Loader2 } from 'lucide-react';
 import axiosInstance from '@/utils/axiosInstance';
 
+interface PriceData {
+    lookup_key: string;
+    price_id: string;
+    price: number;
+    currency: string;
+    lead_type: string;
+}
+
+interface PricingPlan {
+    id: string;
+    name: string;
+    description: string;
+    contactLimit: string;
+    mainFeatures: string[];
+    additionalFeatures: {
+        text: string;
+        isNew?: boolean;
+    }[];
+}
+
+const pricingPlans: PricingPlan[] = [
+    {
+        id: "email_price",
+        name: "Email Campaign Plan",
+        description: "Hire digital 24/7 AI SDRs by Agentprod",
+        contactLimit: "500 active contacts/month",
+        mainFeatures: [
+            'AI-created ICP',
+            'High-accuracy emails',
+            'AI Personalization',
+            '500 Real-time B2B contacts',
+            'Autopilot & Copilot Modes'
+        ],
+        additionalFeatures: [
+            { text: 'Unlimited mailboxes', isNew: true },
+            { text: 'Unlimited contact storage' },
+            { text: 'Unlimited users & clients' },
+            { text: 'Centralized inbox' },
+            { text: 'Multichannel automation' },
+            { text: 'Unlimited email warmup' },
+            { text: 'Unlimited emails monthly' },
+            { text: '1,000 data search credits' },
+            { text: 'Anti-spam & deliverability suite' }
+        ]
+    },
+    {
+        id: "linkedin_price",
+        name: "LinkedIn Campaign Plan",
+        description: "Hire digital 24/7 AI SDRs by Agentprod",
+        contactLimit: "500 active contacts/month",
+        mainFeatures: [
+            'AI-created ICP',
+            'High-accuracy emails',
+            'AI Personalization',
+            '500 Real-time B2B contacts',
+            'Autopilot & Copilot Modes'
+        ],
+        additionalFeatures: [
+            { text: 'Unlimited mailboxes', isNew: true },
+            { text: 'Unlimited contact storage' },
+            { text: 'Unlimited users & clients' },
+            { text: 'Centralized inbox' },
+            { text: 'Multichannel automation' },
+            { text: 'Unlimited email warmup' },
+            { text: 'Unlimited emails monthly' },
+            { text: '1,000 data search credits' },
+            { text: 'Anti-spam & deliverability suite' }
+        ]
+    }
+];
+
 function PricingCard() {
-    const handleCheckout = async () => {
+    const [prices, setPrices] = useState<PriceData[]>([]);
+    const [selectedPrice, setSelectedPrice] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPrices = async () => {
+            try {
+                const response = await axiosInstance.get('v2/stripe/prices');
+                setPrices(response.data);
+                const emailPrice = response.data.find((p: PriceData) => p.lookup_key === 'email_price');
+                if (emailPrice) {
+                    setSelectedPrice(emailPrice.price_id);
+                }
+            } catch (error) {
+                console.error('Error fetching prices:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPrices();
+    }, []);
+
+    const handleCheckout = async (planId: string) => {
         try {
+            const selectedPriceData = prices.find(p => p.lookup_key === planId);
+            if (!selectedPriceData) return;
+
             const response = await axiosInstance.post('/v2/stripe/checkout', {
-                "price_id": "price_1Qtw721Tx79DPchiiWNIilqJ",
-                "lead_type": "Multi Channel Leads",
-                "quantity": 5
+                "price_id": selectedPriceData.price_id,
+                "lead_type": getPlanName(planId),
+                "quantity": 1
             });
 
-            const data = response.data;
-            console.log('Checkout successful:', data);
-            window.location.href = data.checkout_url;
-
+            window.location.href = response.data.checkout_url;
         } catch (error) {
             console.error('Error during checkout:', error);
         }
     };
 
+    const getPlanName = (key: string) => {
+        const names: { [key: string]: string } = {
+            'email_price': 'Email Campaign Plan',
+            'linkedin_price': 'LinkedIn Campaign Plan'
+        };
+        return names[key] || 'Basic Plan';
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-[500px]">
+                <div className="text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                    <p className="text-sm text-muted-foreground">Loading pricing plans...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <Card className="w-[600px] p-8 bg-black/70 border-border">
-            <div className="text-center space-y-2 mb-10">
-                <h2 className="text-2xl font-semibold text-white">AI SDR</h2>
-                <p className="text-muted-foreground">Hire digital 24/7 AI SDRs by Agentprod</p>
-            </div>
-
-            <div className="text-center space-y-2 mb-10">
-                <p className="text-muted-foreground">Starts from</p>
-                <div className="flex items-center justify-center">
-                    <span className="text-6xl font-semibold text-white">$300</span>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-xl text-muted-foreground">/month</p>
-                    <p className="text-sm text-muted-foreground">Billed annually</p>
-                </div>
-            </div>
-
-            <div className="mb-10">
-                <div className="flex items-center justify-center gap-2">
-                    <p className="text-sm text-muted-foreground">500 active contacts/month</p>
-                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                </div>
-            </div>
-
-            <Button
-                variant="default"
-                className="w-full mb-10 bg-white text-background hover:bg-white/90"
-                size="lg"
-                onClick={handleCheckout}
-            >
-                Contact Sales
-            </Button>
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                <div className="space-y-4">
-                    {[
-                        'AI-created ICP',
-                        'High-accuracy emails',
-                        'AI Personalization',
-                        '500 Real-time B2B contacts',
-                        'Autopilot & Copilot Modes'
-                    ].map((feature) => (
-                        <div key={feature} className="flex items-center gap-2">
-                            <Plus className="h-4 w-4 text-white flex-shrink-0" />
-                            <span className="text-white">{feature}</span>
+        <div className="flex space-x-4">
+            {pricingPlans.map((plan) => {
+                const priceData = prices.find(p => p.lookup_key === plan.id);
+                return (
+                    <Card key={plan.id} className="w-[350px] p-6 bg-card border-border">
+                        <div className="text-center space-y-1 mb-6">
+                            <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
+                            <p className="text-sm text-muted-foreground">{plan.description}</p>
                         </div>
-                    ))}
-                </div>
 
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-muted-foreground">Unlimited mailboxes</span>
-                        <span className="text-xs bg-white/10 text-white px-2 py-0.5 rounded">New</span>
-                    </div>
-                    {[
-                        'Unlimited contact storage',
-                        'Unlimited users & clients',
-                        'Centralized inbox',
-                        'Multichannel automation',
-                        'Unlimited email warmup',
-                        'Unlimited emails monthly',
-                        '1,000 data search credits',
-                        'Anti-spam & deliverability suite'
-                    ].map((feature) => (
-                        <div key={feature} className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">{feature}</span>
+                        <div className="text-center space-y-1 mb-6">
+                            <p className="text-sm text-muted-foreground">Price</p>
+                            <div className="flex items-center justify-center">
+                                {priceData && (
+                                    <span className="text-4xl font-semibold text-foreground">
+                                        {priceData.currency.toUpperCase()} {priceData.price.toFixed(2)}
+                                    </span>
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">/month</p>
+                            </div>
                         </div>
-                    ))}
-                </div>
-            </div>
-        </Card>
+
+                        <div className="mb-6">
+                            <div className="flex items-center justify-center gap-1">
+                                <p className="text-xs text-muted-foreground">{plan.contactLimit}</p>
+                                <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                            </div>
+                        </div>
+
+                        <Button
+                            variant="default"
+                            className="w-full mb-6"
+                            size="default"
+                            onClick={() => handleCheckout(plan.id)}
+                        >
+                            Purchase Selected Plan
+                        </Button>
+
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <div className="space-y-2">
+                                {plan.mainFeatures.map((feature) => (
+                                    <div key={feature} className="flex items-center gap-1">
+                                        <Plus className="h-3 w-3 text-primary flex-shrink-0" />
+                                        <span className="text-xs text-foreground">{feature}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-2">
+                                {plan.additionalFeatures.map((feature) => (
+                                    <div key={feature.text} className="flex items-center gap-1">
+                                        <Check className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-xs text-muted-foreground">{feature.text}</span>
+                                        {feature.isNew && (
+                                            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                                New
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                );
+            })}
+        </div>
     );
 }
 

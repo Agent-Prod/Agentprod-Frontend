@@ -72,6 +72,16 @@ export default function Training() {
   const [customEmail, setCustomEmail] = useState<string>("");
   const [testLoading, setTestLoading] = useState(false);
   const [linkedinCommentCustomPrompt, setLinkedinCommentCustomPrompt] = useState('');
+  const {
+    emailFollowUps,
+    linkedinFollowUps,
+    inviteMessage,
+    setInviteMessage,
+    messageAfterInvite,
+    setMessageAfterInvite,
+    comment,
+    setComment,
+  } = useFieldsList();
 
   const { user } = useAuth();
   const params = useParams<{ campaignId: string }>();
@@ -94,8 +104,8 @@ export default function Training() {
     setLinkedinMessage,
     setLinkedinComment,
     setFollowUps,
-    setInviteMessage,
-    setMessageAfterInvite,
+    setInviteMessage: useAutoGenerateSetInviteMessage,
+    setMessageAfterInvite: useAutoGenerateSetMessageAfterInvite,
     setLinkedinFollowUp
   } = useAutoGenerate();
 
@@ -271,17 +281,22 @@ export default function Training() {
           JSON.stringify({
             subject: subject,
             body: body,
-            follow_up_template_1: followUp,
-            follow_up_template_2: followUpOne
+            ...emailFollowUps.reduce((acc, followUp, index) => ({
+              ...acc,
+              [`follow_up_template_${index + 1}`]: followUp.value
+            }), {})
           }, null, 2) : null,
         linkedin_template: linkedinBody?.length > 0 ?
           JSON.stringify({
             body: linkedinBody,
-            follow_up_template_1: linkedinFollowUp,
-            follow_up_template_2: linkedinFollowUpTwo
+            invite_message: inviteMessage,
+            message_after_invite: messageAfterInvite,
+            comment: comment,
+            ...linkedinFollowUps.reduce((acc, followUp, index) => ({
+              ...acc,
+              [`follow_up_template_${index + 1}`]: followUp.value
+            }), {})
           }, null, 2) : null,
-        follow_up_template_1: null,
-        follow_up_template_2: null,
         with_template: true,
         variables: fieldsList.variables.reduce<Record<string, string>>(
           (acc, field) => {
@@ -359,17 +374,22 @@ export default function Training() {
           JSON.stringify({
             subject: subject,
             body: body,
-            follow_up_template_1: followUp,
-            follow_up_template_2: followUpOne
+            ...emailFollowUps.reduce((acc, followUp, index) => ({
+              ...acc,
+              [`follow_up_template_${index + 1}`]: followUp.value
+            }), {})
           }, null, 2) : null,
         linkedin_template: linkedinBody?.length > 0 ?
           JSON.stringify({
             body: linkedinBody,
-            follow_up_template_1: linkedinFollowUp,
-            follow_up_template_2: linkedinFollowUpTwo
+            invite_message: inviteMessage,
+            message_after_invite: messageAfterInvite,
+            comment: comment,
+            ...linkedinFollowUps.reduce((acc, followUp, index) => ({
+              ...acc,
+              [`follow_up_template_${index + 1}`]: followUp.value
+            }), {})
           }, null, 2) : null,
-        follow_up_template_1: null,
-        follow_up_template_2: null,
         with_template: true,
         variables: fieldsList.variables.reduce<Record<string, string>>(
           (acc, field) => {

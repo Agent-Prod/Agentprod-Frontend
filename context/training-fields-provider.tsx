@@ -33,6 +33,16 @@ interface FieldsListContextType {
   setLinkedinFollowUp: (value: string) => void;
   linkedinFollowUpTwo: string;
   setLinkedinFollowUpTwo: (value: string) => void;
+  emailFollowUps: Array<{ id: number, value: string }>;
+  setEmailFollowUps: (followUps: Array<{ id: number, value: string }>) => void;
+  linkedinFollowUps: Array<{ id: number, value: string }>;
+  setLinkedinFollowUps: (followUps: Array<{ id: number, value: string }>) => void;
+  inviteMessage: string;
+  setInviteMessage: (value: string) => void;
+  messageAfterInvite: string;
+  setMessageAfterInvite: (value: string) => void;
+  comment: string;
+  setComment: (value: string) => void;
 }
 
 const defaultState: FieldsListContextType = {
@@ -42,26 +52,36 @@ const defaultState: FieldsListContextType = {
     offering_variables: [],
     enriched_fields: [],
   },
-  addField: () => {},
-  removeField: () => {},
-  editField: () => {},
-  setFieldsList: () => {},
+  addField: () => { },
+  removeField: () => { },
+  editField: () => { },
+  setFieldsList: () => { },
   body: "",
-  setBody: () => {},
+  setBody: () => { },
   subject: "",
-  setSubject: () => {},
+  setSubject: () => { },
   followUp: "",
-  setFollowUp: () => {},
+  setFollowUp: () => { },
   followUpOne: "",
-  setFollowUpOne: () => {},
+  setFollowUpOne: () => { },
   subjectOptions: [],
-  setSubjectOptions: () => {},
+  setSubjectOptions: () => { },
   linkedinBody: "",
-  setLinkedinBody: () => {},
+  setLinkedinBody: () => { },
   linkedinFollowUp: "",
-  setLinkedinFollowUp: () => {},
+  setLinkedinFollowUp: () => { },
   linkedinFollowUpTwo: "",
-  setLinkedinFollowUpTwo: () => {},
+  setLinkedinFollowUpTwo: () => { },
+  emailFollowUps: [],
+  setEmailFollowUps: () => { },
+  linkedinFollowUps: [],
+  setLinkedinFollowUps: () => { },
+  inviteMessage: "",
+  setInviteMessage: () => { },
+  messageAfterInvite: "",
+  setMessageAfterInvite: () => { },
+  comment: "",
+  setComment: () => { },
 };
 
 const FieldsListContext = createContext<FieldsListContextType>(defaultState);
@@ -83,6 +103,11 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
   const [linkedinBody, setLinkedinBody] = useState<string>("");
   const [linkedinFollowUp, setLinkedinFollowUp] = useState<string>("");
   const [linkedinFollowUpTwo, setLinkedinFollowUpTwo] = useState<string>("");
+  const [emailFollowUps, setEmailFollowUps] = useState<Array<{ id: number, value: string }>>([]);
+  const [linkedinFollowUps, setLinkedinFollowUps] = useState<Array<{ id: number, value: string }>>([]);
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [messageAfterInvite, setMessageAfterInvite] = useState("");
+  const [comment, setComment] = useState("");
 
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
 
@@ -186,8 +211,18 @@ export const FieldsListProvider: React.FC<FieldsListProviderProps> = ({
       setLinkedinFollowUp,
       linkedinFollowUpTwo,
       setLinkedinFollowUpTwo,
+      emailFollowUps,
+      setEmailFollowUps,
+      linkedinFollowUps,
+      setLinkedinFollowUps,
+      inviteMessage,
+      setInviteMessage,
+      messageAfterInvite,
+      setMessageAfterInvite,
+      comment,
+      setComment,
     }),
-    [fieldsList, body, subject, followUp, subjectOptions, followUpOne, linkedinBody, linkedinFollowUp, linkedinFollowUpTwo]
+    [fieldsList, body, subject, followUp, subjectOptions, followUpOne, linkedinBody, linkedinFollowUp, linkedinFollowUpTwo, emailFollowUps, linkedinFollowUps, inviteMessage, messageAfterInvite, comment]
   );
 
   return (

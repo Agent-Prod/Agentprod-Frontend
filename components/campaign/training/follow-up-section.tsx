@@ -5,95 +5,56 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface FollowUpSectionProps {
     type: 'email' | 'linkedin';
-    showFirst: boolean;
-    showSecond: boolean;
-    toggleFirst: () => void;
-    toggleSecond: () => void;
-    values?: {
-        first: string;
-        second: string;
-    };
-    onChangeFirst?: (value: string) => void;
-    onChangeSecond?: (value: string) => void;
+    followUps: {
+        id: number;
+        value: string;
+    }[];
+    onAddFollowUp: () => void;
+    onRemoveFollowUp: (id: number) => void;
+    onChangeFollowUp: (id: number, value: string) => void;
     campaignType: string;
-    button1: boolean;
 }
 
 export function FollowUpSection({
     type,
-    showFirst,
-    showSecond,
-    toggleFirst,
-    toggleSecond,
-    values,
-    onChangeFirst,
-    onChangeSecond,
-    campaignType,
-    button1
+    followUps,
+    onAddFollowUp,
+    onRemoveFollowUp,
+    onChangeFollowUp,
+    campaignType
 }: FollowUpSectionProps) {
     return (
         <>
-            {/* First Follow-up */}
-            {showFirst && (
-                <div className="relative mt-6 space-y-4">
+            {/* Follow-up Messages */}
+            {followUps.map((followUp, index) => (
+                <div key={followUp.id} className="relative mt-6 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-md font-medium text-gray-400">Follow-up Message 1</h3>
+                        <h3 className="text-md font-medium text-gray-400">Follow-up Message {index + 1}</h3>
                         <button
                             className="text-gray-500 hover:text-gray-700"
-                            onClick={toggleFirst}
+                            onClick={() => onRemoveFollowUp(followUp.id)}
                         >
                             <X className="h-4 w-4" />
                         </button>
                     </div>
                     <Textarea
-                        placeholder={`Write your first ${type} follow-up message`}
-                        value={values?.first}
-                        onChange={(e) => onChangeFirst?.(e.target.value)}
+                        placeholder={`Write your ${type} follow-up message`}
+                        value={followUp.value}
+                        onChange={(e) => onChangeFollowUp(followUp.id, e.target.value)}
                         className="w-full h-[200px]"
                     />
                 </div>
-            )}
+            ))}
 
-            {/* Second Follow-up */}
-            {showSecond && (
-                <div className="relative mt-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-md font-medium text-gray-400">Follow-up Message 2</h3>
-                        <button
-                            className="text-gray-500 hover:text-gray-700"
-                            onClick={toggleSecond}
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    </div>
-                    <Textarea
-                        placeholder={`Write your second ${type} follow-up message`}
-                        value={values?.second}
-                        onChange={(e) => onChangeSecond?.(e.target.value)}
-                        className="w-full h-[200px]"
-                    />
+            {/* Add Follow-up Button */}
+            {campaignType && campaignType !== "Nurturing" && (
+                <div className="mt-6">
+                    <Button variant="outline" onClick={onAddFollowUp}>
+                        <Plus className="h-3 w-3 text-gray-400 mr-2" />
+                        Add follow-up message
+                    </Button>
                 </div>
             )}
-
-            {/* Follow-up Buttons */}
-            <div className="mt-6 flex flex-row gap-4">
-                {campaignType && campaignType !== "Nurturing" && (
-                    <>
-                        {!showFirst && (
-                            <Button variant="outline" onClick={toggleFirst}>
-                                <Plus className="h-3 w-3 text-gray-400 mr-2" />
-                                Add first follow-up
-                            </Button>
-                        )}
-                        {showFirst && !showSecond && (
-                            <Button variant="outline" onClick={toggleSecond}>
-                                <Plus className="h-3 w-3 text-gray-400 mr-2" />
-                                Add second follow-up
-                            </Button>
-                        )}
-                    </>
-                )}
-            </div>
         </>
     );
 } 

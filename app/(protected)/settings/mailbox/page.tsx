@@ -52,6 +52,7 @@ import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaLinkedin } from 'react-icons/fa';
 import { useAuth } from "@/context/auth-provider";
+import { useSubscription } from "@/context/subscription-provider";
 
 interface MailData {
   id: number;
@@ -140,6 +141,7 @@ export default function Page() {
   const verificationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const verificationAttemptsRef = useRef(0);
   const MAX_VERIFICATION_ATTEMPTS = 20;
+  const { isSubscribed } = useSubscription();
 
   useEffect(() => {
     const storedVerificationState = localStorage.getItem('verificationInProgress');
@@ -1205,6 +1207,7 @@ export default function Page() {
               onClick={handleOpenAgentprodService}
               variant="outline"
               className="w-full h-auto p-4 flex items-center justify-start gap-3 hover:bg-muted"
+              disabled={!isSubscribed}
             >
               <Image
                 src="/bw-logo.png"
@@ -1213,18 +1216,22 @@ export default function Page() {
                 height="24"
                 className="flex-shrink-0"
               />
-              <div className="flex flex-col items-start gap-1">
-                <span className="font-medium">Outlook</span>
+              <div className={`flex flex-col items-start gap-1 ${!isSubscribed ? "opacity-50 cursor-not-allowed" : ""}`}>
+                <span className="font-medium">Outlook {!isSubscribed && "*"}</span>
                 <span className="text-xs text-muted-foreground">
                   Agentprod native integration
                 </span>
               </div>
             </Button>
-
+            {!isSubscribed && (
+              <span className="text-gray-500 text-xs">
+                * These features are available with our paid plans. Contact support to unlock all features.
+              </span>
+            )}
 
           </div>
-        </DialogContent>
-      </Dialog>
+        </DialogContent >
+      </Dialog >
       <Dialog open={isAddMailboxOpen} onOpenChange={setIsAddMailboxOpen}>
         <DialogContent className="w-full">
           <DialogHeader>
@@ -1441,6 +1448,6 @@ export default function Page() {
           </p>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

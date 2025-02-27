@@ -299,19 +299,19 @@ export function SchedulingForm() {
                     <FormControl>
                       <RadioGroupItem
                         value="mail"
-                        disabled={type === "edit" || !isSubscribed}
+                        disabled={type === "edit"}
                         className={
-                          (type === "edit" || !isSubscribed)
+                          (type === "edit")
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                         }
                       />
                     </FormControl>
                     <FormLabel
-                      className={`font-normal ${(type === "edit" || !isSubscribed) ? "text-gray-500" : ""
+                      className={`font-normal ${(type === "edit") ? "" : ""
                         }`}
                     >
-                      Email {!isSubscribed && "*"}
+                      Email
                     </FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -401,6 +401,6 @@ export function SchedulingForm() {
           {type === "create" ? "Add" : "Update"} Campaign
         </Button>
       </form>
-    </Form>
+    </Form >
   );
 }

@@ -27,15 +27,15 @@ interface PricingPlan {
 
 const pricingPlans: PricingPlan[] = [
     {
-        id: "email_price",
-        name: "Email Campaign Plan",
+        id: "company_plan",
+        name: "Company Plan",
         description: "Hire digital 24/7 AI SDRs by Agentprod",
-        contactLimit: "500 active contacts/month",
+        contactLimit: "1000 contacts/month",
         mainFeatures: [
             'AI-created ICP',
             'High-accuracy emails',
             'AI Personalization',
-            '500 Real-time B2B contacts',
+            '1000 Real-time B2B contacts',
             'Autopilot & Copilot Modes'
         ],
         additionalFeatures: [
@@ -51,15 +51,15 @@ const pricingPlans: PricingPlan[] = [
         ]
     },
     {
-        id: "linkedin_price",
-        name: "LinkedIn Campaign Plan",
+        id: "founders_plan",
+        name: "Founders Plan",
         description: "Hire digital 24/7 AI SDRs by Agentprod",
-        contactLimit: "500 active contacts/month",
+        contactLimit: "1000 contacts/month",
         mainFeatures: [
             'AI-created ICP',
             'High-accuracy emails',
             'AI Personalization',
-            '500 Real-time B2B contacts',
+            '1000 Real-time B2B contacts',
             'Autopilot & Copilot Modes'
         ],
         additionalFeatures: [
@@ -119,8 +119,8 @@ function PricingCard() {
 
     const getPlanName = (key: string) => {
         const names: { [key: string]: string } = {
-            'email_price': 'Email Campaign Plan',
-            'linkedin_price': 'LinkedIn Campaign Plan'
+            'company_plan': 'Company Plan',
+            'founders_plan': 'Founders Plan'
         };
         return names[key] || 'Basic Plan';
     };
@@ -155,9 +155,6 @@ function PricingCard() {
                                         {priceData.currency.toUpperCase()} {priceData.price.toFixed(2)}
                                     </span>
                                 )}
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">/month</p>
                             </div>
                         </div>
 

@@ -10,6 +10,7 @@ interface SubscriptionContextType {
     loading: boolean;
     error: string | null;
     refreshSubscription: () => Promise<void>;
+    plan: string | null;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
     const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
     const [isLeadLimitReached, setIsLeadLimitReached] = useState<boolean>(false);
+    const [plan, setPlan] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
@@ -31,6 +33,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
             const res = await axiosInstance.get(`v2/pricing-plans`);
 
             setIsSubscribed(res.data.subscribed);
+            setPlan(res.data.subscription_mode);
 
             if (!res.data.subscribed) {
                 const leadsRes = await axiosInstance.get('v2/leads/');
@@ -64,7 +67,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
                 isLeadLimitReached,
                 loading,
                 error,
-                refreshSubscription
+                refreshSubscription,
+                plan
             }}
         >
             {children}
@@ -78,4 +82,12 @@ export const useSubscription = () => {
         throw new Error("useSubscription must be used within a SubscriptionProvider");
     }
     return context;
-}; 
+};
+
+export const userPlan = (): string => {
+    const context = useContext(SubscriptionContext);
+    if (context === undefined) {
+        throw new Error("plan must be used within a SubscriptionProvider");
+    }
+    return context?.plan || '';
+};

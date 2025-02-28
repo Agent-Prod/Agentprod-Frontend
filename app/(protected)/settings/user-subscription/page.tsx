@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Plus, Info, Loader2 } from 'lucide-react';
 import axiosInstance from '@/utils/axiosInstance';
-
+import { useSubscription, userPlan } from '@/context/subscription-provider';
 interface PriceData {
     lookup_key: string;
     price_id: string;
@@ -173,15 +173,27 @@ function PricingCard() {
                                 </div>
                             </div>
 
-                            <Button
-                                variant={isFoundersPlan ? "default" : "outline"}
-                                className={`w-full mb-8 font-medium transition-all duration-200 
-                                    ${isFoundersPlan ? 'shadow-sm hover:shadow-md' : 'hover:bg-primary/10'}`}
-                                size="lg"
-                                onClick={() => handleCheckout(plan.id)}
-                            >
-                                Get Started
-                            </Button>
+                            {!useSubscription ? (
+                                <Button
+                                    variant={isFoundersPlan ? "default" : "outline"}
+                                    className={`w-full mb-8 font-medium transition-all duration-200 
+                                        ${isFoundersPlan ? 'shadow-sm hover:shadow-md' : 'hover:bg-primary/10'}`}
+                                    size="lg"
+                                    onClick={() => handleCheckout(plan.id)}
+                                >
+                                    Get Started
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    className={`w-full mb-8 font-medium transition-all duration-200 
+                                        ${userPlan() === plan.id ? 'bg-green-500 text-white' : ''}`}
+                                    size="lg"
+                                    disabled={true}
+                                >
+                                    {userPlan() === plan.id ? 'Current Plan' : 'Get Started'}
+                                </Button>
+                            )}
 
                             <div className="space-y-5">
                                 <h3 className="text-sm font-semibold text-foreground">What`s included:</h3>
@@ -223,7 +235,7 @@ function PricingCard() {
                     </Card>
                 );
             })}
-        </div>
+        </div >
     );
 }
 

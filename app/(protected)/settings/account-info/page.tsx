@@ -68,7 +68,13 @@ export default function Page() {
         `v2/pricing-plans`
       );
       const planValue = res.data.subscription_mode || "Unknown";
-      updatePlanInfo(planValue);
+      if (planValue === "founders_plan") {
+        updatePlanInfo("Founders Plan");
+      } else if (planValue === "company_plan") {
+        updatePlanInfo("Company Plan");
+      } else {
+        updatePlanInfo(planValue);
+      }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         // Handle 404 error (user not subscribed)
